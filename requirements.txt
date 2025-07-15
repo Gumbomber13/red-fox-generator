@@ -7,3 +7,4 @@ google-auth-oauthlib>=0.5.0
 requests>=2.25.0
 flask>=2.0.0
 python-dotenv>=1.0.0
+flask-cors
