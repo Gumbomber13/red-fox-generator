@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Red Fox Story Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f8fa;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .quiz {
+      background: white;
+      padding: 2em;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .question {
+      display: none;
+      flex-direction: column;
+      gap: 1em;
+    }
+    .question.active {
+      display: flex;
+    }
+    input[type="text"] {
+      padding: 0.6em;
+      font-size: 1em;
+      width: 100%;
+    }
+    input[type="radio"] {
+      margin-right: 0.5em;
+    }
+    button {
+      padding: 0.6em;
+      font-size: 1em;
+      margin-top: 1em;
+    }
+    h1 {
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+    }
+    small {
+      color: #666;
+      font-size: 0.85em;
+      margin-bottom: 0.5em;
+    }
+    .option-block {
+      display: block;
+      border: 2px solid #ccc;
+      padding: 1em;
+      margin: 0.5em 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+    .option-block input[type="radio"] {
+      display: none;
+    }
+    .option-block span {
+      display: block;
+      font-weight: normal;
+    }
+    .option-block:has(input[type="radio"]:checked) {
+      border-color: #4a90e2;
+      background-color: #e8f0ff;
+    }
+    .option-block input[type="radio"]:checked + span {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz">
+    <h1>🦊 Red Fox Story Quiz</h1>
+    <form id="quizForm">
+      <div class="question active">
+        <label>1. What kind of story do you want to tell?</label>
+        <small>Example: Power Fantasy</small>
+        <label class="option-block">
+          <input type="radio" name="story_type" value="Power Fantasy" checked required>
+          <span>Power Fantasy</span>
+        </label>
+        <button type="button" onclick="next()">Next</button>
+      </div>
+      <div class="question">
+        <label>2. What happens to the red fox?</label>
+        <small>Choose Humiliation (e.g., laughed at) or Offering (e.g., gives a flower)</small>
+        <label class="option-block">
+          <input type="radio" name="humiliation_type" value="A" required>
+          <span>A. Humiliation</span>
+        </label>
+        <label class="option-block">
+          <input type="radio" name="humiliation_type" value="B">
+          <span>B. Offering</span>
+        </label>
+        <button type="button" onclick="next()">Next</button>
+      </div>
+      <div class="question">
+        <label>3. Who is the red fox offering to?</label>
+        <small>Example: A girl fox, or a group he wants to be friends with (like crows)</small>
+        <input type="text" name="offering_who">
+        <button type="button" onclick="next()">Next</button>
+      </div>
+      <div class="question">
+        <label>4. What is the offering?</label>
+        <small>Example: A flower, a piece of jewelry, or holding hands</small>
+        <input type="text" name="offering_what">
+        <button type="button" onclick="next()">Next</button>
+      </div>
+      <div class="question">
+        <label>5. How is the red fox humiliated?</label>
+        <small>Example: Laughed at by a group of crows, cheated on, ignored publicly</small>
+        <input type="text" name="humiliation">
+        <button type="button" onclick="next()">Next</button>
+      </div>
+      <div class="question">
+        <label>6. What does the fox find?</label>
+        <small>Example: A glowing relic, blueprint to a jetpack, a martial arts master floating on a stone</small>
+        <input type="text" name="find" required>
+        <button type="button" onclick="next()">Next</button>
+      </div>
+      <div class="question">
+        <label>7. What does he do with what he finds?</label>
+        <small>Choose whether he trains (with a master) or builds (something powerful)</small>
+        <label class="option-block">
+          <input type="radio" name="do_with_find" value="A" required>
+          <span>A. Trains</span>
+        </label>
+        <label class="option-block">
+          <input type="radio" name="do_with_find" value="B">
+          <span>B. Builds</span>
+        </label>
+        <button type="button" onclick="next()">Next</button>
+      </div>
+      <div class="question">
+        <label>8. What crime does the villain commit?</label>
+        <small>Example: Stealing from the village, hurting someone the fox loves</small>
+        <input type="text" name="villain_crime" required>
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+    <div id="thanks" style="display:none;">
+      <h2>Thanks! Your red fox story is being created...</h2>
+    </div>
+  </div>
+
+  <script>
+    const steps = document.querySelectorAll('.question');
+    let current = 0;
+
+    // Define question flow based on branching logic
+    const questionFlow = {
+      0: 1, // Q1 → Q2
+      1: function() {
+        // Q2 branching logic
+        const humiliationType = document.querySelector('input[name="humiliation_type"]:checked')?.value;
+        if (humiliationType === 'A') {
+          // Humiliation path: skip Q3, Q4, go to Q5
+          disableOfferingQuestions();
+          return 4; // Index for Q5 (0-based: Q5 is index 4)
+        } else if (humiliationType === 'B') {
+          // Offering path: skip Q5, go to Q3
+          disableHumiliationQuestions();
+          return 2; // Index for Q3 (0-based: Q3 is index 2)
+        }
+        return 2; // Default to Q3
+      },
+      2: 3, // Q3 → Q4
+      3: 5, // Q4 → Q6 (skip Q5)
+      4: 5, // Q5 → Q6
+      5: 6, // Q6 → Q7
+      6: 7, // Q7 → Q8
+    };
+
+    function disableOfferingQuestions() {
+      // Disable and hide Q3 and Q4 inputs
+      const q3Input = document.querySelector('input[name="offering_who"]');
+      const q4Input = document.querySelector('input[name="offering_what"]');
+      
+      if (q3Input) {
+        q3Input.disabled = true;
+        q3Input.value = ''; // Clear any existing value
+      }
+      if (q4Input) {
+        q4Input.disabled = true;
+        q4Input.value = ''; // Clear any existing value
+      }
+    }
+
+    function disableHumiliationQuestions() {
+      // Disable and hide Q5 input
+      const q5Input = document.querySelector('input[name="humiliation"]');
+      
+      if (q5Input) {
+        q5Input.disabled = true;
+        q5Input.value = ''; // Clear any existing value
+      }
+    }
+
+    function next() {
+      // Validate current question if needed
+      const currentQuestion = steps[current];
+      const requiredInputs = currentQuestion.querySelectorAll('input[required]');
+      
+      for (let input of requiredInputs) {
+        if (!input.disabled && !input.value && input.type !== 'radio') {
+          alert('Please fill in all required fields.');
+          return;
+        }
+        if (input.type === 'radio') {
+          const radioGroup = currentQuestion.querySelectorAll(`input[name="${input.name}"]`);
+          const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+          if (!isChecked) {
+            alert('Please select an option.');
+            return;
+          }
+        }
+      }
+
+      // Remove active class from current question
+      steps[current].classList.remove('active');
+      
+      // Determine next question based on flow
+      const nextStep = questionFlow[current];
+      if (typeof nextStep === 'function') {
+        current = nextStep();
+      } else {
+        current = nextStep;
+      }
+      
+      // Add active class to next question
+      steps[current].classList.add('active');
+    }
+
+    document.getElementById('quizForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      // Get form data but exclude disabled fields
+      const formData = new FormData(this);
+      const data = {};
+      
+      // Only include enabled fields in submission
+      for (let [key, value] of formData.entries()) {
+        const input = this.querySelector(`input[name="${key}"]`);
+        if (input && !input.disabled) {
+          data[key] = value;
+        }
+      }
+
+      // Set default empty values for skipped questions to match backend expectations
+      if (!data.offering_who) data.offering_who = '';
+      if (!data.offering_what) data.offering_what = '';
+      if (!data.humiliation) data.humiliation = '';
+
+      try {
+        const res = await fetch('http://localhost:5000/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          this.style.display = 'none';
+          document.getElementById('thanks').style.display = 'block';
+        } else {
+          alert("Something went wrong! Please try again.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Couldn't connect to the server. Make sure it's running.");
+      }
+    });
+  </script>
+</body>
+</html>

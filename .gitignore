@@ -1,0 +1,34 @@
+# Environment and secrets
+.env
+.env.local
+.env.production
+
+# OAuth and API credentials
+credentials.json
+token.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deployment
+.vercel
+.netlify
