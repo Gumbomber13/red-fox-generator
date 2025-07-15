@@ -57,17 +57,20 @@ else:
 # Google Sheets setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 creds = None
-if os.path.exists('token.json'):
-    creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-if not creds or not creds.valid:
-    if creds and creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-    else:
-        flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-        creds = flow.run_local_server(port=8080)
-    with open('token.json', 'w') as token:
-        token.write(creds.to_json())
-sheets_service = build('sheets', 'v4', credentials=creds)
+sheets_service = None
+
+if os.getenv("USE_GOOGLE_AUTH") == "true":
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_console()
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+    sheets_service = build('sheets', 'v4', credentials=creds)
 
 def generate_sheet_title():
     return "Story_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
