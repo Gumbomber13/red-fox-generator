@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import json
 from Animalchannel import process_story_generation
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/submit', methods=['POST'])
 def submit():
