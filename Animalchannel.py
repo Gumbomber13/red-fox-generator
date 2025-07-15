@@ -4,10 +4,8 @@ import time
 import requests
 import asyncio
 import datetime
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 from openai import OpenAI
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -56,20 +54,13 @@ else:
 
 # Google Sheets setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-creds = None
+SERVICE_ACCOUNT_FILE = '/etc/secrets/service-account.json'
 sheets_service = None
 
 if os.getenv("USE_GOOGLE_AUTH") == "true":
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('/etc/secrets/credentials.json', SCOPES)
-            creds = flow.run_console()
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+    creds = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
     sheets_service = build('sheets', 'v4', credentials=creds)
 
 def generate_sheet_title():
