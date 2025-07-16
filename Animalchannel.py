@@ -70,32 +70,47 @@ def escape_sheet_title(title):
     return "'" + title.replace("'", "''") + "'"
 
 def get_in_progress_idea():
-    result = sheets_service.spreadsheets().values().get(
-        spreadsheetId=GOOGLE_SHEET_ID, range='Sheet1!A:C').execute()
-    values = result.get('values', [])
-    for row in values[1:]:
-        if len(row) > 2 and row[2] == 'In Progress':
-            return row[0]
-    return None
+    if sheets_service is None:
+        print("⚠️ Warning: Google Sheets service not available. Cannot check for in-progress ideas.")
+        return None
+        
+    try:
+        result = sheets_service.spreadsheets().values().get(
+            spreadsheetId=GOOGLE_SHEET_ID, range='Sheet1!A:C').execute()
+        values = result.get('values', [])
+        for row in values[1:]:
+            if len(row) > 2 and row[2] == 'In Progress':
+                return row[0]
+        return None
+    except Exception as e:
+        print(f"⚠️ Warning: Failed to get in-progress idea: {str(e)}")
+        return None
 
 def create_sheet(title, original_title=None):
-    body = {'requests': [{'addSheet': {'properties': {'title': title}}}]}
-    sheets_service.spreadsheets().batchUpdate(spreadsheetId=GOOGLE_SHEET_ID, body=body).execute()
-    escaped_title = escape_sheet_title(title)
-    
-    # Store original title in first row if provided
-    if original_title:
-        sheets_service.spreadsheets().values().update(
-            spreadsheetId=GOOGLE_SHEET_ID,
-            range=f"{escaped_title}!A1",
-            valueInputOption='RAW',
-            body={'values': [[original_title]]}
-        ).execute()
-    
-    for i in range(1, 21):
-        sheets_service.spreadsheets().values().update(
-            spreadsheetId=GOOGLE_SHEET_ID, range=f'{escaped_title}!D{i+1}',
-            valueInputOption='RAW', body={'values': [[str(i)]]}).execute()
+    if sheets_service is None:
+        print(f"⚠️ Warning: Google Sheets service not available. Skipping sheet creation for '{title}'")
+        return
+        
+    try:
+        body = {'requests': [{'addSheet': {'properties': {'title': title}}}]}
+        sheets_service.spreadsheets().batchUpdate(spreadsheetId=GOOGLE_SHEET_ID, body=body).execute()
+        escaped_title = escape_sheet_title(title)
+        
+        # Store original title in first row if provided
+        if original_title:
+            sheets_service.spreadsheets().values().update(
+                spreadsheetId=GOOGLE_SHEET_ID,
+                range=f"{escaped_title}!A1",
+                valueInputOption='RAW',
+                body={'values': [[original_title]]}
+            ).execute()
+        
+        for i in range(1, 21):
+            sheets_service.spreadsheets().values().update(
+                spreadsheetId=GOOGLE_SHEET_ID, range=f'{escaped_title}!D{i+1}',
+                valueInputOption='RAW', body={'values': [[str(i)]]}).execute()
+    except Exception as e:
+        print(f"⚠️ Warning: Failed to create sheet '{title}': {str(e)}")
 
 
 
@@ -297,26 +312,33 @@ def process_image(classifier, prompt, sheet_title):
             update_sheet(sheet_title, classifier, 'Prompt', prompt)
 
 def update_sheet(sheet_title, classifier, column, value):
-    # Find row for classifier
-    # Simplified: assume row = int(classifier) +1
-    row = int(classifier) + 1
-    
-    # Map column names to letters
-    column_map = {
-        'Prompt': 'A',
-        'Picture Generation': 'B', 
-        'Video Generation': 'C'
-    }
-    column_letter = column_map.get(column, column)
-    
-    # Escape sheet title using consistent function
-    escaped_title = escape_sheet_title(sheet_title)
-    
-    range_str = f'{escaped_title}!{column_letter}{row}'
-    
-    sheets_service.spreadsheets().values().update(
-        spreadsheetId=GOOGLE_SHEET_ID, range=range_str,
-        valueInputOption='RAW', body={'values': [[value]]}).execute()
+    if sheets_service is None:
+        print(f"⚠️ Warning: Google Sheets service not available. Skipping update for {column} in row {classifier}")
+        return
+        
+    try:
+        # Find row for classifier
+        # Simplified: assume row = int(classifier) +1
+        row = int(classifier) + 1
+        
+        # Map column names to letters
+        column_map = {
+            'Prompt': 'A',
+            'Picture Generation': 'B', 
+            'Video Generation': 'C'
+        }
+        column_letter = column_map.get(column, column)
+        
+        # Escape sheet title using consistent function
+        escaped_title = escape_sheet_title(sheet_title)
+        
+        range_str = f'{escaped_title}!{column_letter}{row}'
+        
+        sheets_service.spreadsheets().values().update(
+            spreadsheetId=GOOGLE_SHEET_ID, range=range_str,
+            valueInputOption='RAW', body={'values': [[value]]}).execute()
+    except Exception as e:
+        print(f"⚠️ Warning: Failed to update sheet '{sheet_title}', column '{column}': {str(e)}")
 
 async def choose_video_model_async():
     keyboard = [[InlineKeyboardButton("Kling", callback_data='kling'), InlineKeyboardButton("Hailuo", callback_data='hailuo')]]
