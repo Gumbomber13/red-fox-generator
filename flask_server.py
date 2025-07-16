@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
+import traceback
 from Animalchannel import process_story_generation
 
 app = Flask(__name__)
@@ -32,7 +33,16 @@ def submit():
         return jsonify({"status": "ok", "message": "Story generation started successfully"})
         
     except Exception as e:
-        print(f"Error processing request: {e}")
+        # Print the full traceback to console for debugging
+        print("=" * 80)
+        print("ERROR IN /submit ENDPOINT:")
+        print("=" * 80)
+        print(f"Exception Type: {type(e).__name__}")
+        print(f"Exception Message: {str(e)}")
+        print("-" * 80)
+        print("Full Traceback:")
+        traceback.print_exc()
+        print("=" * 80)
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/health', methods=['GET'])
