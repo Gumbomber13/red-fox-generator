@@ -187,7 +187,23 @@ def generate_story(system_prompt):
         response_format={"type": "json_object"}
     )
     scenes = json.loads(response.choices[0].message.content)
-    return [scenes[f"Scene{i}"] for i in range(1, 21)]
+    
+    # Print the full scenes dictionary for debugging
+    print("=== SCENES DICTIONARY FROM OPENAI ===")
+    print(json.dumps(scenes, indent=2))
+    print("=" * 40)
+    
+    # Build the list with fallbacks for missing scenes
+    result = []
+    for i in range(1, 21):
+        scene_key = f"Scene{i}"
+        if scene_key in scenes:
+            result.append(scenes[scene_key])
+        else:
+            print(f"⚠️ Warning: {scene_key} missing from API response")
+            result.append(f"(Scene{i} missing)")
+    
+    return result
 
 def edit_scenes(scenes):
     """Return scenes as-is (automated version, no manual editing)"""
