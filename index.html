@@ -76,6 +76,144 @@
     .option-block input[type="radio"]:checked + span {
       font-weight: bold;
     }
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 2em;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #4a90e2;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1em;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #imageViewer {
+      display: none;
+    }
+    #progressBar {
+      background: #f0f0f0;
+      border-radius: 10px;
+      padding: 3px;
+      margin: 1em 0;
+      position: relative;
+    }
+    #progressFill {
+      background: #4a90e2;
+      height: 20px;
+      border-radius: 7px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    #progressText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.9em;
+      font-weight: bold;
+      color: #333;
+    }
+    #imageGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5em;
+      margin-top: 2em;
+    }
+    .image-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+      padding: 1em;
+      text-align: center;
+      position: relative;
+    }
+    .image-item.loading {
+      background: #f0f0f0;
+      color: #666;
+    }
+    .image-item.completed {
+      background: #f9f9f9;
+    }
+    .image-item img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .image-item .scene-number {
+      font-weight: bold;
+      margin-bottom: 0.5em;
+      color: #333;
+    }
+    .image-item .loading-spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #4a90e2;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 1em auto;
+    }
+    #scenesEditor {
+      display: none;
+    }
+    .scenes-grid {
+      display: grid;
+      gap: 1.5em;
+      margin-top: 1.5em;
+    }
+    .scene-item {
+      border: 1px solid #ddd;
+      padding: 1em;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    .scene-item label {
+      display: block;
+      margin-bottom: 0.5em;
+      color: #333;
+      font-size: 0.9em;
+    }
+    .scene-item textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.6em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.95em;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .continue-btn {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      padding: 1em 2em;
+      border-radius: 6px;
+      font-size: 1.1em;
+      cursor: pointer;
+      margin-top: 2em;
+      width: 100%;
+    }
+    .continue-btn:hover {
+      background: #357abd;
+    }
+    @media (max-width: 600px) {
+      body {
+        height: auto;
+        padding: 1em;
+      }
+      .quiz {
+        margin: 1em 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -150,6 +288,28 @@
     </form>
     <div id="thanks" style="display:none;">
       <h2>Thanks! Your red fox story is being created...</h2>
+    </div>
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Generating your story scenes...</p>
+    </div>
+    <div id="imageViewer" style="display:none;">
+      <h2>Your Red Fox Story</h2>
+      <div id="progressBar">
+        <div id="progressFill"></div>
+        <span id="progressText">Generating images: 0/20</span>
+      </div>
+      <div id="imageGrid">
+        <!-- Images will be dynamically inserted here -->
+      </div>
+    </div>
+    <div id="scenesEditor">
+      <h2>Edit Your Story Scenes</h2>
+      <p>Review and edit each scene below. When you're happy with all scenes, click Continue.</p>
+      <div class="scenes-grid" id="scenesGrid">
+        <!-- Scenes will be dynamically inserted here -->
+      </div>
+      <button class="continue-btn" onclick="continueWithScenes()">Approve Scenes</button>
     </div>
   </div>
 
@@ -241,6 +401,185 @@
       steps[current].classList.add('active');
     }
 
+    let generatedScenes = {};
+    let originalAnswers = {};
+
+    function displayScenes(scenes) {
+      const scenesGrid = document.getElementById('scenesGrid');
+      scenesGrid.innerHTML = '';
+      
+      for (let i = 1; i <= 20; i++) {
+        const sceneKey = `Scene${i}`;
+        const sceneText = scenes[sceneKey] || `(Scene ${i} missing)`;
+        
+        const sceneItem = document.createElement('div');
+        sceneItem.className = 'scene-item';
+        sceneItem.innerHTML = `
+          <label for="scene${i}">Scene ${i}</label>
+          <textarea id="scene${i}" name="scene${i}">${sceneText}</textarea>
+        `;
+        scenesGrid.appendChild(sceneItem);
+      }
+    }
+
+    async function continueWithScenes() {
+      // Collect all scene values from textareas
+      const scenes = {};
+      for (let i = 1; i <= 20; i++) {
+        const textarea = document.getElementById(`scene${i}`);
+        if (textarea) {
+          scenes[`Scene${i}`] = textarea.value;
+        }
+      }
+      
+      // Hide scenes editor and show loading
+      document.getElementById('scenesEditor').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      
+      try {
+        const res = await fetch('https://red-fox-generator.onrender.com/approve_scenes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scenes: scenes,
+            answers: originalAnswers
+          })
+        });
+
+        if (res.ok) {
+          const response = await res.json();
+          
+          // Hide loading and show image viewer
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('imageViewer').style.display = 'block';
+          
+          // Initialize image grid
+          initializeImageGrid();
+          
+          // Start listening for image events
+          startImageEventStream(response.story_id);
+        } else {
+          alert("Something went wrong! Please try again.");
+          // Show scenes editor again
+          document.getElementById('scenesEditor').style.display = 'block';
+          document.getElementById('loading').style.display = 'none';
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Couldn't connect to the server. Make sure it's running.");
+        // Show scenes editor again
+        document.getElementById('scenesEditor').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function initializeImageGrid() {
+      const imageGrid = document.getElementById('imageGrid');
+      imageGrid.innerHTML = '';
+      
+      // Create 20 image slots
+      for (let i = 1; i <= 20; i++) {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item loading';
+        imageItem.id = `image-${i}`;
+        imageItem.innerHTML = `
+          <div class="scene-number">Scene ${i}</div>
+          <div class="loading-spinner"></div>
+          <div class="status">Generating...</div>
+        `;
+        imageGrid.appendChild(imageItem);
+      }
+    }
+
+    let eventSourceRetryCount = 0;
+    const maxRetries = 3;
+
+    function startImageEventStream(storyId) {
+      const eventSource = new EventSource(`https://red-fox-generator.onrender.com/stream?channel=${storyId}`);
+      
+      eventSource.addEventListener('image_ready', function(e) {
+        try {
+          const data = JSON.parse(e.data);
+          displayImage(data.scene_number, data.image_url);
+          updateProgress(data.completed_scenes, data.total_scenes);
+          eventSourceRetryCount = 0; // Reset retry count on success
+        } catch (error) {
+          console.error('Error parsing image_ready event:', error);
+        }
+      });
+      
+      eventSource.addEventListener('story_complete', function(e) {
+        console.log('Story generation completed');
+        eventSource.close();
+        showCompletionMessage();
+      });
+      
+      eventSource.addEventListener('story_error', function(e) {
+        try {
+          const data = JSON.parse(e.data);
+          console.error('Story generation error:', data.error);
+          eventSource.close();
+          showErrorMessage('Story generation failed: ' + data.error);
+        } catch (error) {
+          console.error('Error parsing story_error event:', error);
+          eventSource.close();
+          showErrorMessage('Story generation failed due to an unknown error.');
+        }
+      });
+      
+      eventSource.onerror = function(e) {
+        console.error('EventSource error:', e);
+        eventSource.close();
+        
+        if (eventSourceRetryCount < maxRetries) {
+          eventSourceRetryCount++;
+          console.log(`Retrying EventSource connection (${eventSourceRetryCount}/${maxRetries})...`);
+          setTimeout(() => startImageEventStream(storyId), 3000); // Retry after 3 seconds
+        } else {
+          showErrorMessage('Lost connection to server. Please refresh the page and try again.');
+        }
+      };
+    }
+
+    function displayImage(sceneNumber, imageUrl) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        imageItem.className = 'image-item completed';
+        imageItem.innerHTML = `
+          <div class="scene-number">Scene ${sceneNumber}</div>
+          <img src="${imageUrl}" alt="Scene ${sceneNumber}" onclick="enlargeImage('${imageUrl}')">
+        `;
+      }
+    }
+
+    function updateProgress(completed, total) {
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      
+      const percentage = (completed / total) * 100;
+      progressFill.style.width = `${percentage}%`;
+      progressText.textContent = `Generating images: ${completed}/${total}`;
+    }
+
+    function enlargeImage(imageUrl) {
+      // Simple image enlargement (could be enhanced with a modal)
+      window.open(imageUrl, '_blank');
+    }
+
+    function showCompletionMessage() {
+      const progressText = document.getElementById('progressText');
+      progressText.textContent = 'Story generation completed! 🎉';
+      progressText.style.color = '#4a90e2';
+      progressText.style.fontWeight = 'bold';
+    }
+
+    function showErrorMessage(message) {
+      const progressText = document.getElementById('progressText');
+      progressText.textContent = message;
+      progressText.style.color = '#d32f2f';
+      progressText.style.fontWeight = 'bold';
+    }
+
     document.getElementById('quizForm').addEventListener('submit', async function (e) {
       e.preventDefault();
 
@@ -256,10 +595,18 @@
         }
       }
 
-      // Set default empty values for skipped abquestions to match backend expectations
+      // Set default empty values for skipped questions to match backend expectations
       if (!data.offering_who) data.offering_who = '';
       if (!data.offering_what) data.offering_what = '';
       if (!data.humiliation) data.humiliation = '';
+
+      // Store original answers for later use
+      originalAnswers = data;
+
+      // Hide form and show loading
+      this.style.display = 'none';
+      document.getElementById('thanks').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
 
       try {
         const res = await fetch('https://red-fox-generator.onrender.com/submit', {
@@ -269,14 +616,29 @@
         });
 
         if (res.ok) {
-          this.style.display = 'none';
-          document.getElementById('thanks').style.display = 'block';
+          const response = await res.json();
+          
+          // Store generated scenes and show scenes editor
+          generatedScenes = response;
+          
+          // Hide loading and show scenes editor
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('scenesEditor').style.display = 'block';
+          
+          // Display the scenes
+          displayScenes(response);
         } else {
           alert("Something went wrong! Please try again.");
+          // Show form again
+          this.style.display = 'block';
+          document.getElementById('loading').style.display = 'none';
         }
       } catch (err) {
         console.error(err);
         alert("Couldn't connect to the server. Make sure it's running.");
+        // Show form again
+        this.style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
       }
     });
   </script>

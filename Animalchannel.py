@@ -300,12 +300,22 @@ def reject_fix(prompt):
     print(f"Retrying with original prompt: {prompt}")
     return prompt
 
-def process_image(classifier, prompt, sheet_title):
+def process_image(classifier, prompt, sheet_title, story_id=None):
     while True:
         img_data = generate_image(prompt)
         url = upload_image(img_data)
         if telegram_approve(url, prompt, classifier):
             update_sheet(sheet_title, classifier, 'Picture Generation', url)
+            
+            # Emit image event if story_id is provided
+            if story_id:
+                # Import here to avoid circular import
+                try:
+                    from flask_server import emit_image_event
+                    emit_image_event(story_id, int(classifier), url, "completed")
+                except ImportError:
+                    print(f"⚠️ Warning: Could not emit image event for story {story_id}")
+            
             return url
         else:
             prompt = reject_fix(prompt)
@@ -385,7 +395,7 @@ def process_video(classifier, image_url, sheet_title):
             # Reject, loop for new prompt
             pass
 
-def process_story_generation(answers):
+def process_story_generation(answers, story_id=None):
     """Process story generation with provided answers from Flask server"""
     system_prompt = build_system_prompt(answers)
     scenes = generate_story(system_prompt)
@@ -403,7 +413,38 @@ def process_story_generation(answers):
     images = []
     for i, prompt in enumerate(std_prompts, 1):
         update_sheet(idea, str(i), 'Prompt', prompt)
-        img_url = process_image(str(i), prompt, idea)
+        img_url = process_image(str(i), prompt, idea, story_id)
+        images.append(img_url)
+
+    for i, img_url in enumerate(images, 1):
+        process_video(str(i), img_url, idea)
+
+def process_story_generation_with_scenes(approved_scenes, original_answers, story_id=None):
+    """Process story generation with pre-approved scenes from frontend"""
+    # Convert approved scenes dict to list format
+    scenes = []
+    for i in range(1, 21):
+        scene_key = f"Scene{i}"
+        if scene_key in approved_scenes:
+            scenes.append(approved_scenes[scene_key])
+        else:
+            scenes.append(f"(Scene {i} missing)")
+    
+    scenes = edit_scenes(scenes)
+    prompts = create_prompts(scenes)
+    std_prompts = standardize_prompts(prompts)
+    
+    # Create new sanitized sheet for this story
+    idea = generate_sheet_title()
+    original_title = f"{original_answers.get('story_type', 'Power Fantasy')} Story"
+    if original_answers.get('find'):
+        original_title += f" - Fox finds {original_answers['find']}"
+    create_sheet(idea, original_title)
+
+    images = []
+    for i, prompt in enumerate(std_prompts, 1):
+        update_sheet(idea, str(i), 'Prompt', prompt)
+        img_url = process_image(str(i), prompt, idea, story_id)
         images.append(img_url)
 
     for i, img_url in enumerate(images, 1):
