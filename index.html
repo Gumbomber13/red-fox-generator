@@ -408,9 +408,17 @@
       const scenesGrid = document.getElementById('scenesGrid');
       scenesGrid.innerHTML = '';
       
+      // Debug logging to understand what's happening
+      console.log('=== DISPLAY SCENES DEBUG ===');
+      console.log('Scenes object received:', scenes);
+      console.log('Scene keys:', Object.keys(scenes));
+      console.log('Total scenes:', Object.keys(scenes).length);
+      
       for (let i = 1; i <= 20; i++) {
         const sceneKey = `Scene${i}`;
         const sceneText = scenes[sceneKey] || `(Scene ${i} missing)`;
+        
+        console.log(`Processing ${sceneKey}: ${sceneText ? 'EXISTS' : 'MISSING'}`);
         
         const sceneItem = document.createElement('div');
         sceneItem.className = 'scene-item';
@@ -420,6 +428,9 @@
         `;
         scenesGrid.appendChild(sceneItem);
       }
+      
+      console.log('=== DISPLAY SCENES COMPLETE ===');
+      console.log('Total scene items created:', scenesGrid.children.length);
     }
 
     async function continueWithScenes() {
@@ -617,6 +628,12 @@
 
         if (res.ok) {
           const response = await res.json();
+          
+          // Debug logging to understand what the backend is returning
+          console.log('=== BACKEND RESPONSE DEBUG ===');
+          console.log('Full response:', response);
+          console.log('Response keys:', Object.keys(response));
+          console.log('Response length:', Object.keys(response).length);
           
           // Store generated scenes and show scenes editor
           generatedScenes = response;

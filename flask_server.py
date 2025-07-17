@@ -17,7 +17,7 @@ app.config["REDIS_URL"] = redis_url
 try:
     app.register_blueprint(sse, url_prefix='/stream')
 except Exception as e:
-    print(f"⚠️ Warning: Flask-SSE setup failed: {e}")
+    print(f"Warning: Flask-SSE setup failed: {e}")
     print("SSE functionality will not be available")
 
 # Store active story sessions
@@ -43,7 +43,7 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
                 "total_scenes": active_stories[story_id]['total_scenes']
             }, type='image_ready', channel=story_id)
         except Exception as e:
-            print(f"⚠️ Warning: Could not emit SSE event: {e}")
+            print(f"Warning: Could not emit SSE event: {e}")
             print(f"Scene {scene_number} image ready: {image_url}")
 
 @app.route('/submit', methods=['POST'])
@@ -132,7 +132,7 @@ def approve_scenes():
                     try:
                         sse.publish({"status": "completed"}, type='story_complete', channel=story_id)
                     except Exception as sse_error:
-                        print(f"⚠️ Warning: Could not emit completion event: {sse_error}")
+                        print(f"Warning: Could not emit completion event: {sse_error}")
             except Exception as e:
                 # Mark as failed
                 if story_id in active_stories:
@@ -140,7 +140,7 @@ def approve_scenes():
                     try:
                         sse.publish({"status": "failed", "error": str(e)}, type='story_error', channel=story_id)
                     except Exception as sse_error:
-                        print(f"⚠️ Warning: Could not emit error event: {sse_error}")
+                        print(f"Warning: Could not emit error event: {sse_error}")
                         print(f"Story generation failed: {e}")
         
         thread = threading.Thread(target=generate_story_async)

@@ -37,20 +37,20 @@ required_vars = {
 
 for var_name, var_value in required_vars.items():
     if not var_value:
-        print(f"⚠️ Warning: {var_name} environment variable is not set")
+        print(f"Warning: {var_name} environment variable is not set")
 
 # Initialize clients only if API keys are available
 if OPENAI_API_KEY:
     openai_client = OpenAI(api_key=OPENAI_API_KEY)
 else:
     openai_client = None
-    print("⚠️ OpenAI client not initialized - OPENAI_API_KEY missing")
+    print("Warning: OpenAI client not initialized - OPENAI_API_KEY missing")
 
 if TELEGRAM_TOKEN:
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
 else:
     bot = None
-    print("⚠️ Telegram bot not initialized - TELEGRAM_TOKEN missing")
+    print("Warning: Telegram bot not initialized - TELEGRAM_TOKEN missing")
 
 # Google Sheets setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -71,7 +71,7 @@ def escape_sheet_title(title):
 
 def get_in_progress_idea():
     if sheets_service is None:
-        print("⚠️ Warning: Google Sheets service not available. Cannot check for in-progress ideas.")
+        print("Warning: Google Sheets service not available. Cannot check for in-progress ideas.")
         return None
         
     try:
@@ -83,12 +83,12 @@ def get_in_progress_idea():
                 return row[0]
         return None
     except Exception as e:
-        print(f"⚠️ Warning: Failed to get in-progress idea: {str(e)}")
+        print(f"Warning: Failed to get in-progress idea: {str(e)}")
         return None
 
 def create_sheet(title, original_title=None):
     if sheets_service is None:
-        print(f"⚠️ Warning: Google Sheets service not available. Skipping sheet creation for '{title}'")
+        print(f"Warning: Google Sheets service not available. Skipping sheet creation for '{title}'")
         return
         
     try:
@@ -110,7 +110,7 @@ def create_sheet(title, original_title=None):
                 spreadsheetId=GOOGLE_SHEET_ID, range=f'{escaped_title}!D{i+1}',
                 valueInputOption='RAW', body={'values': [[str(i)]]}).execute()
     except Exception as e:
-        print(f"⚠️ Warning: Failed to create sheet '{title}': {str(e)}")
+        print(f"Warning: Failed to create sheet '{title}': {str(e)}")
 
 
 
@@ -123,7 +123,7 @@ The red fox begins each story powerless or humiliated. Through grit, invention, 
 
 CRITICAL REQUIREMENT: Each story must be exactly 20 scenes, with each scene being a self-contained visual moment. You must provide all 20 scenes numbered Scene1, Scene2, Scene3, ... Scene20 in your JSON response. Do not skip any scene numbers.
 
-🧱 Story Structure (20 Scenes)
+Story Structure (20 Scenes)
 1. Underdog Setup (Scenes 1–3)
 The red fox is weak, dirty and poor. Each scene shows a different hardship or form of rejection in a visually expressive environment.
 Scene 1. Scene of Humiliation - The Red Fox is humiliated in some way he is either rejected by a pretty and wealthy girl fox, or he is laughed at by a group of another type of animal While he stands devastated. 
@@ -139,22 +139,29 @@ Scene 6. The fox reaches for the magical object or begins training with his mast
 3. Failed Attempt (Scenes 7–8)
 The fox tries to act or fight back — and fails. He may build something that doesn't work or attempt something too early.
 Scene 7. The fox has some sort of mishap, he either electrecutes himself, uses the magic item on himself, or slips while trying to learn his new skills. While people in the background laugh at him
+Scene 8. The fox lies defeated on the ground, bruised and embarrassed, looking up at the sky with determination growing in his eyes
 4. Montage: Training / Building (Scenes 9–10)
 He commits to change. These scenes show him building, lifting, planning, improving, or imagining.
-Scenes 9 & 10: More disciplined training or building. 
-5. Power Reveal (Scenes 13–14)
+Scene 9. More disciplined training or building - first session
+Scene 10. More disciplined training or building - advanced session
+5. Transformation (Scenes 11–12)
+The fox undergoes a dramatic change, becoming stronger, more capable, and ready to face his challenges.
+Scene 11. The fox undergoing transformation - becoming stronger, more confident, cleaner, and more powerful
+Scene 12. The fox's transformation is complete - he stands tall, confident, and ready to face the world
+6. Power Reveal (Scenes 13–14)
 He unveils his transformation — mech, wings, elemental form, or super reflexes — and shocks the world around him.
 Scene 13: His new power his finished or revealed
 Scene 14: His power is displayed and others look in awe
-6. Test or Consequence (Scenes 15–17)
+7. Test or Consequence (Scenes 15–20)
 The new power causes unexpected damage or a new challenge appears. These scenes increase the emotional complexity.
 Scene 15: Whoever rejected the red fox from earlier, is committing a crime and getting away with it
 Scene 16: The red fox beats up the criminal with his new power
 Scene 17: The police takes The criminal rejector away as he is crying (No fox in shot)
 Scene 18: Everyone cheers for the fox
-Scene 19: The fox walks down a street with sunglasses on and a really sexy woman while everyone is flashing pictures at him 
+Scene 19: The fox walks down a street with sunglasses on and a really sexy woman while everyone is flashing pictures at him
+Scene 20: The fox stands on a mountaintop or high building, looking out over the city with confidence and satisfaction, having completed his transformation from underdog to hero 
 
-📏 Scene Rules
+Scene Rules
 One single action per scene.
  Never show multiple actions in one scene. For example: if the red fox builds wings, that is one scene. If he tests them, that is a separate scene.
 
@@ -231,7 +238,7 @@ def generate_story(system_prompt):
                     missing_scenes.append(scene_key)
             
             if missing_scenes:
-                print(f"⚠️ WARNING: Missing scenes from OpenAI response: {missing_scenes}")
+                print(f"WARNING: Missing scenes from OpenAI response: {missing_scenes}")
                 if attempt < max_retries - 1:
                     print(f"Retrying due to missing scenes... (attempt {attempt + 1}/{max_retries})")
                     continue
@@ -245,14 +252,14 @@ def generate_story(system_prompt):
                 if scene_key in scenes:
                     result.append(scenes[scene_key])
                 else:
-                    print(f"⚠️ Warning: {scene_key} missing from API response")
+                    print(f"Warning: {scene_key} missing from API response")
                     result.append(f"(Scene{i} missing)")
             
             print(f"Final result list length: {len(result)}")
             return result
             
         except Exception as e:
-            print(f"⚠️ Error on attempt {attempt + 1}: {str(e)}")
+            print(f"Error on attempt {attempt + 1}: {str(e)}")
             if attempt < max_retries - 1:
                 print(f"Retrying... (attempt {attempt + 1}/{max_retries})")
                 continue
@@ -358,7 +365,7 @@ def process_image(classifier, prompt, sheet_title, story_id=None):
                     from flask_server import emit_image_event
                     emit_image_event(story_id, int(classifier), url, "completed")
                 except ImportError:
-                    print(f"⚠️ Warning: Could not emit image event for story {story_id}")
+                    print(f"Warning: Could not emit image event for story {story_id}")
             
             return url
         else:
@@ -367,7 +374,7 @@ def process_image(classifier, prompt, sheet_title, story_id=None):
 
 def update_sheet(sheet_title, classifier, column, value):
     if sheets_service is None:
-        print(f"⚠️ Warning: Google Sheets service not available. Skipping update for {column} in row {classifier}")
+        print(f"Warning: Google Sheets service not available. Skipping update for {column} in row {classifier}")
         return
         
     try:
@@ -392,7 +399,7 @@ def update_sheet(sheet_title, classifier, column, value):
             spreadsheetId=GOOGLE_SHEET_ID, range=range_str,
             valueInputOption='RAW', body={'values': [[value]]}).execute()
     except Exception as e:
-        print(f"⚠️ Warning: Failed to update sheet '{sheet_title}', column '{column}': {str(e)}")
+        print(f"Warning: Failed to update sheet '{sheet_title}', column '{column}': {str(e)}")
 
 async def choose_video_model_async():
     keyboard = [[InlineKeyboardButton("Kling", callback_data='kling'), InlineKeyboardButton("Hailuo", callback_data='hailuo')]]

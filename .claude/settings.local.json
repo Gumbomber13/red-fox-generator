@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pip --version)"
+      "Bash(pip --version)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(del test_scenes.html test_scene_generation.py)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
