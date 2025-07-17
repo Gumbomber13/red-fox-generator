@@ -172,9 +172,10 @@
     }
     .scene-item {
       border: 1px solid #ddd;
-      padding: 1em;
+      padding: 10px;
       border-radius: 8px;
       background: #f9f9f9;
+      margin-bottom: 15px;
     }
     .scene-item label {
       display: block;
@@ -184,12 +185,15 @@
     }
     .scene-item textarea {
       width: 100%;
-      min-height: 100px;
+      height: auto;
+      min-height: 60px;
+      max-height: 150px;
       padding: 0.6em;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 0.95em;
       resize: vertical;
+      overflow: hidden;
       font-family: inherit;
     }
     .continue-btn {
@@ -433,9 +437,23 @@
         sceneItem.className = 'scene-item';
         sceneItem.innerHTML = `
           <label for="scene${i}">Scene ${i}</label>
-          <textarea id="scene${i}" name="scene${i}" rows="3" style="height: 100px; resize: vertical;">${sceneText}</textarea>
+          <textarea id="scene${i}" name="scene${i}">${sceneText}</textarea>
         `;
         scenesGrid.appendChild(sceneItem);
+        
+        // Add auto-resize functionality
+        const textarea = document.getElementById(`scene${i}`);
+        if (textarea) {
+          // Set initial height based on content
+          textarea.style.height = 'auto';
+          textarea.style.height = `${textarea.scrollHeight}px`;
+          
+          // Add event listener for dynamic resizing
+          textarea.addEventListener('input', e => {
+            e.target.style.height = 'auto';
+            e.target.style.height = `${e.target.scrollHeight}px`;
+          });
+        }
       }
       
       console.log('=== DISPLAY SCENES COMPLETE ===');
