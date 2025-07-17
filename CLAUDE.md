@@ -147,10 +147,16 @@ Stories follow a strict 20-scene "Power Fantasy" format:
 
 ## Goals: When Completed move goals under completed
 
-Goals: 
-(No active goals - all goals completed)
+Goals:
 
 ###Completed
+### Textarea Fit Refinements (2025-07-17):
+✓ Update textarea CSS: Remove overflow: hidden; add overflow: auto; increase max-height: 200px; box-sizing: border-box; for better fit without cutoff
+✓ Update scene-item CSS: height: auto; min-height: auto; to expand with content
+✓ Enhance JS auto-resize: Add 'focus' listener besides 'input'; reset height on load
+✓ Verify: Simulate long text (5+ lines) in test; ensure no cutoff, scroll if exceeds max
+✓ Log entry: "### Textarea Fit Refinements (2025-07-17): [list changes]"
+
 ### Dynamic Textarea Improvements (2025-07-17):
 ✓ Update CSS: Add textarea { height: auto; min-height: 60px; max-height: 150px; resize: vertical; overflow: hidden; } to fit content dynamically without overflow
 ✓ Adjust scene div: Set .scene-item { padding: 10px; border-radius: 8px; background: #f9f9f9; margin-bottom: 15px; } for better containment
@@ -271,3 +277,11 @@ Goals:
 - **Initial Height Setting**: Implemented automatic height calculation on initial render for pre-filled content
 - **Removed Conflicting Styles**: Cleaned up inline styles that conflicted with new CSS-based approach
 - **All 5 Dynamic Textarea goals completed successfully** - Textareas now automatically fit content with proper constraints and no overflow issues
+
+### Textarea Fit Refinements (2025-07-17):
+- **Updated textarea CSS**: Removed overflow: hidden; added overflow: auto; increased max-height to 200px; added box-sizing: border-box for better content fitting without cutoff
+- **Updated scene-item CSS**: Added height: auto; min-height: auto; to allow containers to expand with content naturally
+- **Enhanced JS auto-resize**: Added 'focus' listener alongside 'input' listener; implemented resetHeight function that properly resets height on load
+- **Verification testing**: Created and tested long text scenarios (5+ lines) to ensure no cutoff occurs and scroll appears when content exceeds max-height
+- **Goal Management**: Successfully moved all 5 completed goals from active Goals section to Completed section in CLAUDE.md
+- **All 5 Textarea Fit Refinement goals completed successfully** - Textareas now properly handle long content with scrolling instead of cutoff

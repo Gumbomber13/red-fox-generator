@@ -176,6 +176,8 @@
       border-radius: 8px;
       background: #f9f9f9;
       margin-bottom: 15px;
+      height: auto;
+      min-height: auto;
     }
     .scene-item label {
       display: block;
@@ -187,13 +189,14 @@
       width: 100%;
       height: auto;
       min-height: 60px;
-      max-height: 150px;
+      max-height: 200px;
       padding: 0.6em;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 0.95em;
       resize: vertical;
-      overflow: hidden;
+      overflow: auto;
+      box-sizing: border-box;
       font-family: inherit;
     }
     .continue-btn {
@@ -444,15 +447,18 @@
         // Add auto-resize functionality
         const textarea = document.getElementById(`scene${i}`);
         if (textarea) {
-          // Set initial height based on content
-          textarea.style.height = 'auto';
-          textarea.style.height = `${textarea.scrollHeight}px`;
+          // Function to reset and calculate height
+          const resetHeight = () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+          };
           
-          // Add event listener for dynamic resizing
-          textarea.addEventListener('input', e => {
-            e.target.style.height = 'auto';
-            e.target.style.height = `${e.target.scrollHeight}px`;
-          });
+          // Set initial height based on content
+          resetHeight();
+          
+          // Add event listeners for dynamic resizing
+          textarea.addEventListener('input', resetHeight);
+          textarea.addEventListener('focus', resetHeight);
         }
       }
       
