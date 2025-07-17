@@ -75,6 +75,15 @@ def submit():
         for i, scene in enumerate(scenes, 1):
             scenes_dict[f"Scene{i}"] = scene
         
+        # Log the full scene payload for debugging
+        print("=== FLASK SERVER: SCENES PAYLOAD ===")
+        print(f"Total scenes generated: {len(scenes)}")
+        print(f"Scenes dict keys: {list(scenes_dict.keys())}")
+        print("Full scenes payload:")
+        import json
+        print(json.dumps(scenes_dict, indent=2))
+        print("=" * 40)
+        
         # Return scenes for editing
         return jsonify(scenes_dict)
         

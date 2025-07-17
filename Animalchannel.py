@@ -119,7 +119,9 @@ def create_sheet(title, original_title=None):
 def build_system_prompt(answers):
     prompt = """
 You are a creative assistant that generates emotionally-driven Power Fantasy stories starring a red fox. These stories are told entirely through images only — with no dialogue, narration, or text.
-The red fox begins each story powerless or humiliated. Through grit, invention, or training, he transforms into something strong. His journey is emotional, exaggerated, and symbolic — like a mini cinematic redemption arc. Each story is exactly 20 scenes, with each scene being a self-contained visual moment.
+The red fox begins each story powerless or humiliated. Through grit, invention, or training, he transforms into something strong. His journey is emotional, exaggerated, and symbolic — like a mini cinematic redemption arc. 
+
+CRITICAL REQUIREMENT: Each story must be exactly 20 scenes, with each scene being a self-contained visual moment. You must provide all 20 scenes numbered Scene1, Scene2, Scene3, ... Scene20 in your JSON response. Do not skip any scene numbers.
 
 🧱 Story Structure (20 Scenes)
 1. Underdog Setup (Scenes 1–3)
@@ -196,29 +198,71 @@ Keep the arc tight and emotional.
     return prompt
 
 def generate_story(system_prompt):
-    response = openai_client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": "Generate the 20 scenes. Return your response as a JSON object with keys Scene1, Scene2, etc."}],
-        response_format={"type": "json_object"}
-    )
-    scenes = json.loads(response.choices[0].message.content)
-    
-    # Print the full scenes dictionary for debugging
-    print("=== SCENES DICTIONARY FROM OPENAI ===")
-    print(json.dumps(scenes, indent=2))
-    print("=" * 40)
-    
-    # Build the list with fallbacks for missing scenes
-    result = []
-    for i in range(1, 21):
-        scene_key = f"Scene{i}"
-        if scene_key in scenes:
-            result.append(scenes[scene_key])
-        else:
-            print(f"⚠️ Warning: {scene_key} missing from API response")
-            result.append(f"(Scene{i} missing)")
-    
-    return result
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            print(f"=== STORY GENERATION ATTEMPT {attempt + 1}/{max_retries} ===")
+            
+            response = openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": "Generate exactly 20 scenes. Return your response as a JSON object with keys Scene1, Scene2, Scene3, ..., Scene20. Each scene should be a detailed description. Do not skip any scene numbers."}],
+                response_format={"type": "json_object"}
+            )
+            
+            # Print the full raw response for debugging
+            print("=== RAW OPENAI RESPONSE ===")
+            print(response.choices[0].message.content)
+            print("=" * 40)
+            
+            scenes = json.loads(response.choices[0].message.content)
+            
+            # Print the full scenes dictionary for debugging
+            print("=== SCENES DICTIONARY FROM OPENAI ===")
+            print(json.dumps(scenes, indent=2))
+            print(f"Total scenes in response: {len(scenes)}")
+            print(f"Scene keys present: {list(scenes.keys())}")
+            print("=" * 40)
+            
+            # Check for missing scenes and log them
+            missing_scenes = []
+            for i in range(1, 21):
+                scene_key = f"Scene{i}"
+                if scene_key not in scenes:
+                    missing_scenes.append(scene_key)
+            
+            if missing_scenes:
+                print(f"⚠️ WARNING: Missing scenes from OpenAI response: {missing_scenes}")
+                if attempt < max_retries - 1:
+                    print(f"Retrying due to missing scenes... (attempt {attempt + 1}/{max_retries})")
+                    continue
+            else:
+                print("✅ All 20 scenes present in OpenAI response")
+            
+            # Build the list with fallbacks for missing scenes
+            result = []
+            for i in range(1, 21):
+                scene_key = f"Scene{i}"
+                if scene_key in scenes:
+                    result.append(scenes[scene_key])
+                else:
+                    print(f"⚠️ Warning: {scene_key} missing from API response")
+                    result.append(f"(Scene{i} missing)")
+            
+            print(f"Final result list length: {len(result)}")
+            return result
+            
+        except Exception as e:
+            print(f"⚠️ Error on attempt {attempt + 1}: {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"Retrying... (attempt {attempt + 1}/{max_retries})")
+                continue
+            else:
+                print("Max retries exceeded, falling back to placeholder scenes")
+                # Return placeholder scenes if all retries fail
+                result = []
+                for i in range(1, 21):
+                    result.append(f"(Scene{i} missing - API failed)")
+                return result
 
 def edit_scenes(scenes):
     """Return scenes as-is (automated version, no manual editing)"""
