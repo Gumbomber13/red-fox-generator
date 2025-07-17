@@ -5,7 +5,9 @@
       "Bash(python:*)",
       "Bash(pip install:*)",
       "Bash(del test_scenes.html test_scene_generation.py)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(start test_scenes_display.html)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

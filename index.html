@@ -163,6 +163,8 @@
     }
     #scenesEditor {
       display: none;
+      max-height: 80vh;
+      overflow-y: auto;
     }
     .scenes-grid {
       display: grid;
@@ -406,6 +408,8 @@
 
     function displayScenes(scenes) {
       const scenesGrid = document.getElementById('scenesGrid');
+      
+      // Ensure editor.innerHTML is cleared before appending new divs
       scenesGrid.innerHTML = '';
       
       // Debug logging to understand what's happening
@@ -414,9 +418,15 @@
       console.log('Scene keys:', Object.keys(scenes));
       console.log('Total scenes:', Object.keys(scenes).length);
       
+      // Force loop from i=1 to 20, using scenes[Scene${i}] or default placeholder
       for (let i = 1; i <= 20; i++) {
         const sceneKey = `Scene${i}`;
         const sceneText = scenes[sceneKey] || `(Scene ${i} missing)`;
+        
+        // Add console.warn for any missing keys in scenes object during rendering
+        if (!scenes[sceneKey]) {
+          console.warn(`Missing scene key: ${sceneKey} - using placeholder text`);
+        }
         
         console.log(`Processing ${sceneKey}: ${sceneText ? 'EXISTS' : 'MISSING'}`);
         
@@ -431,6 +441,15 @@
       
       console.log('=== DISPLAY SCENES COMPLETE ===');
       console.log('Total scene items created:', scenesGrid.children.length);
+      
+      // Verify all 20 labels and textareas render, even if scenes dict is partial
+      const expectedCount = 20;
+      const actualCount = scenesGrid.children.length;
+      if (actualCount !== expectedCount) {
+        console.error(`Scene rendering mismatch: Expected ${expectedCount} scenes, but created ${actualCount}`);
+      } else {
+        console.log(`✓ Successfully rendered all ${actualCount} scene boxes`);
+      }
     }
 
     async function continueWithScenes() {
