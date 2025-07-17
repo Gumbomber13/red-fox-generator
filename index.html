@@ -546,9 +546,17 @@
 
     let eventSourceRetryCount = 0;
     const maxRetries = 3;
+    let currentEventSource = null;
+    const retryDelays = [1000, 3000, 5000]; // Exponential backoff: 1s, 3s, 5s
 
     function startImageEventStream(storyId) {
+      // Close existing connection if any
+      if (currentEventSource) {
+        currentEventSource.close();
+      }
+
       const eventSource = new EventSource(`https://red-fox-generator.onrender.com/stream?channel=${storyId}`);
+      currentEventSource = eventSource;
       
       eventSource.addEventListener('image_ready', function(e) {
         try {
@@ -556,6 +564,7 @@
           displayImage(data.scene_number, data.image_url);
           updateProgress(data.completed_scenes, data.total_scenes);
           eventSourceRetryCount = 0; // Reset retry count on success
+          hideReconnectingMessage(); // Hide reconnecting message on success
         } catch (error) {
           console.error('Error parsing image_ready event:', error);
         }
@@ -564,6 +573,7 @@
       eventSource.addEventListener('story_complete', function(e) {
         console.log('Story generation completed');
         eventSource.close();
+        hideReconnectingMessage();
         showCompletionMessage();
       });
       
@@ -572,10 +582,12 @@
           const data = JSON.parse(e.data);
           console.error('Story generation error:', data.error);
           eventSource.close();
+          hideReconnectingMessage();
           showErrorMessage('Story generation failed: ' + data.error);
         } catch (error) {
           console.error('Error parsing story_error event:', error);
           eventSource.close();
+          hideReconnectingMessage();
           showErrorMessage('Story generation failed due to an unknown error.');
         }
       });
@@ -585,13 +597,43 @@
         eventSource.close();
         
         if (eventSourceRetryCount < maxRetries) {
+          const delay = retryDelays[eventSourceRetryCount] || retryDelays[retryDelays.length - 1];
           eventSourceRetryCount++;
-          console.log(`Retrying EventSource connection (${eventSourceRetryCount}/${maxRetries})...`);
-          setTimeout(() => startImageEventStream(storyId), 3000); // Retry after 3 seconds
+          
+          console.log(`Retrying EventSource connection (${eventSourceRetryCount}/${maxRetries}) in ${delay/1000}s...`);
+          showReconnectingMessage(`Reconnecting... (${eventSourceRetryCount}/${maxRetries})`);
+          
+          setTimeout(() => {
+            if (eventSourceRetryCount <= maxRetries) {
+              startImageEventStream(storyId);
+            }
+          }, delay);
         } else {
+          hideReconnectingMessage();
           showErrorMessage('Lost connection to server. Please refresh the page and try again.');
         }
       };
+    }
+
+    function showReconnectingMessage(message) {
+      const progressText = document.getElementById('progressText');
+      const originalText = progressText.textContent;
+      progressText.textContent = message;
+      progressText.style.color = '#ff9800';
+      progressText.style.fontWeight = 'bold';
+      
+      // Store original text for restoration
+      progressText.dataset.originalText = originalText;
+    }
+
+    function hideReconnectingMessage() {
+      const progressText = document.getElementById('progressText');
+      if (progressText.dataset.originalText) {
+        progressText.textContent = progressText.dataset.originalText;
+        progressText.style.color = '#333';
+        progressText.style.fontWeight = 'bold';
+        delete progressText.dataset.originalText;
+      }
     }
 
     function displayImage(sceneNumber, imageUrl) {

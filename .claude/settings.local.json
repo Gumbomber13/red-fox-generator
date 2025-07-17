@@ -9,7 +9,11 @@
       "Bash(start test_scenes_display.html)",
       "Bash(node:*)",
       "Bash(start:*)",
-      "Bash(explorer:*)"
+      "Bash(explorer:*)",
+      "WebFetch(domain:render.com)",
+      "WebFetch(domain:community.render.com)",
+      "mcp__ide__executeCode",
+      "Bash(del test_reconnect.js)"
     ],
     "deny": []
   }

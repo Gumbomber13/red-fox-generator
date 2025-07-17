@@ -5,6 +5,7 @@ import json
 import traceback
 import uuid
 import threading
+import time
 import os
 from Animalchannel import process_story_generation, process_story_generation_with_scenes
 
@@ -20,8 +21,9 @@ except Exception as e:
     print(f"Warning: Flask-SSE setup failed: {e}")
     print("SSE functionality will not be available")
 
-# Store active story sessions
+# Store active story sessions and heartbeat timers
 active_stories = {}
+heartbeat_timers = {}
 
 def emit_image_event(story_id, scene_number, image_url, status="completed"):
     """Emit image generation event via SSE"""
@@ -42,9 +44,62 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
                 "completed_scenes": active_stories[story_id]['completed_scenes'],
                 "total_scenes": active_stories[story_id]['total_scenes']
             }, type='image_ready', channel=story_id)
+            print(f"SSE Event emitted successfully: Scene {scene_number} for story {story_id}")
         except Exception as e:
-            print(f"Warning: Could not emit SSE event: {e}")
-            print(f"Scene {scene_number} image ready: {image_url}")
+            # Enhanced error logging for SSE connection issues
+            print(f"ERROR: Failed to emit SSE event for story {story_id}, scene {scene_number}")
+            print(f"Exception type: {type(e).__name__}")
+            print(f"Exception message: {str(e)}")
+            print(f"Fallback: Scene {scene_number} image ready: {image_url}")
+            
+            # Try to log to file if possible
+            try:
+                import datetime
+                timestamp = datetime.datetime.now().isoformat()
+                with open('sse_errors.log', 'a') as f:
+                    f.write(f"{timestamp} - SSE Error: {story_id} - {type(e).__name__}: {str(e)}\n")
+            except Exception as log_error:
+                print(f"Warning: Could not log to file: {log_error}")
+
+def send_heartbeat(story_id):
+    """Send periodic heartbeat/ping events to keep SSE connection alive"""
+    def heartbeat_loop():
+        while story_id in active_stories and active_stories[story_id]['status'] == 'processing':
+            try:
+                sse.publish({"timestamp": time.time()}, type='ping', channel=story_id)
+                print(f"Sent heartbeat for story {story_id}")
+            except Exception as e:
+                # Enhanced error logging for heartbeat failures
+                print(f"ERROR: Failed to send heartbeat for story {story_id}")
+                print(f"Exception type: {type(e).__name__}")
+                print(f"Exception message: {str(e)}")
+                
+                # Log to file
+                try:
+                    import datetime
+                    timestamp = datetime.datetime.now().isoformat()
+                    with open('sse_errors.log', 'a') as f:
+                        f.write(f"{timestamp} - Heartbeat Error: {story_id} - {type(e).__name__}: {str(e)}\n")
+                except Exception as log_error:
+                    print(f"Warning: Could not log heartbeat error to file: {log_error}")
+                break
+            
+            time.sleep(30)  # Send heartbeat every 30 seconds
+        
+        print(f"Heartbeat stopped for story {story_id}")
+    
+    # Start heartbeat in a separate thread
+    heartbeat_thread = threading.Thread(target=heartbeat_loop)
+    heartbeat_thread.daemon = True
+    heartbeat_thread.start()
+    heartbeat_timers[story_id] = heartbeat_thread
+
+def stop_heartbeat(story_id):
+    """Stop heartbeat for a story"""
+    if story_id in heartbeat_timers:
+        print(f"Stopping heartbeat for story {story_id}")
+        # The heartbeat loop will stop automatically when status changes
+        del heartbeat_timers[story_id]
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -122,26 +177,55 @@ def approve_scenes():
             'completed_scenes': 0
         }
         
+        # Start heartbeat to keep SSE connection alive
+        send_heartbeat(story_id)
+        
         # Start story generation in background thread with approved scenes
         def generate_story_async():
             try:
                 process_story_generation_with_scenes(approved_scenes, original_answers, story_id)
-                # Mark as completed
+                # Mark as completed and stop heartbeat
                 if story_id in active_stories:
                     active_stories[story_id]['status'] = 'completed'
+                    stop_heartbeat(story_id)
                     try:
                         sse.publish({"status": "completed"}, type='story_complete', channel=story_id)
+                        print(f"Story completion event emitted successfully for {story_id}")
                     except Exception as sse_error:
-                        print(f"Warning: Could not emit completion event: {sse_error}")
+                        print(f"ERROR: Failed to emit story completion event for {story_id}")
+                        print(f"Exception type: {type(sse_error).__name__}")
+                        print(f"Exception message: {str(sse_error)}")
+                        
+                        # Log to file
+                        try:
+                            import datetime
+                            timestamp = datetime.datetime.now().isoformat()
+                            with open('sse_errors.log', 'a') as f:
+                                f.write(f"{timestamp} - Completion Event Error: {story_id} - {type(sse_error).__name__}: {str(sse_error)}\n")
+                        except Exception as log_error:
+                            print(f"Warning: Could not log completion error to file: {log_error}")
             except Exception as e:
-                # Mark as failed
+                # Mark as failed and stop heartbeat
                 if story_id in active_stories:
                     active_stories[story_id]['status'] = 'failed'
+                    stop_heartbeat(story_id)
                     try:
                         sse.publish({"status": "failed", "error": str(e)}, type='story_error', channel=story_id)
+                        print(f"Story error event emitted successfully for {story_id}")
                     except Exception as sse_error:
-                        print(f"Warning: Could not emit error event: {sse_error}")
-                        print(f"Story generation failed: {e}")
+                        print(f"ERROR: Failed to emit story error event for {story_id}")
+                        print(f"SSE Exception type: {type(sse_error).__name__}")
+                        print(f"SSE Exception message: {str(sse_error)}")
+                        print(f"Original story generation error: {e}")
+                        
+                        # Log to file
+                        try:
+                            import datetime
+                            timestamp = datetime.datetime.now().isoformat()
+                            with open('sse_errors.log', 'a') as f:
+                                f.write(f"{timestamp} - Error Event Error: {story_id} - SSE: {type(sse_error).__name__}: {str(sse_error)}, Original: {str(e)}\n")
+                        except Exception as log_error:
+                            print(f"Warning: Could not log error event error to file: {log_error}")
         
         thread = threading.Thread(target=generate_story_async)
         thread.daemon = True

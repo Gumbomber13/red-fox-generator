@@ -149,6 +149,21 @@ Stories follow a strict 20-scene "Power Fantasy" format:
 
 Goals:
 
+### SSE Connection Stability (2025-07-17):
+✓ **Frontend EventSource Enhancement**: Implemented exponential backoff retry mechanism (1s, 3s, 5s delays) with max 3 retries in `startImageEventStream()` function. Added "Reconnecting..." UI feedback with retry counter display.
+✓ **Backend SSE Heartbeat**: Added periodic 'ping' events every 30 seconds in flask_server.py to prevent connection timeouts. Heartbeat automatically starts when story generation begins and stops when complete.
+✓ **Enhanced Error Logging**: Added comprehensive try/catch blocks around all SSE operations with detailed logging to both console and `sse_errors.log` file. Includes timestamp, error types, and fallback messaging.
+✓ **OnRender Platform Analysis**: Researched OnRender's SSE/WebSocket support. Free tier has 15-minute idle timeout that spins down services, causing connection drops. Recommend upgrading to Starter tier ($7/month) for stable long-running connections.
+✓ **Auto-Reconnect Testing**: Created and executed test script confirming exponential backoff functionality works correctly. Verified proper retry delays, UI feedback, and max retry enforcement.
+✓ **Connection Resilience**: Enhanced frontend with proper EventSource cleanup, connection state tracking, and graceful degradation when max retries exceeded.
+
+**Key Improvements:**
+- Exponential backoff prevents overwhelming server during connection issues
+- Heartbeat keeps connections alive during long image generation processes  
+- Enhanced logging aids in debugging connection problems in production
+- UI feedback keeps users informed during reconnection attempts
+- Platform-specific optimizations for OnRender hosting environment
+
 ###Completed
 ### Textarea Fit Refinements (2025-07-17):
 ✓ Update textarea CSS: Remove overflow: hidden; add overflow: auto; increase max-height: 200px; box-sizing: border-box; for better fit without cutoff
@@ -285,3 +300,16 @@ Goals:
 - **Verification testing**: Created and tested long text scenarios (5+ lines) to ensure no cutoff occurs and scroll appears when content exceeds max-height
 - **Goal Management**: Successfully moved all 5 completed goals from active Goals section to Completed section in CLAUDE.md
 - **All 5 Textarea Fit Refinement goals completed successfully** - Textareas now properly handle long content with scrolling instead of cutoff
+
+### SSE Connection Stability (2025-07-17):
+- **Frontend EventSource Enhancement**: Implemented exponential backoff retry mechanism (1s, 3s, 5s delays) with max 3 retries in startImageEventStream() function in index.html:547-637
+- **Reconnection UI Feedback**: Added showReconnectingMessage() and hideReconnectingMessage() functions to display "Reconnecting..." status with retry counter
+- **Connection State Management**: Added currentEventSource tracking and proper cleanup to prevent multiple concurrent connections
+- **Backend SSE Heartbeat**: Added send_heartbeat() function in flask_server.py:51-77 that sends periodic 'ping' events every 30 seconds to prevent timeouts
+- **Heartbeat Lifecycle Management**: Integrated heartbeat start/stop with story generation process in approve_scenes endpoint (flask_server.py:155-174)
+- **Enhanced Error Logging**: Added comprehensive try/catch blocks around all SSE publish operations with detailed console and file logging (sse_errors.log)
+- **SSE Operation Monitoring**: Enhanced emit_image_event(), heartbeat, and completion/error event logging with timestamps and error types
+- **OnRender Platform Research**: Analyzed OnRender's free tier limitations (15-minute idle timeout) and recommend Starter tier ($7/month) for stable SSE connections
+- **Auto-Reconnect Testing**: Created and executed test_reconnect.js to verify exponential backoff functionality works correctly across all retry scenarios
+- **Connection Resilience**: Enhanced frontend with proper EventSource state management and graceful degradation when max retries exceeded
+- **All 6 SSE Connection Stability goals completed successfully** - System now provides robust, auto-recovering SSE connections with comprehensive monitoring
