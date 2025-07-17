@@ -11,7 +11,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
     }
     .quiz {
       background: white;
@@ -163,8 +163,7 @@
     }
     #scenesEditor {
       display: none;
-      max-height: 80vh;
-      overflow-y: auto;
+      height: auto;
     }
     .scenes-grid {
       display: grid;
@@ -434,7 +433,7 @@
         sceneItem.className = 'scene-item';
         sceneItem.innerHTML = `
           <label for="scene${i}">Scene ${i}</label>
-          <textarea id="scene${i}" name="scene${i}">${sceneText}</textarea>
+          <textarea id="scene${i}" name="scene${i}" rows="3" style="height: 100px; resize: vertical;">${sceneText}</textarea>
         `;
         scenesGrid.appendChild(sceneItem);
       }
