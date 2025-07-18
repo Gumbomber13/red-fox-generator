@@ -240,9 +240,12 @@ def approve_scenes():
                             print(f"Warning: Could not log error event error to file: {log_error}")
         
         logger.info(f"Approved scenes for {story_id}, starting process")
-        process = multiprocessing.Process(target=process_story_generation_with_scenes, args=(approved_scenes, original_answers, story_id))
+        process = multiprocessing.Process(target=generate_story_async)
         process.daemon = True
         process.start()
+        
+        # Store process reference for potential timeout monitoring
+        active_stories[story_id]['process'] = process
         
         # Return story ID for client to connect to SSE stream
         return jsonify({

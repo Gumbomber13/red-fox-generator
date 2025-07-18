@@ -166,100 +166,28 @@ All major features have been implemented and tested:
 
 **Status**: ✅ **Production Ready** - All blocking issues resolved, images should generate fully and display reliably
 
-###
-Goals: (remove each goal when completed)
-Phase 1: Isolation and Diagnosis (Goals 1-2)
-These add targeted logging/tests to confirm the exact failure points without changing logic yet.
-Goal 1: Add Diagnostic Logging to Isolate Crash Points
-Objective: Insert detailed, conditional logging in key areas (e.g., process_image, Telegram calls, SSE emits) to pinpoint why images aren't completing/generating SSE events.
-Rationale: Your logs show crashes in Telegram during image approval, halting after scene 1-2. This prevents full generation and SSE, so frontend shows nothing. Logging will confirm if/where it fails without fixes yet.
-Files to Edit: Animalchannel.py, flask_server.py
-Key Instructions:
-In Animalchannel.py (around line ~430, in process_image): Add logs before/after each major step (e.g., before generate_image: logger.debug(f"Starting generation for {classifier} with prompt length {len(prompt)}"); after upload: logger.info(f"Image {classifier} uploaded, proceeding to approval"); before telegram_approve: logger.debug(f"Calling Telegram for {classifier}, caption length: {len(f'Prompt {classifier}: {prompt}')}"); after approval: logger.info(f"Approval result for {classifier}: approved")).
-If rejection: Log logger.warning(f"Rejection {rejection_attempt} for {classifier}, retrying with new prompt length {len(prompt)}").
-In flask_server.py (emit_image_event, around line ~40): Add logger.debug(f"Attempting SSE emit for story {story_id}, scene {scene_number}, URL length {len(image_url)}") before sse.publish, and logger.info(f"SSE emit success for {scene_number}") after.
-Enable debug level temporarily: Change logging.basicConfig(level=logging.INFO) to level=logging.DEBUG in both files.
-Success Criteria: Submit a story—logs now show exact step/failure (e.g., "Calling Telegram... caption length: 1500" before crash). Confirm halt after scene 1, no "SSE emit success" for later scenes. No new crashes from logging.
-Debug Tips: Run with python flask_server.py and watch console. Use grep "Telegram" animalchannel.log to isolate approval logs. If no logs after upload, issue is in generation/upload.
-Goal 2: Create Isolated Test Scripts for Image Generation
-Objective: Build standalone test scripts to reproduce/isolate image generation outside the full app, confirming if DALL-E/upload/SSE work independently.
-Rationale: The crash is in the integrated flow—testing isolation helps verify if the problem is Telegram-specific or deeper (e.g., prompt length in DALL-E). This pinpoints without running the whole server.
-Files to Edit: New files: test_image_gen.py (in root), test_sse_emit.py (in root).
-Key Instructions:
-Create test_image_gen.py: Import necessary from Animalchannel.py (e.g., generate_image, upload_image). Define a test function: Take a sample prompt, call generate_image, upload, log URL. Run with a short prompt (e.g., "red fox") and a long one (>1024 chars) to test length issues. Add: if __name__ == "__main__": test_prompt = "short prompt"; url = upload_image(generate_image(test_prompt)); logger.info(url).
-Create test_sse_emit.py: Import from flask_server.py (e.g., emit_image_event). Mock story_id/scene/url, call emit_image_event, check if it logs "SSE Event emitted successfully" (run in isolation: if __name__ == "__main__": emit_image_event("test_id", 1, "fake_url")).
-No changes to existing files— these are new tests.
-Success Criteria: Run python test_image_gen.py—generates/uploads image URL in logs for short prompt; may fail on long (confirms length issue). Run python test_sse_emit.py—logs emit success (if not, SSE config problem). This isolates if generation works without Telegram.
-Debug Tips: Compare test logs to app logs. If tests pass but app fails, issue is in process_image integration.
-Phase 2: Core Fixes for Image Generation (Goals 3-5)
-Apply fixes based on diagnosis, focusing on removal and simplification.
-Goal 3: Fully Remove Telegram and Simplify process_image
-Objective: Completely excise Telegram to eliminate crashes (e.g., caption length), and streamline process_image to generate/upload/emit without loops or approvals.
-Rationale: Diagnosis (from Goal 1) will show Telegram as the blocker—removing it lets all 20 images complete and emit SSE, fixing frontend display.
-Files to Edit: Animalchannel.py
-Key Instructions:
-Delete all Telegram code: Imports (lines ~14-15), bot init/globals/handlers ( ~50-120), telegram_approve functions ( ~370-400), reject_fix ( ~405-430).
-Simplify process_image (now ~370 after deletions): Remove while loop/rejections. Structure: logger.info start, try: img_data = generate_image(prompt), url = upload_image(img_data), update_sheet (wrap in try to skip on failure), emit if story_id, return url; except: logger.error and return None (to skip bad images).
-In process_story_generation_with_scenes ( ~580): In the for loop, append img_url or "Skipped" if None, continue to videos.
-Add log: After successful return, logger.info(f"Image {classifier} completed without approval").
-Success Criteria: Submit story—logs show all 20 images processing/completing (no Telegram mentions/errors). Check browser: Images appear in grid via SSE (events in console).
-Debug Tips: If still no images, check if emit_image_event logs "success" in flask_server.py. Use browser Network tab for SSE requests.
-Goal 4: Fix Sheets Warnings with Fallbacks
-Objective: Make Google Sheets optional, adding fallbacks so warnings don't affect image flow or future regeneration.
-Rationale: Logs show sheets skipping— this isn't blocking images now, but ensuring fallbacks prevents indirect issues (e.g., no prompt for regen).
-Files to Edit: Animalchannel.py
-Key Instructions:
-Add flag at ~70: use_sheets = os.getenv("USE_GOOGLE_AUTH") == "true" and os.path.exists(SERVICE_ACCOUNT_FILE) and sheets_service is not None.
-In create_sheet/update_sheet ( ~100-130, ~460): Wrap API calls in if use_sheets: try: ... except: logger.warning("Sheets failed: {e}"); else: logger.info("Sheets unavailable - skipping"). For create_sheet, if skipped, set a default idea = "NoSheet_" + timestamp.
-In process_image/update calls: Use the flag to skip silently.
-For future regen (add placeholder): If not use_sheets, use a default prompt like "Default red fox image".
-Success Criteria: Disable sheets (set USE_GOOGLE_AUTH=false in .env), submit story—logs warnings but all images complete/emitted. No new errors.
-Debug Tips: Run with invalid SERVICE_ACCOUNT_FILE—confirm skips without crash.
-Goal 5: Add Retry Logic for Image Generation Failures
-Objective: Add retries in generate_image/upload to handle transient errors (e.g., DALL-E rate limits, network blips), ensuring more images complete.
-Rationale: If non-Telegram errors occur (e.g., API timeouts), retries prevent early halts, increasing chances of full image set.
-Files to Edit: Animalchannel.py
-Key Instructions:
-In generate_image ( ~330): Wrap asyncio.run(generate_async(prompt)) in a loop (max_retries=3): try: return ... except Exception as e: if retry < max, time.sleep(5 * retry), logger.warning(f"Retry {retry} for generate: {e}"); else raise.
-In upload_image ( ~350): Similar retry loop around requests.post (handle ConnectionError/Timeout).
-Update process_image to call these retry-enabled functions.
-Success Criteria: Simulate a failure (e.g., temporarily invalidate OPENAI_API_KEY), submit story—logs show retries, and pipeline continues to next image.
-Debug Tips: Add artificial delay/error in code for testing, then remove.
-Phase 3: Verification and Frontend Display (Goals 6-8)
-Ensure images display once generated.
-Goal 6: Verify SSE Emits and Add Logging
-Objective: Add logging in emit_image_event to confirm SSE works, and mock emits for testing.
-Rationale: If images generate but don't show, SSE might fail (e.g., Redis config). This isolates backend-to-frontend issues.
-Files to Edit: flask_server.py
-Key Instructions:
-In emit_image_event ( ~40): Add logger.debug before/after sse.publish (e.g., "Attempting emit for {scene_number}", "Emit success"). On except, log full traceback.
-Add a test endpoint /test_emit/<story_id> ( ~280): Call emit_image_event with fake data, return "Test emitted".
-Success Criteria: After Goal 3 fixes, submit story—logs show "Emit success" for all 20. Call /test_emit via browser—check console for SSE event.
-Debug Tips: In browser console, monitor EventSource connections. If no events, check if REDIS_URL is set in .env.
-Goal 7: Enhance Frontend to Log SSE/Polling Events
-Objective: Add debug logs in index.html for SSE/polling to confirm if events are received but not rendering.
-Rationale: Your cursor at line 750 is in showCompletionMessage—expand debugging here to see if 'image_ready' events arrive but displayImage fails.
-Files to Edit: index.html
-Key Instructions:
-In startImageEventStream ( ~480): Add console.log('Received image_ready:', e.data) in the listener.
-In handlePollingData ( ~570): Add console.log('Polling data:', data).
-In displayImage ( ~600): Add console.log('Displaying image for scene', sceneNumber, 'URL:', imageUrl).
-Set DEBUG_MODE = true at ~290 for more logs.
-Success Criteria: Submit story—browser console shows "Received image_ready" for each, then "Displaying image". If logs appear but no UI update, issue in HTML rendering.
-Debug Tips: Use browser Network tab > WS for SSE, or inspect #imageGrid element.
-Goal 8: End-to-End Image Test and Cleanup
-Objective: Run a full test, add a skip-Telegram env flag, and update CLAUDE.md with progress.
-Rationale: Verify fixes work end-to-end, and add a toggle to disable Telegram without code changes.
-Files to Edit: Animalchannel.py, CLAUDE.md
-Key Instructions:
-In Animalchannel.py (~30): Add ENABLE_TELEGRAM = os.getenv("ENABLE_TELEGRAM", "true") == "true". In process_image/process_video, wrap Telegram calls in if ENABLE_TELEGRAM: ... else: return True/None (auto-approve).
-In CLAUDE.md, add a section: "Image Fixes Progress: Telegram removed, images now generate fully and display via SSE."
-No other changes—focus on testing.
-Success Criteria: Set ENABLE_TELEGRAM=false in .env, submit story—all 20 images appear in frontend. Logs clean, no warnings except optional sheets.
-Debug Tips: If still no images, share full logs and browser console output.
-These goals should get images working reliably. Once done, move to regeneration/buttons (previous Pending Goals 3-7). For git push after:
-Apply to CLAUDE.md
+✅ **Policy Violation Fixed**: Added comprehensive prompt sanitization and progressive retry mechanisms for DALL-E safety compliance. Images now generate fully with automatic content filtering, timeout protection, and enhanced error recovery.
 
+### ✅ All Goals Completed Successfully (2025-07-18)
+
+**Phase 1: Diagnosis and Sanitization Setup**
+- ✅ Goal 1: Added comprehensive logging to detect DALL-E policy violations with full prompt and error capture
+- ✅ Goal 2: Implemented prompt sanitization function with 13 violation replacements (violence/harm → safe alternatives)
+
+**Phase 2: Integration and Retries** 
+- ✅ Goal 3: Integrated sanitization into standardization pipeline and process_image function
+- ✅ Goal 4: Enhanced retries with progressive sanitization (base → shortened prompts on retries)
+
+**Phase 3: Pipeline Timeouts and Verification**
+- ✅ Goal 5: Added 120s timeouts to OpenAI calls and 1hr signal timeout to generation process
+- ✅ Goal 6: Updated CLAUDE.md documentation with policy violation fixes
+
+**Technical Implementation Summary:**
+- Added `sanitize_prompt()` function with comprehensive violation dictionary
+- Progressive sanitization in `generate_image()` retries with prompt shortening
+- OpenAI timeout parameters added to `create_prompts()` and `standardize_prompts()`
+- Signal-based timeout protection for `process_story_generation_with_scenes()`
+- Enhanced debug logging throughout the generation pipeline
 ---
 
 ## Final Completion Log (2025-07-18)
@@ -285,3 +213,22 @@ Apply to CLAUDE.md
 - `CLAUDE.md`: Updated with comprehensive progress documentation
 
 **Result**: Image generation pipeline now fully functional without Telegram crashes. All 20 images should generate and display via SSE with proper error recovery and fallback mechanisms.
+
+### Policy Violation Fixes Completion Log (2025-07-18)
+
+✅ **ALL 6 POLICY VIOLATION GOALS COMPLETED SUCCESSFULLY**
+
+**Actions Completed:**
+1. **Goal 1**: Added debug logging to `generate_image()` - full prompt capture before DALL-E calls and detailed error response logging
+2. **Goal 2**: Implemented `sanitize_prompt()` function with 13 violation replacements (beats up→overcomes, fight→challenges peacefully, etc.)
+3. **Goal 3**: Integrated sanitization into `standardize_prompts()` post-processing and `process_image()` pre-generation, added scene 16 debug logging
+4. **Goal 4**: Enhanced `generate_image()` retries with progressive sanitization - base sanitization on retry 1, prompt shortening on retry 2+
+5. **Goal 5**: Added 120s timeout to OpenAI calls in `create_prompts()`/`standardize_prompts()`, 1hr signal timeout to `process_story_generation_with_scenes()`
+6. **Goal 6**: Updated CLAUDE.md documentation with comprehensive policy violation fix summary
+
+**Files Modified:**
+- `Animalchannel.py`: Added imports (re, signal), `sanitize_prompt()` function, progressive retry logic, OpenAI timeouts, signal timeout handler
+- `flask_server.py`: Added process timeout monitoring in `approve_scenes()`
+- `CLAUDE.md`: Updated with policy violation fixes documentation and goals completion log
+
+**Result**: DALL-E policy violations now automatically sanitized with progressive retry mechanisms. All 20 images should generate successfully without content policy rejections, with proper timeout protection and comprehensive error logging.

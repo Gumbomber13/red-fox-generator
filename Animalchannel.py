@@ -6,6 +6,8 @@ import asyncio
 import datetime
 import logging
 import httpx
+import re
+import signal
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from openai import OpenAI
@@ -334,7 +336,8 @@ You are a creative assistant that helps generate engaging content for a child se
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "system", "content": system}, {"role": "user", "content": json.dumps({"scenes": scenes}) + " Return as JSON with keys Prompt1, Prompt2, etc."}],
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
+            timeout=120
         )
         prompts = json.loads(response.choices[0].message.content)
         logger.info(f"Visual prompts created: {len(prompts)}")
@@ -367,9 +370,13 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "system", "content": system}, {"role": "user", "content": json.dumps({"prompts": prompts}) + " Return as JSON with keys Prompt1, Prompt2, etc."}],
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
+            timeout=120
         )
         std_prompts = json.loads(response.choices[0].message.content)
+        # Apply sanitization to all standardized prompts
+        for key in std_prompts:
+            std_prompts[key] = sanitize_prompt(std_prompts[key])
         logger.info(f"Standardized prompts: {len(std_prompts)}")
     except Exception as e:
         logger.error(f"Standardize prompt error: {e}")
@@ -402,14 +409,45 @@ async def generate_async(prompt):
         await client.aclose()
         raise
 
+def sanitize_prompt(prompt):
+    violations = {
+        "beats up": "overcomes",
+        "subdue": "stops",
+        "confronts": "approaches",
+        "fight": "challenges peacefully",
+        "overpower": "defeats non-violently",
+        "attacks": "confronts safely",
+        "violence": "conflict",
+        "violent": "intense",
+        "punch": "touch",
+        "kick": "nudge",
+        "hit": "tap",
+        "hurt": "surprise",
+        "harm": "affect"
+    }
+    original_prompt = prompt
+    for bad, good in violations.items():
+        prompt = re.sub(bad, good, prompt, flags=re.IGNORECASE)
+    if prompt != original_prompt:
+        logger.info(f"Sanitized prompt (length {len(prompt)}): {prompt[:50]}...")
+    return prompt
+
 def generate_image(prompt):
     logger.info(f"Generating image for prompt: {prompt[:50]}...")
     max_retries = 3
     
     for retry in range(max_retries):
         try:
-            return asyncio.run(generate_async(prompt))
+            current_prompt = prompt
+            if retry > 0:
+                current_prompt = sanitize_prompt(current_prompt)  # Base sanitization
+                if retry > 1:
+                    current_prompt = current_prompt[:1000] + " (simplified)"  # Shorten on later retries
+            logger.debug(f"Retry {retry + 1} prompt: {current_prompt[:50]}")
+            logger.debug(f"Attempting DALL-E with prompt (length {len(current_prompt)}): {current_prompt}")
+            return asyncio.run(generate_async(current_prompt))
         except Exception as e:
+            logger.error(f"DALL-E error details: {e.response.json() if hasattr(e, 'response') else str(e)}")
             if retry < max_retries - 1:
                 wait_time = 5 * (retry + 1)  # 5, 10, 15 seconds
                 logger.warning(f"Retry {retry + 1} for generate: {e}")
@@ -444,6 +482,8 @@ def process_image(classifier, prompt, sheet_title, story_id=None):
     logger.info(f"Processing image {classifier} with prompt: {prompt[:50]}...")
     
     try:
+        # Sanitize prompt before generation
+        prompt = sanitize_prompt(prompt)
         # Generate and upload image
         img_data = generate_image(prompt)
         url = upload_image(img_data)
@@ -586,6 +626,10 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
     prompts = create_prompts(scenes)
     std_prompts = standardize_prompts(prompts)
     
+    # Debug log to check scene 16 sanitization
+    if len(std_prompts) >= 16:
+        logger.debug(f"Post-sanitization prompt 16 example: {std_prompts[15][:50]}")
+    
     # Create new sanitized sheet for this story
     idea = generate_sheet_title()
     original_title = f"{original_answers.get('story_type', 'Power Fantasy')} Story"
@@ -594,21 +638,33 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
     create_sheet(idea, original_title)
 
     logger.info(f"Starting image generation loop for {len(std_prompts)} prompts")
+    
+    def timeout_handler(signum, frame):
+        raise TimeoutError("Generation timed out")
+    
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(3600)  # 1hr max
+    
     images = []
-    for i, prompt in enumerate(std_prompts, 1):
-        logger.info(f"Processing image {i+1}: {prompt[:50]}...")
-        update_sheet(idea, str(i), 'Prompt', prompt)
-        try:
-            img_url = process_image(str(i), prompt, idea, story_id)
-            if img_url:
-                images.append(img_url)
-            else:
-                logger.warning(f"Skipping image {i} due to generation failure")
+    try:
+        for i, prompt in enumerate(std_prompts, 1):
+            logger.info(f"Processing image {i+1}: {prompt[:50]}...")
+            update_sheet(idea, str(i), 'Prompt', prompt)
+            try:
+                img_url = process_image(str(i), prompt, idea, story_id)
+                if img_url:
+                    images.append(img_url)
+                else:
+                    logger.warning(f"Skipping image {i} due to generation failure")
+                    images.append("Skipped")
+            except Exception as e:
+                logger.error(f"Image process error {i+1}: {e}")
                 images.append("Skipped")
-        except Exception as e:
-            logger.error(f"Image process error {i+1}: {e}")
-            images.append("Skipped")
-            continue
+                continue
+    except TimeoutError as e:
+        logger.error(f"Timeout: {e}")
+    finally:
+        signal.alarm(0)
 
     for i, img_url in enumerate(images, 1):
         if img_url and img_url != "Skipped":
