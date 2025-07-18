@@ -305,14 +305,14 @@ You are a creative assistant that helps generate engaging content for a child se
             response_format={"type": "json_object"}
         )
         prompts = json.loads(response.choices[0].message.content)
-        logging.info(f"Visual prompt created: {len(prompts)} prompts generated successfully")
+        logging.info(f"Visual prompts created: {len(prompts)}")
     except Exception as e:
         logging.error(f"Visual prompt error: {e}")
         raise
     return [prompts[f"Prompt{i}"] for i in range(1, 21)]
 
 def standardize_prompts(prompts):
-    logging.info(f"Standardizing {len(prompts)} visual prompts with art style and character descriptions")
+    logging.info(f"Standardizing {len(prompts)} visual prompts")
     system = """
 You are a creative assistant that helps generate engaging content for a child series of a red panda that saves some sort of cute animal from some sort of predator or tragic situation. These are visual stories that are told in images and have no dialogue. Your job is to receive a series of 20 prompts and add a starting description to the beginning of the prompt and a character description every time a character (person, animal) is mentioned
 
@@ -338,7 +338,7 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
             response_format={"type": "json_object"}
         )
         std_prompts = json.loads(response.choices[0].message.content)
-        logging.info(f"Standardized prompt: {len(std_prompts)} prompts completed successfully")
+        logging.info(f"Standardized prompts: {len(std_prompts)}")
     except Exception as e:
         logging.error(f"Standardize prompt error: {e}")
         raise
@@ -533,10 +533,16 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
         original_title += f" - Fox finds {original_answers['find']}"
     create_sheet(idea, original_title)
 
+    logging.info(f"Starting image generation loop for {len(std_prompts)} prompts")
     images = []
     for i, prompt in enumerate(std_prompts, 1):
+        logging.info(f"Processing image {i+1}: {prompt[:50]}...")
         update_sheet(idea, str(i), 'Prompt', prompt)
-        img_url = process_image(str(i), prompt, idea, story_id)
+        try:
+            img_url = process_image(str(i), prompt, idea, story_id)
+        except Exception as e:
+            logging.error(f"Image process error {i+1}: {e}")
+            raise
         images.append(img_url)
 
     for i, img_url in enumerate(images, 1):
