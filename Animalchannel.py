@@ -4,12 +4,16 @@ import time
 import requests
 import asyncio
 import datetime
+import logging
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from openai import OpenAI
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -325,10 +329,16 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
     return [std_prompts[f"Prompt{i}"] for i in range(1, 21)]
 
 def generate_image(prompt):
-    response = openai_client.images.generate(model="dall-e-3", prompt=prompt, size="1024x1024", n=1)
-    img_url = response.data[0].url
-    img_data = requests.get(img_url).content
-    return img_data
+    logging.info(f"Generating image for prompt: {prompt[:50]}...")
+    try:
+        response = openai_client.images.generate(model="dall-e-3", prompt=prompt, size="1024x1024", n=1)
+        img_url = response.data[0].url
+        logging.info(f"OpenAI image generation successful, URL: {img_url}")
+        img_data = requests.get(img_url).content
+        return img_data
+    except Exception as e:
+        logging.error(f"Failed to generate image: {str(e)}")
+        raise
 
 def upload_image(img_data):
     files = {'file': ('image.png', img_data, 'image/png'), 'upload_preset': (None, CLOUDINARY_PRESET)}
@@ -353,8 +363,15 @@ def reject_fix(prompt):
 
 def process_image(classifier, prompt, sheet_title, story_id=None):
     while True:
+        logging.info(f"Processing image {classifier} with prompt: {prompt[:50]}...")
         img_data = generate_image(prompt)
-        url = upload_image(img_data)
+        try:
+            url = upload_image(img_data)
+            logging.info(f"Successfully uploaded image {classifier} to: {url}")
+        except Exception as e:
+            logging.error(f"Failed to upload image {classifier}: {str(e)}")
+            raise
+            
         if telegram_approve(url, prompt, classifier):
             update_sheet(sheet_title, classifier, 'Picture Generation', url)
             
@@ -479,6 +496,8 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
             scenes.append(approved_scenes[scene_key])
         else:
             scenes.append(f"(Scene {i} missing)")
+    
+    logging.info(f"Starting generation for {story_id} with {len(scenes)} scenes")
     
     scenes = edit_scenes(scenes)
     prompts = create_prompts(scenes)

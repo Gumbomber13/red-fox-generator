@@ -7,6 +7,7 @@ import uuid
 import threading
 import time
 import os
+import logging
 from Animalchannel import process_story_generation, process_story_generation_with_scenes
 
 app = Flask(__name__)
@@ -231,6 +232,7 @@ def approve_scenes():
                         except Exception as log_error:
                             print(f"Warning: Could not log error event error to file: {log_error}")
         
+        logging.info(f"Approved scenes for {story_id}, starting thread")
         thread = threading.Thread(target=generate_story_async)
         thread.daemon = True
         thread.start()
@@ -269,16 +271,6 @@ def get_story_status(story_id):
         'images': story['images']
     })
 
-@app.route('/test_sse', methods=['GET'])
-def test_sse():
-    """Test SSE functionality"""
-    try:
-        sse.publish({'test': 'ping'}, type='test')
-        return 'Sent'
-    except Exception as e:
-        print(f"ERROR: SSE test failed: {e}")
-        print(f"Exception type: {type(e).__name__}")
-        return f'Error: {str(e)}', 500
 
 @app.route('/health', methods=['GET'])
 def health():
