@@ -9,14 +9,11 @@ import httpx
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from openai import OpenAI
-import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CallbackQueryHandler, MessageHandler, filters
 from dotenv import load_dotenv
 
 # Configure logging with proper formatting and levels
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
@@ -32,23 +29,16 @@ load_dotenv()
 
 # Load API keys and configs from environment variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-# Handle TELEGRAM_CHAT_ID with validation for placeholder values
-telegram_chat_id_str = os.getenv("TELEGRAM_CHAT_ID", "0")
-try:
-    TELEGRAM_CHAT_ID = int(telegram_chat_id_str) if telegram_chat_id_str.isdigit() or (telegram_chat_id_str.startswith('-') and telegram_chat_id_str[1:].isdigit()) else 0
-except (ValueError, AttributeError):
-    TELEGRAM_CHAT_ID = 0
 GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 CLOUDINARY_PRESET = os.getenv("CLOUDINARY_PRESET")
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
 HAILUO_AUTH = os.getenv("HAILUO_AUTH")
 KLING_API_KEY = os.getenv("KLING_API_KEY")
+ENABLE_TELEGRAM = os.getenv("ENABLE_TELEGRAM", "false").lower() == "true"
 
 # Validate required environment variables
 required_vars = {
     "OPENAI_API_KEY": OPENAI_API_KEY,
-    "TELEGRAM_TOKEN": TELEGRAM_TOKEN,
     "GOOGLE_SHEET_ID": GOOGLE_SHEET_ID,
     "CLOUDINARY_PRESET": CLOUDINARY_PRESET,
     "CLOUDINARY_URL": CLOUDINARY_URL,
@@ -74,72 +64,35 @@ else:
     openai_client = None
     logger.warning("OpenAI client not initialized - OPENAI_API_KEY missing or placeholder")
 
-if TELEGRAM_TOKEN and not is_placeholder_value(TELEGRAM_TOKEN):
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    
-    # Global state for callback handling
-    callback_responses = {}
-    telegram_app = None
-    
-    async def approval_callback_handler(update, context):
-        """Handle approval/rejection callbacks"""
-        query = update.callback_query
-        await query.answer()
-        
-        # Store the response with a unique identifier
-        message_id = query.message.message_id
-        callback_responses[message_id] = query.data
-        
-        await query.edit_message_reply_markup(reply_markup=None)
-        if query.data == 'approve':
-            await query.edit_message_caption(caption=query.message.caption + " ✅ APPROVED")
-        else:
-            await query.edit_message_caption(caption=query.message.caption + " ❌ REJECTED")
-    
-    async def model_selection_callback_handler(update, context):
-        """Handle video model selection callbacks"""
-        query = update.callback_query
-        await query.answer()
-        
-        message_id = query.message.message_id
-        callback_responses[message_id] = query.data
-        
-        await query.edit_message_reply_markup(reply_markup=None)
-        await query.edit_message_text(text=f"Selected model: {query.data}")
-    
-    async def motion_prompt_handler(update, context):
-        """Handle motion prompt text messages"""
-        if update.message.reply_to_message:
-            reply_id = update.message.reply_to_message.message_id
-            callback_responses[reply_id] = update.message.text
-            await update.message.reply_text(f"Motion prompt received: {update.message.text}")
-    
-    def init_telegram_app():
-        """Initialize Telegram application for callback handling"""
-        global telegram_app
-        if telegram_app is None:
-            telegram_app = Application.builder().token(TELEGRAM_TOKEN).build()
-            telegram_app.add_handler(CallbackQueryHandler(approval_callback_handler, pattern='^(approve|reject)$'))
-            telegram_app.add_handler(CallbackQueryHandler(model_selection_callback_handler, pattern='^(kling|hailuo)$'))
-            telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, motion_prompt_handler))
-else:
-    bot = None
-    callback_responses = {}
-    telegram_app = None
-    logger.warning("Telegram bot not initialized - TELEGRAM_TOKEN missing or placeholder")
+# Telegram integration removed for stability
 
 # Google Sheets setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SERVICE_ACCOUNT_FILE = '/etc/secrets/service-account.json'
 sheets_service = None
 
-if os.getenv("USE_GOOGLE_AUTH") == "true":
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
-    sheets_service = build('sheets', 'v4', credentials=creds)
+# Check if Google Sheets should be used
+use_sheets = (os.getenv("USE_GOOGLE_AUTH") == "true" and 
+              os.path.exists(SERVICE_ACCOUNT_FILE))
+
+if use_sheets:
+    try:
+        creds = service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES
+        )
+        sheets_service = build('sheets', 'v4', credentials=creds)
+        if sheets_service is not None:
+            use_sheets = True
+        else:
+            use_sheets = False
+    except Exception as e:
+        logger.warning(f"Failed to initialize Google Sheets: {e}")
+        use_sheets = False
+        sheets_service = None
 
 def generate_sheet_title():
+    if not use_sheets:
+        return "NoSheet_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     return "Story_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 def escape_sheet_title(title):
@@ -163,30 +116,37 @@ def get_in_progress_idea():
         return None
 
 def create_sheet(title, original_title=None):
-    if sheets_service is None:
-        print(f"Warning: Google Sheets service not available. Skipping sheet creation for '{title}'")
+    if not use_sheets:
+        logger.info("Sheets unavailable - skipping sheet creation")
         return
         
-    try:
-        body = {'requests': [{'addSheet': {'properties': {'title': title}}}]}
-        sheets_service.spreadsheets().batchUpdate(spreadsheetId=GOOGLE_SHEET_ID, body=body).execute()
-        escaped_title = escape_sheet_title(title)
+    if sheets_service is None:
+        logger.warning("Google Sheets service not available. Skipping sheet creation")
+        return
         
-        # Store original title in first row if provided
-        if original_title:
-            sheets_service.spreadsheets().values().update(
-                spreadsheetId=GOOGLE_SHEET_ID,
-                range=f"{escaped_title}!A1",
-                valueInputOption='RAW',
-                body={'values': [[original_title]]}
-            ).execute()
-        
-        for i in range(1, 21):
-            sheets_service.spreadsheets().values().update(
-                spreadsheetId=GOOGLE_SHEET_ID, range=f'{escaped_title}!D{i+1}',
-                valueInputOption='RAW', body={'values': [[str(i)]]}).execute()
-    except Exception as e:
-        print(f"Warning: Failed to create sheet '{title}': {str(e)}")
+    if use_sheets:
+        try:
+            body = {'requests': [{'addSheet': {'properties': {'title': title}}}]}
+            sheets_service.spreadsheets().batchUpdate(spreadsheetId=GOOGLE_SHEET_ID, body=body).execute()
+            escaped_title = escape_sheet_title(title)
+            
+            # Store original title in first row if provided
+            if original_title:
+                sheets_service.spreadsheets().values().update(
+                    spreadsheetId=GOOGLE_SHEET_ID,
+                    range=f"{escaped_title}!A1",
+                    valueInputOption='RAW',
+                    body={'values': [[original_title]]}
+                ).execute()
+            
+            for i in range(1, 21):
+                sheets_service.spreadsheets().values().update(
+                    spreadsheetId=GOOGLE_SHEET_ID, range=f'{escaped_title}!D{i+1}',
+                    valueInputOption='RAW', body={'values': [[str(i)]]}).execute()
+        except Exception as e:
+            logger.warning(f"Sheets failed: {e}")
+    else:
+        logger.info("Sheets unavailable - skipping")
 
 
 
@@ -444,176 +404,79 @@ async def generate_async(prompt):
 
 def generate_image(prompt):
     logger.info(f"Generating image for prompt: {prompt[:50]}...")
-    try:
-        return asyncio.run(generate_async(prompt))
-    except Exception as e:
-        logger.error(f"Asyncio run error: {e}")
-        raise
+    max_retries = 3
+    
+    for retry in range(max_retries):
+        try:
+            return asyncio.run(generate_async(prompt))
+        except Exception as e:
+            if retry < max_retries - 1:
+                wait_time = 5 * (retry + 1)  # 5, 10, 15 seconds
+                logger.warning(f"Retry {retry + 1} for generate: {e}")
+                time.sleep(wait_time)
+            else:
+                logger.error(f"Generate failed after {max_retries} attempts: {e}")
+                raise
 
 def upload_image(img_data):
-    try:
-        files = {'file': ('image.png', img_data, 'image/png'), 'upload_preset': (None, CLOUDINARY_PRESET)}
-        response = requests.post(CLOUDINARY_URL + 'image/upload', files=files)
-        url = response.json()['secure_url']
-        logger.info(f"Uploaded image URL: {url}")
-        return url
-    except Exception as e:
-        logger.error(f"Cloudinary upload error: {e}")
-        raise
+    max_retries = 3
+    
+    for retry in range(max_retries):
+        try:
+            files = {'file': ('image.png', img_data, 'image/png'), 'upload_preset': (None, CLOUDINARY_PRESET)}
+            response = requests.post(CLOUDINARY_URL + 'image/upload', files=files)
+            url = response.json()['secure_url']
+            logger.info(f"Uploaded image URL: {url}")
+            return url
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, Exception) as e:
+            if retry < max_retries - 1:
+                wait_time = 5 * (retry + 1)  # 5, 10, 15 seconds
+                logger.warning(f"Retry {retry + 1} for upload: {e}")
+                time.sleep(wait_time)
+            else:
+                logger.error(f"Upload failed after {max_retries} attempts: {e}")
+                raise
 
-async def telegram_approve_async(url, prompt, classifier):
-    if not bot or not TELEGRAM_CHAT_ID:
-        logger.info("Telegram not configured, auto-approving")
-        return True
-    
-    # Initialize Telegram app if needed
-    if telegram_app is None:
-        init_telegram_app()
-        # Start polling in background
-        asyncio.create_task(telegram_app.initialize())
-        asyncio.create_task(telegram_app.start())
-        await asyncio.sleep(1)  # Brief delay for initialization
-    
-    keyboard = [[InlineKeyboardButton("Approve", callback_data='approve'), InlineKeyboardButton("Reject", callback_data='reject')]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    # Send photo with approval buttons
-    message = await bot.send_photo(
-        chat_id=TELEGRAM_CHAT_ID, 
-        photo=url, 
-        caption=f"Prompt {classifier}: {prompt}", 
-        reply_markup=reply_markup
-    )
-    
-    # Wait for callback response with timeout
-    timeout = 300  # 5 minutes timeout
-    elapsed = 0
-    poll_interval = 1
-    
-    while elapsed < timeout:
-        if message.message_id in callback_responses:
-            response = callback_responses.pop(message.message_id)
-            logger.info(f"Received Telegram response for {classifier}: {response}")
-            return response == 'approve'
-        
-        await asyncio.sleep(poll_interval)
-        elapsed += poll_interval
-    
-    # Timeout - auto approve with warning
-    logger.warning(f"Telegram approval timeout for {classifier}, auto-approving")
-    await bot.edit_message_caption(
-        chat_id=TELEGRAM_CHAT_ID,
-        message_id=message.message_id,
-        caption=f"Prompt {classifier}: {prompt} ⏰ TIMEOUT - AUTO-APPROVED",
-        reply_markup=None
-    )
-    return True
 
-def telegram_approve(url, prompt, classifier):
-    return asyncio.run(telegram_approve_async(url, prompt, classifier))
-
-def reject_fix(prompt, attempt=1):
-    """Improve prompt based on rejection with progressive modifications"""
-    logger.info(f"Rejection attempt {attempt} for prompt: {prompt[:50]}...")
-    
-    # Progressive prompt improvements
-    improvements = [
-        # First attempt: Add quality and style descriptors
-        lambda p: f"high quality, detailed, professional artwork, {p}",
-        
-        # Second attempt: Adjust composition and lighting
-        lambda p: f"well-lit scene with good composition, clear focus, {p.replace('high quality, detailed, professional artwork, ', '')}",
-        
-        # Third attempt: Add specific visual improvements
-        lambda p: f"cinematic lighting, sharp details, vibrant colors, {p.replace('well-lit scene with good composition, clear focus, ', '')}",
-        
-        # Fourth attempt: Simplify and refocus
-        lambda p: p.split(',')[0] + ", simple clean composition, cartoon style",
-        
-        # Fifth attempt: Minimal prompt
-        lambda p: f"red fox character, {p.split(',')[0].split(' ')[-3:] if len(p.split(',')[0].split(' ')) > 3 else p.split(',')[0]}"
-    ]
-    
-    if attempt <= len(improvements):
-        improved_prompt = improvements[attempt - 1](prompt)
-        logger.info(f"Improved prompt (attempt {attempt}): {improved_prompt}")
-        return improved_prompt
-    else:
-        # After max attempts, return a basic fallback
-        fallback = "red fox character in simple cartoon style"
-        logger.warning(f"Max rejection attempts reached, using fallback: {fallback}")
-        return fallback
 
 def process_image(classifier, prompt, sheet_title, story_id=None):
-    original_prompt = prompt
-    rejection_attempt = 0
-    max_attempts = 5
+    """Simplified image processing without Telegram approval"""
+    logger.info(f"Processing image {classifier} with prompt: {prompt[:50]}...")
     
-    while rejection_attempt <= max_attempts:
-        logger.info(f"Processing image {classifier} with prompt: {prompt[:50]}...")
+    try:
+        # Generate and upload image
+        img_data = generate_image(prompt)
+        url = upload_image(img_data)
+        logger.info(f"Successfully uploaded image {classifier} to: {url}")
         
+        # Update sheet if available
         try:
-            img_data = generate_image(prompt)
-            url = upload_image(img_data)
-            logger.info(f"Successfully uploaded image {classifier} to: {url}")
-        except Exception as e:
-            logger.error(f"Failed to generate/upload image {classifier}: {str(e)}")
-            # If generation/upload fails, try with improved prompt
-            rejection_attempt += 1
-            if rejection_attempt <= max_attempts:
-                prompt = reject_fix(original_prompt, rejection_attempt)
-                update_sheet(sheet_title, classifier, 'Prompt', prompt)
-                continue
-            else:
-                raise
-            
-        # Check approval
-        if telegram_approve(url, prompt, classifier):
             update_sheet(sheet_title, classifier, 'Picture Generation', url)
-            
-            # Emit image event if story_id is provided
-            if story_id:
-                # Import here to avoid circular import
-                try:
-                    from flask_server import emit_image_event
-                    emit_image_event(story_id, int(classifier), url, "completed")
-                except ImportError:
-                    print(f"Warning: Could not emit image event for story {story_id}")
-            
-            return url
-        else:
-            # Image was rejected
-            rejection_attempt += 1
-            logger.info(f"Image {classifier} rejected, attempt {rejection_attempt}/{max_attempts}")
-            
-            if rejection_attempt <= max_attempts:
-                prompt = reject_fix(original_prompt, rejection_attempt)
-                update_sheet(sheet_title, classifier, 'Prompt', prompt)
-                
-                # Emit retry event if story_id is provided
-                if story_id:
-                    try:
-                        from flask_server import emit_image_event
-                        emit_image_event(story_id, int(classifier), url, f"retry_attempt_{rejection_attempt}")
-                    except ImportError:
-                        pass
-            else:
-                # Max attempts reached, use the last generated image anyway
-                logger.warning(f"Max rejection attempts reached for {classifier}, using last image")
-                update_sheet(sheet_title, classifier, 'Picture Generation', url)
-                
-                if story_id:
-                    try:
-                        from flask_server import emit_image_event
-                        emit_image_event(story_id, int(classifier), url, "completed_after_max_retries")
-                    except ImportError:
-                        pass
-                
-                return url
+        except Exception as e:
+            logger.warning(f"Failed to update sheet: {e}")
+        
+        # Emit image event if story_id is provided
+        if story_id:
+            try:
+                from flask_server import emit_image_event
+                emit_image_event(story_id, int(classifier), url, "completed")
+            except ImportError:
+                logger.warning(f"Could not emit image event for story {story_id}")
+        
+        logger.info(f"Image {classifier} completed without approval")
+        return url
+        
+    except Exception as e:
+        logger.error(f"Failed to generate/upload image {classifier}: {str(e)}")
+        return None
 
 def update_sheet(sheet_title, classifier, column, value):
+    if not use_sheets:
+        logger.info("Sheets unavailable - skipping update")
+        return
+        
     if sheets_service is None:
-        print(f"Warning: Google Sheets service not available. Skipping update for {column} in row {classifier}")
+        logger.warning("Google Sheets service not available. Skipping update")
         return
         
     try:
@@ -638,102 +501,19 @@ def update_sheet(sheet_title, classifier, column, value):
             spreadsheetId=GOOGLE_SHEET_ID, range=range_str,
             valueInputOption='RAW', body={'values': [[value]]}).execute()
     except Exception as e:
-        print(f"Warning: Failed to update sheet '{sheet_title}', column '{column}': {str(e)}")
-
-async def choose_video_model_async():
-    if not bot or not TELEGRAM_CHAT_ID:
-        logger.info("Telegram not configured, defaulting to Kling model")
-        return 'kling'
-    
-    # Initialize Telegram app if needed
-    if telegram_app is None:
-        init_telegram_app()
-        # Start polling in background
-        asyncio.create_task(telegram_app.initialize())
-        asyncio.create_task(telegram_app.start())
-        await asyncio.sleep(1)  # Brief delay for initialization
-    
-    keyboard = [[InlineKeyboardButton("Kling", callback_data='kling'), InlineKeyboardButton("Hailuo", callback_data='hailuo')]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    # Send model selection message
-    message = await bot.send_message(
-        chat_id=TELEGRAM_CHAT_ID, 
-        text="Choose video generation model:", 
-        reply_markup=reply_markup
-    )
-    
-    # Wait for callback response with timeout
-    timeout = 120  # 2 minutes timeout
-    elapsed = 0
-    poll_interval = 1
-    
-    while elapsed < timeout:
-        if message.message_id in callback_responses:
-            selected_model = callback_responses.pop(message.message_id)
-            logger.info(f"Selected video model: {selected_model}")
-            return selected_model
-        
-        await asyncio.sleep(poll_interval)
-        elapsed += poll_interval
-    
-    # Timeout - default to kling with warning
-    logger.warning("Video model selection timeout, defaulting to Kling")
-    await bot.edit_message_text(
-        chat_id=TELEGRAM_CHAT_ID,
-        message_id=message.message_id,
-        text="Choose video generation model: ⏰ TIMEOUT - Using Kling (default)"
-    )
-    return 'kling'
+        logger.warning(f"Sheets failed: {e}")
 
 def choose_video_model():
-    return asyncio.run(choose_video_model_async())
+    """Default to Kling video model"""
+    logger.info("Using default Kling video model")
+    return 'kling'
 
-
-async def get_motion_prompt_async():
-    if not bot or not TELEGRAM_CHAT_ID:
-        logger.info("Telegram not configured, using default motion prompt")
-        return "smooth camera movement with natural transitions"
-    
-    # Initialize Telegram app if needed
-    if telegram_app is None:
-        init_telegram_app()
-        # Start polling in background
-        asyncio.create_task(telegram_app.initialize())
-        asyncio.create_task(telegram_app.start())
-        await asyncio.sleep(1)  # Brief delay for initialization
-    
-    # Send motion prompt request
-    message = await bot.send_message(
-        chat_id=TELEGRAM_CHAT_ID, 
-        text="Please enter the motion prompt for video generation (describe the camera movement, transitions, etc.):"
-    )
-    
-    # Wait for text response with timeout
-    timeout = 180  # 3 minutes timeout
-    elapsed = 0
-    poll_interval = 1
-    
-    while elapsed < timeout:
-        if message.message_id in callback_responses:
-            motion_prompt = callback_responses.pop(message.message_id)
-            logger.info(f"Received motion prompt: {motion_prompt}")
-            return motion_prompt
-        
-        await asyncio.sleep(poll_interval)
-        elapsed += poll_interval
-    
-    # Timeout - use default with warning
-    default_prompt = "smooth camera movement with natural transitions"
-    logger.warning(f"Motion prompt timeout, using default: {default_prompt}")
-    await bot.send_message(
-        chat_id=TELEGRAM_CHAT_ID,
-        text=f"⏰ Motion prompt timeout - Using default: {default_prompt}"
-    )
-    return default_prompt
 
 def get_motion_prompt():
-    return asyncio.run(get_motion_prompt_async())
+    """Return default motion prompt"""
+    default_prompt = "smooth camera movement with natural transitions"
+    logger.info(f"Using default motion prompt: {default_prompt}")
+    return default_prompt
 
 def generate_video(model, prompt, image_url):
     if model == 'kling':
@@ -753,16 +533,17 @@ def generate_video(model, prompt, image_url):
             time.sleep(30)
 
 def process_video(classifier, image_url, sheet_title):
+    """Simplified video processing without Telegram approval"""
     model = choose_video_model()
-    while True:
-        motion_prompt = get_motion_prompt()
+    motion_prompt = get_motion_prompt()
+    try:
         video_url = generate_video(model, motion_prompt, image_url)
-        if telegram_approve(video_url, motion_prompt, f"Video {classifier}"):
-            update_sheet(sheet_title, classifier, 'Video Generation', video_url)
-            return
-        else:
-            # Reject, loop for new prompt
-            pass
+        update_sheet(sheet_title, classifier, 'Video Generation', video_url)
+        logger.info(f"Video {classifier} completed successfully")
+        return video_url
+    except Exception as e:
+        logger.error(f"Failed to generate video {classifier}: {str(e)}")
+        return None
 
 def process_story_generation(answers, story_id=None):
     """Process story generation with provided answers from Flask server"""
@@ -819,13 +600,21 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
         update_sheet(idea, str(i), 'Prompt', prompt)
         try:
             img_url = process_image(str(i), prompt, idea, story_id)
+            if img_url:
+                images.append(img_url)
+            else:
+                logger.warning(f"Skipping image {i} due to generation failure")
+                images.append("Skipped")
         except Exception as e:
             logger.error(f"Image process error {i+1}: {e}")
-            raise
-        images.append(img_url)
+            images.append("Skipped")
+            continue
 
     for i, img_url in enumerate(images, 1):
-        process_video(str(i), img_url, idea)
+        if img_url and img_url != "Skipped":
+            process_video(str(i), img_url, idea)
+        else:
+            logger.info(f"Skipping video generation for image {i} (no valid image URL)")
 
 def main():
     """For testing purposes only - use Flask server in production"""

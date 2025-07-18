@@ -323,7 +323,7 @@
 
   <script>
     // Debug configuration
-    const DEBUG_MODE = false; // Set to true for development debugging
+    const DEBUG_MODE = true; // Set to true for development debugging
     
     function debugLog(...args) {
       if (DEBUG_MODE) {
@@ -570,6 +570,7 @@
       eventSource.addEventListener('image_ready', function(e) {
         try {
           const data = JSON.parse(e.data);
+          console.log('Received image_ready:', e.data);
           displayImage(data.scene_number, data.image_url);
           updateProgress(data.completed_scenes, data.total_scenes);
           eventSourceRetryCount = 0; // Reset retry count on success
@@ -703,6 +704,7 @@
     }
 
     function handlePollingData(data) {
+      console.log('Polling data:', data);
       // Update progress
       updateProgress(data.completed_scenes, data.total_scenes);
       
@@ -719,6 +721,7 @@
     }
 
     function displayImage(sceneNumber, imageUrl) {
+      console.log('Displaying image for scene', sceneNumber, 'URL:', imageUrl);
       const imageItem = document.getElementById(`image-${sceneNumber}`);
       if (imageItem) {
         imageItem.className = 'image-item completed';

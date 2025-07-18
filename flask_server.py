@@ -13,7 +13,7 @@ from Animalchannel import process_story_generation, process_story_generation_wit
 
 # Configure logging with proper formatting
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
@@ -54,6 +54,7 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
             active_stories[story_id]['completed_scenes'] += 1
         
         # Emit the event to connected clients
+        logger.debug(f"Attempting SSE emit for story {story_id}, scene {scene_number}, URL length {len(image_url)}")
         try:
             sse.publish({
                 "scene_number": scene_number,
@@ -62,22 +63,15 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
                 "completed_scenes": active_stories[story_id]['completed_scenes'],
                 "total_scenes": active_stories[story_id]['total_scenes']
             }, type='image_ready', channel=story_id)
+            logger.info(f"SSE emit success for {scene_number}")
             print(f"SSE Event emitted successfully: Scene {scene_number} for story {story_id}")
         except Exception as e:
             # Enhanced error logging for SSE connection issues
+            logger.exception(f"Failed to emit SSE event for story {story_id}, scene {scene_number}")
             print(f"ERROR: Failed to emit SSE event for story {story_id}, scene {scene_number}")
             print(f"Exception type: {type(e).__name__}")
             print(f"Exception message: {str(e)}")
             print(f"Fallback: Scene {scene_number} image ready: {image_url}")
-            
-            # Try to log to file if possible
-            try:
-                import datetime
-                timestamp = datetime.datetime.now().isoformat()
-                with open('sse_errors.log', 'a') as f:
-                    f.write(f"{timestamp} - SSE Error: {story_id} - {type(e).__name__}: {str(e)}\n")
-            except Exception as log_error:
-                print(f"Warning: Could not log to file: {log_error}")
 
 def send_heartbeat(story_id):
     """Send periodic heartbeat/ping events to keep SSE connection alive"""
@@ -284,6 +278,30 @@ def get_story_status(story_id):
         'images': story['images']
     })
 
+
+@app.route('/test_emit/<story_id>', methods=['GET'])
+def test_emit(story_id):
+    """Test endpoint for SSE emission"""
+    logger.info(f"Testing SSE emission for story: {story_id}")
+    
+    # Initialize mock story if it doesn't exist
+    if story_id not in active_stories:
+        active_stories[story_id] = {
+            'images': {},
+            'completed_scenes': 0,
+            'total_scenes': 20
+        }
+    
+    # Test emit with fake data
+    fake_scene = 1
+    fake_url = "https://example.com/test_image.jpg"
+    
+    try:
+        emit_image_event(story_id, fake_scene, fake_url, "test")
+        return jsonify({"status": "Test emitted successfully", "story_id": story_id})
+    except Exception as e:
+        logger.error(f"Test emit failed: {e}")
+        return jsonify({"status": "Test emit failed", "error": str(e)}), 500
 
 @app.route('/health', methods=['GET'])
 def health():
