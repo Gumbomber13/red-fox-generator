@@ -284,6 +284,7 @@ def edit_scenes(scenes):
     return scenes
 
 def create_prompts(scenes):
+    logging.info(f"Creating visual prompts for {len(scenes)} scenes")
     system = """
 # Overview 
 You are a creative assistant that helps generate engaging content for a child series of a red panda that saves some sort of cute animal from some sort of predator or tragic situation. These are visual stories that are told in images and have no dialogue. Your job is to receive a series of 20 scenes  turn the scenes into a series of visual kling image prompts of the first frame of each scene. These prompts should be visual descriptions that describe each aspect of the image in a very detailed and precise way.Only output the prompts with no explanation or commentary. 
@@ -295,15 +296,23 @@ You are a creative assistant that helps generate engaging content for a child se
 3.Make sure the animals are not wearing any clothes
 4.Do not prompt for midair or jumping characters unless they are flying characters
 """.replace("red panda", "red fox").replace("victim", "fox").replace("saved", "transformed")  # Adjust for new theme
-    response = openai_client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": json.dumps({"scenes": scenes}) + " Return as JSON with keys Prompt1, Prompt2, etc."}],
-        response_format={"type": "json_object"}
-    )
-    prompts = json.loads(response.choices[0].message.content)
+    
+    logging.info(f"Calling OpenAI for prompt refinement: {str(scenes)[:50]}...")
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": json.dumps({"scenes": scenes}) + " Return as JSON with keys Prompt1, Prompt2, etc."}],
+            response_format={"type": "json_object"}
+        )
+        prompts = json.loads(response.choices[0].message.content)
+        logging.info(f"Visual prompt created: {len(prompts)} prompts generated successfully")
+    except Exception as e:
+        logging.error(f"Visual prompt error: {e}")
+        raise
     return [prompts[f"Prompt{i}"] for i in range(1, 21)]
 
 def standardize_prompts(prompts):
+    logging.info(f"Standardizing {len(prompts)} visual prompts with art style and character descriptions")
     system = """
 You are a creative assistant that helps generate engaging content for a child series of a red panda that saves some sort of cute animal from some sort of predator or tragic situation. These are visual stories that are told in images and have no dialogue. Your job is to receive a series of 20 prompts and add a starting description to the beginning of the prompt and a character description every time a character (person, animal) is mentioned
 
@@ -320,12 +329,19 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
 4.Dont say “same art style and character description. Actually describe it for every single prompt
 5. Do not remove anything from prompt given to you, output the same text with only the picture and character descriptions added
 """.replace("red panda", "red fox").replace("20", "20")  # Adjust
-    response = openai_client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": json.dumps({"prompts": prompts}) + " Return as JSON with keys Prompt1, Prompt2, etc."}],
-        response_format={"type": "json_object"}
-    )
-    std_prompts = json.loads(response.choices[0].message.content)
+    
+    logging.info(f"Standardizing prompt: {str(prompts)[:50]}...")
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": json.dumps({"prompts": prompts}) + " Return as JSON with keys Prompt1, Prompt2, etc."}],
+            response_format={"type": "json_object"}
+        )
+        std_prompts = json.loads(response.choices[0].message.content)
+        logging.info(f"Standardized prompt: {len(std_prompts)} prompts completed successfully")
+    except Exception as e:
+        logging.error(f"Standardize prompt error: {e}")
+        raise
     return [std_prompts[f"Prompt{i}"] for i in range(1, 21)]
 
 def generate_image(prompt):
@@ -335,15 +351,22 @@ def generate_image(prompt):
         img_url = response.data[0].url
         logging.info(f"OpenAI image generation successful, URL: {img_url}")
         img_data = requests.get(img_url).content
+        logging.info(f"Image data received: {len(img_data)} bytes")
         return img_data
     except Exception as e:
-        logging.error(f"Failed to generate image: {str(e)}")
+        logging.error(f"DALL-E error: {e}")
         raise
 
 def upload_image(img_data):
-    files = {'file': ('image.png', img_data, 'image/png'), 'upload_preset': (None, CLOUDINARY_PRESET)}
-    response = requests.post(CLOUDINARY_URL + 'image/upload', files=files)
-    return response.json()['secure_url']
+    try:
+        files = {'file': ('image.png', img_data, 'image/png'), 'upload_preset': (None, CLOUDINARY_PRESET)}
+        response = requests.post(CLOUDINARY_URL + 'image/upload', files=files)
+        url = response.json()['secure_url']
+        logging.info(f"Uploaded image URL: {url}")
+        return url
+    except Exception as e:
+        logging.error(f"Cloudinary upload error: {e}")
+        raise
 
 async def telegram_approve_async(url, prompt, classifier):
     keyboard = [[InlineKeyboardButton("Approve", callback_data='approve'), InlineKeyboardButton("Reject", callback_data='reject')]]
