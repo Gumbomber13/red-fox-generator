@@ -10,3 +10,4 @@ python-dotenv>=1.0.0
 flask-cors
 flask-sse>=0.2.0
 redis>=4.0.0
+httpx>=0.24.0

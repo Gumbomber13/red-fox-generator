@@ -33,7 +33,12 @@ load_dotenv()
 # Load API keys and configs from environment variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "0"))  # Default to 0 if not set
+# Handle TELEGRAM_CHAT_ID with validation for placeholder values
+telegram_chat_id_str = os.getenv("TELEGRAM_CHAT_ID", "0")
+try:
+    TELEGRAM_CHAT_ID = int(telegram_chat_id_str) if telegram_chat_id_str.isdigit() or (telegram_chat_id_str.startswith('-') and telegram_chat_id_str[1:].isdigit()) else 0
+except (ValueError, AttributeError):
+    TELEGRAM_CHAT_ID = 0
 GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 CLOUDINARY_PRESET = os.getenv("CLOUDINARY_PRESET")
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
@@ -51,18 +56,25 @@ required_vars = {
     "KLING_API_KEY": KLING_API_KEY
 }
 
-for var_name, var_value in required_vars.items():
-    if not var_value:
-        print(f"Warning: {var_name} environment variable is not set")
+def is_placeholder_value(value):
+    """Check if a value is a placeholder from the .env template"""
+    if not value:
+        return True
+    placeholder_indicators = ['your_', '_here', 'placeholder', 'example']
+    return any(indicator in str(value).lower() for indicator in placeholder_indicators)
 
-# Initialize clients only if API keys are available
-if OPENAI_API_KEY:
+for var_name, var_value in required_vars.items():
+    if not var_value or is_placeholder_value(var_value):
+        logger.warning(f"{var_name} environment variable is not set or contains placeholder value")
+
+# Initialize clients only if API keys are available and not placeholders
+if OPENAI_API_KEY and not is_placeholder_value(OPENAI_API_KEY):
     openai_client = OpenAI(api_key=OPENAI_API_KEY)
 else:
     openai_client = None
-    print("Warning: OpenAI client not initialized - OPENAI_API_KEY missing")
+    logger.warning("OpenAI client not initialized - OPENAI_API_KEY missing or placeholder")
 
-if TELEGRAM_TOKEN:
+if TELEGRAM_TOKEN and not is_placeholder_value(TELEGRAM_TOKEN):
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     
     # Global state for callback handling
@@ -114,7 +126,7 @@ else:
     bot = None
     callback_responses = {}
     telegram_app = None
-    print("Warning: Telegram bot not initialized - TELEGRAM_TOKEN missing")
+    logger.warning("Telegram bot not initialized - TELEGRAM_TOKEN missing or placeholder")
 
 # Google Sheets setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']

@@ -114,3 +114,50 @@
 2025-07-17 23:26:38,001 - werkzeug - INFO -  * Detected change in 'C:\\Users\\hassa\\OneDrive\\Desktop\\Programs\\red-fox-clean\\flask_server.py', reloading
 2025-07-17 23:26:38,124 - werkzeug - INFO -  * Detected change in 'C:\\Users\\hassa\\OneDrive\\Desktop\\Programs\\red-fox-clean\\flask_server.py', reloading
 2025-07-17 23:26:38,438 - werkzeug - INFO -  * Detected change in 'C:\\Users\\hassa\\OneDrive\\Desktop\\Programs\\red-fox-clean\\flask_server.py', reloading
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - TELEGRAM_TOKEN environment variable is not set or contains placeholder value
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 00:01:42,284 - Animalchannel - WARNING - Telegram bot not initialized - TELEGRAM_TOKEN missing or placeholder
+2025-07-18 00:01:42,291 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.157:5000
+2025-07-18 00:01:42,291 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-18 00:01:52,039 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 00:01:52] "GET /health HTTP/1.1" 200 -
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - TELEGRAM_TOKEN environment variable is not set or contains placeholder value
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 00:05:57,871 - Animalchannel - WARNING - Telegram bot not initialized - TELEGRAM_TOKEN missing or placeholder
+2025-07-18 00:05:57,878 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.157:5000
+2025-07-18 00:05:57,878 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-18 00:08:04,511 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 00:08:04,511 - Animalchannel - WARNING - TELEGRAM_TOKEN environment variable is not set or contains placeholder value
+2025-07-18 00:08:04,511 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 00:08:04,511 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 00:08:04,511 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 00:08:04,511 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 00:08:04,512 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 00:08:04,512 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 00:08:04,512 - Animalchannel - WARNING - Telegram bot not initialized - TELEGRAM_TOKEN missing or placeholder
+2025-07-18 00:09:46,946 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 00:09:46,946 - Animalchannel - WARNING - TELEGRAM_TOKEN environment variable is not set or contains placeholder value
+2025-07-18 00:09:46,947 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 00:09:46,947 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 00:09:46,947 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 00:09:46,947 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 00:09:46,947 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 00:09:46,947 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 00:09:46,947 - Animalchannel - WARNING - Telegram bot not initialized - TELEGRAM_TOKEN missing or placeholder
