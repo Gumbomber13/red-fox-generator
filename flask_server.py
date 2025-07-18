@@ -270,10 +270,18 @@ def approve_scenes():
 @app.route('/story/<story_id>', methods=['GET'])
 def get_story_status(story_id):
     """Get current status of a story generation"""
+    logger.info(f"Getting story status for ID: {story_id}")
+    
     if story_id not in active_stories:
+        logger.warning(f"Story not found: {story_id}")
         return jsonify({'error': 'Story not found'}), 404
     
     story = active_stories[story_id]
+    
+    # Log the current state for debugging
+    logger.debug(f"Story {story_id} status: {story['status']}, completed: {story['completed_scenes']}/{story['total_scenes']}")
+    logger.debug(f"Story {story_id} images: {len(story['images'])} images available")
+    
     return jsonify({
         'status': story['status'],
         'completed_scenes': story['completed_scenes'],

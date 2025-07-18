@@ -161,3 +161,86 @@
 2025-07-18 00:09:46,947 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
 2025-07-18 00:09:46,947 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
 2025-07-18 00:09:46,947 - Animalchannel - WARNING - Telegram bot not initialized - TELEGRAM_TOKEN missing or placeholder
+2025-07-18 02:47:42,691 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:47:42,691 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 02:47:42,691 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 02:47:42,691 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 02:47:42,691 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 02:47:42,691 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:47:42,691 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 02:47:49,344 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:47:49,344 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 02:47:49,344 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 02:47:49,344 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 02:47:49,344 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 02:47:49,344 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:47:49,344 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 02:47:57,907 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:47:57,907 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 02:47:57,907 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 02:47:57,907 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 02:47:57,907 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 02:47:57,907 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:47:57,907 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 02:47:57,911 - flask_server - INFO - Getting story status for ID: 6f0aa642-a21d-4b0d-b124-6a422bafb398
+2025-07-18 02:47:57,911 - flask_server - DEBUG - Story 6f0aa642-a21d-4b0d-b124-6a422bafb398 status: processing, completed: 2/20
+2025-07-18 02:47:57,911 - flask_server - DEBUG - Story 6f0aa642-a21d-4b0d-b124-6a422bafb398 images: 2 images available
+2025-07-18 02:47:57,911 - flask_server - INFO - Getting story status for ID: invalid-id
+2025-07-18 02:47:57,911 - flask_server - WARNING - Story not found: invalid-id
+2025-07-18 02:48:20,583 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:48:20,583 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 02:48:20,583 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 02:48:20,583 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 02:48:20,583 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 02:48:20,583 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:48:20,583 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 02:48:57,545 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:48:57,545 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 02:48:57,545 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 02:48:57,545 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 02:48:57,545 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 02:48:57,545 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 02:48:57,545 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 02:48:57,549 - flask_server - INFO - Getting story status for ID: bc4747a2-4206-4072-8f25-be009e67c1fe
+2025-07-18 02:48:57,549 - flask_server - DEBUG - Story bc4747a2-4206-4072-8f25-be009e67c1fe status: processing, completed: 3/20
+2025-07-18 02:48:57,549 - flask_server - DEBUG - Story bc4747a2-4206-4072-8f25-be009e67c1fe images: 3 images available
+2025-07-18 02:48:57,550 - flask_server - INFO - Testing SSE emission for story: bc4747a2-4206-4072-8f25-be009e67c1fe
+2025-07-18 02:48:57,550 - flask_server - DEBUG - Attempting SSE emit for story bc4747a2-4206-4072-8f25-be009e67c1fe, scene 1, URL length 34
+2025-07-18 02:49:01,617 - flask_server - ERROR - Failed to emit SSE event for story bc4747a2-4206-4072-8f25-be009e67c1fe, scene 1
+Traceback (most recent call last):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 385, in connect_check_health
+    sock = self.retry.call_with_retry(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\retry.py", line 87, in call_with_retry
+    return do()
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 386, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 797, in _connect
+    raise err
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 781, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\flask_server.py", line 59, in emit_image_event
+    sse.publish({
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\flask_sse.py", line 131, in publish
+    return self.redis.publish(channel=channel, message=msg_json)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\commands\core.py", line 5733, in publish
+    return self.execute_command("PUBLISH", channel, message, **kwargs)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 623, in execute_command
+    return self._execute_command(*args, **options)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 629, in _execute_command
+    conn = self.connection or pool.get_connection()
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\utils.py", line 191, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1530, in get_connection
+    connection.connect()
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 379, in connect
+    self.connect_check_health(check_health=True)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 391, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2025-07-18 02:49:01,649 - flask_server - INFO - Getting story status for ID: invalid-story-id
+2025-07-18 02:49:01,649 - flask_server - WARNING - Story not found: invalid-story-id

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .image-test {
+            border: 2px solid #ddd;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .image-test img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 4px;
+        }
+        .console-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Frontend Integration Test</h1>
+    <p>This page tests the frontend integration with the Flask backend.</p>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Log</h2>
+        <div id="console-log" class="console-log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Image Display Test</h2>
+        <div id="image-tests"></div>
+        <button onclick="testImageDisplay()">Test Image Display</button>
+    </div>
+
+    <script>
+        let testResults = [];
+        let consoleLog = [];
+        
+        // Override console.log to capture output
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            consoleLog.push('[LOG] ' + args.join(' '));
+            updateConsoleDisplay();
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            consoleLog.push('[ERROR] ' + args.join(' '));
+            updateConsoleDisplay();
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            consoleLog.push('[WARN] ' + args.join(' '));
+            updateConsoleDisplay();
+            originalWarn.apply(console, args);
+        };
+        
+        function updateConsoleDisplay() {
+            const consoleDiv = document.getElementById('console-log');
+            consoleDiv.textContent = consoleLog.slice(-20).join('\n'); // Show last 20 lines
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        function addResult(test, status, message) {
+            testResults.push({test, status, message, timestamp: new Date()});
+            updateResults();
+        }
+        
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            testResults.forEach(result => {
+                const div = document.createElement('div');
+                div.className = `test-result ${result.status}`;
+                div.innerHTML = `
+                    <strong>${result.test}</strong>: ${result.message}
+                    <small style="float: right;">${result.timestamp.toLocaleTimeString()}</small>
+                `;
+                resultsDiv.appendChild(div);
+            });
+        }
+        
+        function clearResults() {
+            testResults = [];
+            consoleLog = [];
+            updateResults();
+            updateConsoleDisplay();
+        }
+        
+        async function testHealthEndpoint() {
+            try {
+                const response = await fetch('http://localhost:5000/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'online') {
+                        addResult('Health Endpoint', 'success', 'Server is online');
+                        return true;
+                    } else {
+                        addResult('Health Endpoint', 'error', 'Unexpected response: ' + JSON.stringify(data));
+                        return false;
+                    }
+                } else {
+                    addResult('Health Endpoint', 'error', `HTTP ${response.status}: ${response.statusText}`);
+                    return false;
+                }
+            } catch (error) {
+                addResult('Health Endpoint', 'error', 'Connection failed: ' + error.message);
+                return false;
+            }
+        }
+        
+        async function testStoryEndpoint() {
+            try {
+                // Test with invalid story ID first
+                const invalidResponse = await fetch('http://localhost:5000/story/invalid-test-id');
+                if (invalidResponse.status === 404) {
+                    addResult('Story Endpoint (Invalid ID)', 'success', 'Correctly returned 404 for invalid ID');
+                } else {
+                    addResult('Story Endpoint (Invalid ID)', 'error', `Expected 404, got ${invalidResponse.status}`);
+                }
+                
+                // Note: We can't test a valid story ID without creating one first
+                addResult('Story Endpoint (Valid ID)', 'info', 'Cannot test without real story ID - would need backend generation');
+                return true;
+            } catch (error) {
+                addResult('Story Endpoint', 'error', 'Connection failed: ' + error.message);
+                return false;
+            }
+        }
+        
+        async function testCORSHeaders() {
+            try {
+                const response = await fetch('http://localhost:5000/health');
+                const corsHeader = response.headers.get('Access-Control-Allow-Origin');
+                if (corsHeader) {
+                    addResult('CORS Headers', 'success', `CORS enabled: ${corsHeader}`);
+                    return true;
+                } else {
+                    addResult('CORS Headers', 'error', 'No CORS headers found');
+                    return false;
+                }
+            } catch (error) {
+                addResult('CORS Headers', 'error', 'Connection failed: ' + error.message);
+                return false;
+            }
+        }
+        
+        function testEventSource() {
+            try {
+                // Test if EventSource is supported
+                if (typeof EventSource !== 'undefined') {
+                    addResult('EventSource Support', 'success', 'EventSource API is supported');
+                    
+                    // Test connection (will fail without valid story ID, but that's expected)
+                    const eventSource = new EventSource('http://localhost:5000/stream?channel=test');
+                    
+                    eventSource.addEventListener('open', function(e) {
+                        addResult('EventSource Connection', 'success', 'SSE connection opened');
+                        eventSource.close();
+                    });
+                    
+                    eventSource.addEventListener('error', function(e) {
+                        addResult('EventSource Connection', 'info', 'SSE connection error (expected for test)');
+                        eventSource.close();
+                    });
+                    
+                    // Close after 2 seconds
+                    setTimeout(() => {
+                        eventSource.close();
+                    }, 2000);
+                    
+                    return true;
+                } else {
+                    addResult('EventSource Support', 'error', 'EventSource API not supported');
+                    return false;
+                }
+            } catch (error) {
+                addResult('EventSource Support', 'error', 'EventSource test failed: ' + error.message);
+                return false;
+            }
+        }
+        
+        function testImageDisplay() {
+            const imageTestsDiv = document.getElementById('image-tests');
+            imageTestsDiv.innerHTML = '';
+            
+            // Test image display with different scenarios
+            const testCases = [
+                {
+                    name: 'Valid Image URL',
+                    url: 'https://via.placeholder.com/200x150/4CAF50/FFFFFF?text=Valid+Image',
+                    expected: 'success'
+                },
+                {
+                    name: 'Invalid Image URL',
+                    url: 'https://invalid-url-that-does-not-exist.com/image.jpg',
+                    expected: 'error'
+                },
+                {
+                    name: 'Empty URL',
+                    url: '',
+                    expected: 'error'
+                }
+            ];
+            
+            testCases.forEach((testCase, index) => {
+                const testDiv = document.createElement('div');
+                testDiv.className = 'image-test';
+                testDiv.innerHTML = `
+                    <h4>${testCase.name}</h4>
+                    <div id="image-container-${index}">Loading...</div>
+                    <p>URL: ${testCase.url || '(empty)'}</p>
+                `;
+                imageTestsDiv.appendChild(testDiv);
+                
+                // Simulate the displayImage function from the main application
+                setTimeout(() => {
+                    displayTestImage(index, testCase.url, testCase.name);
+                }, 100);
+            });
+        }
+        
+        function displayTestImage(index, imageUrl, testName) {
+            const container = document.getElementById(`image-container-${index}`);
+            
+            if (imageUrl && imageUrl.trim() !== '') {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = testName;
+                
+                img.onload = function() {
+                    container.innerHTML = '';
+                    container.appendChild(img);
+                    addResult(`Image Display (${testName})`, 'success', 'Image loaded successfully');
+                };
+                
+                img.onerror = function() {
+                    container.innerHTML = '<div style="color: red;">Failed to load image</div>';
+                    addResult(`Image Display (${testName})`, 'error', 'Image failed to load');
+                };
+            } else {
+                container.innerHTML = '<div style="color: orange;">No image URL provided</div>';
+                addResult(`Image Display (${testName})`, 'info', 'No image URL to display');
+            }
+        }
+        
+        async function runAllTests() {
+            clearResults();
+            addResult('Test Suite', 'info', 'Starting all tests...');
+            
+            await testHealthEndpoint();
+            await testStoryEndpoint();
+            await testCORSHeaders();
+            testEventSource();
+            testImageDisplay();
+            
+            addResult('Test Suite', 'info', 'All tests completed');
+        }
+        
+        // Run tests when page loads
+        window.addEventListener('load', function() {
+            console.log('Frontend Integration Test Page Loaded');
+            addResult('Page Load', 'success', 'Test page loaded successfully');
+        });
+    </script>
+</body>
+</html>
