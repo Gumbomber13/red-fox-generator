@@ -13,13 +13,17 @@ app = Flask(__name__)
 CORS(app)
 
 # Configure Flask-SSE with Redis (fallback to in-memory for development)
-redis_url = os.getenv("REDIS_URL", None)
-app.config["SSE_REDIS_URL"] = redis_url
+app.config["REDIS_URL"] = os.getenv("REDIS_URL")
 try:
     app.register_blueprint(sse, url_prefix='/stream')
+    print("Flask-SSE blueprint registered successfully")
 except Exception as e:
-    print(f"Warning: Flask-SSE setup failed: {e}")
+    print(f"ERROR: Flask-SSE setup failed: {e}")
+    print(f"Exception type: {type(e).__name__}")
+    print(f"Exception details: {str(e)}")
     print("SSE functionality will not be available")
+    import traceback
+    traceback.print_exc()
 
 # Store active story sessions and heartbeat timers
 active_stories = {}
@@ -264,6 +268,17 @@ def get_story_status(story_id):
         'total_scenes': story['total_scenes'],
         'images': story['images']
     })
+
+@app.route('/test_sse', methods=['GET'])
+def test_sse():
+    """Test SSE functionality"""
+    try:
+        sse.publish({'test': 'ping'}, type='test')
+        return 'Sent'
+    except Exception as e:
+        print(f"ERROR: SSE test failed: {e}")
+        print(f"Exception type: {type(e).__name__}")
+        return f'Error: {str(e)}', 500
 
 @app.route('/health', methods=['GET'])
 def health():
