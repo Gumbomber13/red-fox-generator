@@ -8,6 +8,7 @@ import threading
 import time
 import os
 import logging
+import multiprocessing
 from Animalchannel import process_story_generation, process_story_generation_with_scenes
 
 app = Flask(__name__)
@@ -185,7 +186,7 @@ def approve_scenes():
         # Start heartbeat to keep SSE connection alive
         send_heartbeat(story_id)
         
-        # Start story generation in background thread with approved scenes
+        # Start story generation in background process with approved scenes
         def generate_story_async():
             try:
                 process_story_generation_with_scenes(approved_scenes, original_answers, story_id)
@@ -232,10 +233,10 @@ def approve_scenes():
                         except Exception as log_error:
                             print(f"Warning: Could not log error event error to file: {log_error}")
         
-        logging.info(f"Approved scenes for {story_id}, starting thread")
-        thread = threading.Thread(target=generate_story_async)
-        thread.daemon = True
-        thread.start()
+        logging.info(f"Approved scenes for {story_id}, starting process")
+        process = multiprocessing.Process(target=process_story_generation_with_scenes, args=(approved_scenes, original_answers, story_id))
+        process.daemon = True
+        process.start()
         
         # Return story ID for client to connect to SSE stream
         return jsonify({

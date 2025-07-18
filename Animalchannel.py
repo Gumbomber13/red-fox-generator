@@ -5,6 +5,7 @@ import requests
 import asyncio
 import datetime
 import logging
+import httpx
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from openai import OpenAI
@@ -344,17 +345,38 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
         raise
     return [std_prompts[f"Prompt{i}"] for i in range(1, 21)]
 
+async def generate_async(prompt):
+    """Async version of image generation using httpx"""
+    try:
+        client = httpx.AsyncClient()
+        logging.info("Async client created")
+    except Exception as e:
+        logging.error(f"Async client init error: {e}")
+        raise
+    
+    try:
+        logging.info("Posting to DALL-E API")
+        # Use OpenAI client for DALL-E generation (synchronous)
+        response = openai_client.images.generate(model="dall-e-3", prompt=prompt, size="1024x1024", n=1)
+        img_url = response.data[0].url
+        logging.info("DALL-E post complete")
+        
+        # Use httpx to download the image asynchronously
+        img_response = await client.get(img_url)
+        img_data = img_response.content
+        logging.info(f"Image data received: {len(img_data)} bytes")
+        await client.aclose()
+        return img_data
+    except Exception as e:
+        await client.aclose()
+        raise
+
 def generate_image(prompt):
     logging.info(f"Generating image for prompt: {prompt[:50]}...")
     try:
-        response = openai_client.images.generate(model="dall-e-3", prompt=prompt, size="1024x1024", n=1)
-        img_url = response.data[0].url
-        logging.info(f"OpenAI image generation successful, URL: {img_url}")
-        img_data = requests.get(img_url).content
-        logging.info(f"Image data received: {len(img_data)} bytes")
-        return img_data
+        return asyncio.run(generate_async(prompt))
     except Exception as e:
-        logging.error(f"DALL-E error: {e}")
+        logging.error(f"Asyncio run error: {e}")
         raise
 
 def upload_image(img_data):

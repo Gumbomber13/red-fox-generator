@@ -14,7 +14,10 @@
       "WebFetch(domain:community.render.com)",
       "mcp__ide__executeCode",
       "Bash(del test_reconnect.js)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(timeout:*)",
+      "Bash(wc:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": []
   }
