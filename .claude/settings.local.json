@@ -13,7 +13,8 @@
       "WebFetch(domain:render.com)",
       "WebFetch(domain:community.render.com)",
       "mcp__ide__executeCode",
-      "Bash(del test_reconnect.js)"
+      "Bash(del test_reconnect.js)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

@@ -352,10 +352,6 @@ def reject_fix(prompt):
     return prompt
 
 def process_image(classifier, prompt, sheet_title, story_id=None):
-    # Add delay for testing polling fallback functionality
-    print(f"Testing: Adding 60-second delay before processing image {classifier}")
-    time.sleep(60)
-    
     while True:
         img_data = generate_image(prompt)
         url = upload_image(img_data)
@@ -418,7 +414,6 @@ def choose_video_model():
 
 def get_motion_prompt():
     # msg = bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="Motion prompt:")
-    time.sleep(60)  # Wait for response
     return "user motion prompt"  # Placeholder
 
 def generate_video(model, prompt, image_url):

@@ -145,23 +145,10 @@ Stories follow a strict 20-scene "Power Fantasy" format:
 
 ---
 
-## Goals: When Completed move goals under completed
+## Goals: When Completed move goals to the bottom of  completed
 
 Goals:
-### SSE Connection Stability (2025-07-17):
-✓ **Frontend EventSource Enhancement**: Implemented exponential backoff retry mechanism (1s, 3s, 5s delays) with max 3 retries in `startImageEventStream()` function. Added "Reconnecting..." UI feedback with retry counter display.
-✓ **Backend SSE Heartbeat**: Added periodic 'ping' events every 30 seconds in flask_server.py to prevent connection timeouts. Heartbeat automatically starts when story generation begins and stops when complete.
-✓ **Enhanced Error Logging**: Added comprehensive try/catch blocks around all SSE operations with detailed logging to both console and `sse_errors.log` file. Includes timestamp, error types, and fallback messaging.
-✓ **OnRender Platform Analysis**: Researched OnRender's SSE/WebSocket support. Free tier has 15-minute idle timeout that spins down services, causing connection drops. Recommend upgrading to Starter tier ($7/month) for stable long-running connections.
-✓ **Auto-Reconnect Testing**: Created and executed test script confirming exponential backoff functionality works correctly. Verified proper retry delays, UI feedback, and max retry enforcement.
-✓ **Connection Resilience**: Enhanced frontend with proper EventSource cleanup, connection state tracking, and graceful degradation when max retries exceeded.
-
-**Key Improvements:**
-- Exponential backoff prevents overwhelming server during connection issues
-- Heartbeat keeps connections alive during long image generation processes  
-- Enhanced logging aids in debugging connection problems in production
-- UI feedback keeps users informed during reconnection attempts
-- Platform-specific optimizations for OnRender hosting environment
+(No active goals)
 
 ###Completed
 ### Polling Fallback Implementation (2025-07-17):
@@ -331,3 +318,118 @@ Goals:
 - **Polling State Management**: Added pollingInterval and lastCompletedScenes variables for proper interval management and change detection
 - **Dual-Mode Operation**: System now supports both SSE (preferred) and polling (fallback) modes with automatic switching based on connection stability
 - **All 6 Polling Fallback goals completed successfully** - System now provides bulletproof real-time updates regardless of connection issues
+
+### Redis SSE Configuration & Testing (2025-07-18):
+✓ **Flask-SSE Redis Configuration**: Updated flask_server.py to set app.config['SSE_REDIS_URL'] = os.getenv('REDIS_URL', None) for proper Redis or in-memory fallback
+✓ **Environment Variable Setup**: Documented REDIS_URL environment variable requirement: "redis://red-d1sov5mmcj7s73aosv90:6379" for Render dashboard configuration
+✓ **SSE Error Handling Verification**: Confirmed all SSE publish operations are wrapped in try/except blocks with comprehensive error logging to console and sse_errors.log file
+✓ **Test Delay Cleanup**: Removed 60-second test delays from process_image() and get_motion_prompt() functions in Animalchannel.py (kept legitimate 30-second video polling delay)
+✓ **Application Testing**: Successfully tested Flask server startup, health endpoint (/health), SSE stream endpoint (/stream), and verified quiz form functionality in index.html
+
+---
+
+## Logs: (Write everything you do under here)
+- Implemented Scene Editing UI feature  
+- Modified flask_server.py `/submit` endpoint to return generated scenes instead of starting image generation  
+- Added new `/approve_scenes` endpoint to handle scene approval and start image generation  
+- Created `process_story_generation_with_scenes` function in Animalchannel.py to handle pre-approved scenes  
+- Updated frontend to show scenes editor after quiz submission  
+- Added `continueWithScenes()` function to collect edited scenes and submit to `/approve_scenes` endpoint  
+- Changed button text from "Continue" to "Approve Scenes"  
+- All 4 goals for Scene Editing UI completed successfully  
+
+### Scene Missing Analysis & Fixes Completed:
+- **Frontend Analysis**: Verified that missing scenes display as "(Scene X missing)" placeholder text in index.html:413
+- **Backend Tracing**: Confirmed flask_server.py `/submit` endpoint converts scenes list to dict and returns JSON response
+- **Payload Logging**: Added comprehensive logging to flask_server.py to track scene generation and responses
+- **OpenAI Response Validation**: Enhanced generate_story() function with detailed logging of raw OpenAI responses
+- **Fallback Logic**: Identified existing fallback logic that creates "(SceneX missing)" for missing scenes
+- **System Prompt Enhancement**: Updated build_system_prompt() to include explicit "CRITICAL REQUIREMENT" for exactly 20 scenes
+- **Retry Logic Implementation**: Added retry mechanism (2 attempts) for scene generation when scenes are missing
+- **Debug Output**: Added comprehensive debug logging for missing scene detection and validation
+- **Scene Key Validation**: Confirmed proper Scene1-Scene20 indexing with no off-by-one errors
+- **Frontend Robustness**: Verified frontend displays all 20 input boxes even with missing scene data
+- **Improved Error Handling**: Enhanced error handling with fallback to placeholder scenes if OpenAI API fails
+- **Enhanced User Prompt**: Updated OpenAI user prompt to explicitly request "exactly 20 scenes" and "do not skip any scene numbers"
+- All 26 goals for Scene Missing Analysis & Fixes completed successfully  
+
+### Missing Scenes 1-8 Issue Resolution (2025-07-17):
+- **Root Cause Identified**: The system prompt in `build_system_prompt()` was missing explicit descriptions for Scenes 8, 11, 12, and 20, causing OpenAI to inconsistently generate these scenes
+- **System Prompt Fixed**: Added missing scene descriptions:
+  - Scene 8: The fox lies defeated on the ground, bruised and embarrassed, looking up at the sky with determination growing in his eyes
+  - Scene 11: The fox undergoing transformation - becoming stronger, more confident, cleaner, and more powerful
+  - Scene 12: The fox's transformation is complete - he stands tall, confident, and ready to face the world
+  - Scene 20: The fox stands on a mountaintop or high building, looking out over the city with confidence and satisfaction, having completed his transformation from underdog to hero
+- **Frontend Analysis**: Confirmed frontend JavaScript correctly displays all 20 scenes in `displayScenes()` function
+- **Debug Logging**: Added comprehensive logging to both frontend and backend for scene tracking
+- **Unicode Issues Fixed**: Removed emoji characters that were causing encoding issues in console output
+- **Testing**: Created test script to verify all 20 scenes are included in system prompt
+- **All 6 new goals completed successfully** - The page will now consistently show all 20 editable boxes labeled Scene 1 to Scene 20
+
+### Frontend Robustness Improvements (2025-07-17):
+- **Enhanced displayScenes() Function**: Updated to force loop from i=1 to 20 with proper fallback to placeholder text
+- **Added Missing Scene Warnings**: Implemented console.warn for any missing scene keys during rendering
+- **DOM Clearing**: Ensured scenesGrid.innerHTML is cleared before appending new scene divs
+- **Rendering Verification**: Added validation that all 20 scene boxes are created regardless of partial scene data
+- **Scrolling Support**: Added CSS for #scenesEditor with max-height: 80vh and overflow-y: auto for large content
+- **Comprehensive Testing**: Created and ran tests confirming 20 boxes always appear, even with partial/empty scenes
+- **All 6 additional goals completed** - Frontend is now robust against any backend scene generation issues
+- **Ready for Deployment**: Code changes complete, ready for Vercel deployment to resolve live issue
+
+### CSS & Layout Improvements (2025-07-17):
+- **Removed Scroll Constraints**: Removed max-height: 80vh and overflow-y: auto from #scenesEditor CSS to enable full page scrolling
+- **Enhanced Textarea Display**: Added rows="3" and inline style height: 100px; resize: vertical; to textareas in displayScenes() for compact, user-friendly boxes
+- **Responsive Layout**: Updated #scenesEditor to use height: auto for natural content expansion
+- **Body Layout Fix**: Changed body CSS from height: 100vh to min-height: 100vh to allow page expansion when content exceeds viewport
+- **Layout Verification**: Ensured all 20 scenes are accessible via natural page scrolling without internal scrollbars
+- **All 4 CSS & Layout goals completed successfully** - Page now supports full-height content with natural scrolling behavior
+
+### Dynamic Textarea Improvements (2025-07-17):
+- **Enhanced Textarea CSS**: Updated .scene-item textarea with height: auto, min-height: 60px, max-height: 150px, resize: vertical, overflow: hidden for optimal content fitting
+- **Improved Scene Containment**: Modified .scene-item styling to padding: 10px, border-radius: 8px, background: #f9f9f9, margin-bottom: 15px for better visual separation
+- **Auto-Resize JavaScript**: Added event listeners in displayScenes() for dynamic height adjustment based on content using scrollHeight
+- **Initial Height Setting**: Implemented automatic height calculation on initial render for pre-filled content
+- **Removed Conflicting Styles**: Cleaned up inline styles that conflicted with new CSS-based approach
+- **All 5 Dynamic Textarea goals completed successfully** - Textareas now automatically fit content with proper constraints and no overflow issues
+
+### Textarea Fit Refinements (2025-07-17):
+- **Updated textarea CSS**: Removed overflow: hidden; added overflow: auto; increased max-height to 200px; added box-sizing: border-box for better content fitting without cutoff
+- **Updated scene-item CSS**: Added height: auto; min-height: auto; to allow containers to expand with content naturally
+- **Enhanced JS auto-resize**: Added 'focus' listener alongside 'input' listener; implemented resetHeight function that properly resets height on load
+- **Verification testing**: Created and tested long text scenarios (5+ lines) to ensure no cutoff occurs and scroll appears when content exceeds max-height
+- **Goal Management**: Successfully moved all 5 completed goals from active Goals section to Completed section in CLAUDE.md
+- **All 5 Textarea Fit Refinement goals completed successfully** - Textareas now properly handle long content with scrolling instead of cutoff
+
+### SSE Connection Stability (2025-07-17):
+- **Frontend EventSource Enhancement**: Implemented exponential backoff retry mechanism (1s, 3s, 5s delays) with max 3 retries in startImageEventStream() function in index.html:547-637
+- **Reconnection UI Feedback**: Added showReconnectingMessage() and hideReconnectingMessage() functions to display "Reconnecting..." status with retry counter
+- **Connection State Management**: Added currentEventSource tracking and proper cleanup to prevent multiple concurrent connections
+- **Backend SSE Heartbeat**: Added send_heartbeat() function in flask_server.py:51-77 that sends periodic 'ping' events every 30 seconds to prevent timeouts
+- **Heartbeat Lifecycle Management**: Integrated heartbeat start/stop with story generation process in approve_scenes endpoint (flask_server.py:155-174)
+- **Enhanced Error Logging**: Added comprehensive try/catch blocks around all SSE publish operations with detailed console and file logging (sse_errors.log)
+- **SSE Operation Monitoring**: Enhanced emit_image_event(), heartbeat, and completion/error event logging with timestamps and error types
+- **OnRender Platform Research**: Analyzed OnRender's free tier limitations (15-minute idle timeout) and recommend Starter tier ($7/month) for stable SSE connections
+- **Auto-Reconnect Testing**: Created and executed test_reconnect.js to verify exponential backoff functionality works correctly across all retry scenarios
+- **Connection Resilience**: Enhanced frontend with proper EventSource state management and graceful degradation when max retries exceeded
+- **All 6 SSE Connection Stability goals completed successfully** - System now provides robust, auto-recovering SSE connections with comprehensive monitoring
+
+### Polling Fallback Implementation (2025-07-17):
+- **Polling Fallback System**: Added startPolling() function in index.html:650-682 that activates when SSE max retries exceeded, polling every 5 seconds
+- **Modified SSE Error Handler**: Updated index.html:611-615 to call startPolling(storyId) instead of showing permanent error message when max retries reached
+- **Fallback UI Integration**: Added showPollingMessage() function in index.html:640-645 to display "Switched to polling due to connection issues." with orange styling
+- **Polling Data Processing**: Implemented handlePollingData() function in index.html:692-706 that processes /story/<story_id> responses and updates UI like SSE events
+- **Resource Cleanup**: Added stopPolling() calls to all SSE success/completion/error handlers in index.html:568,578,588,594 to prevent memory leaks
+- **Backend Endpoint Verification**: Confirmed existing /story/<story_id> endpoint in flask_server.py:245-254 already provides required JSON structure for polling
+- **Testing Infrastructure**: Added 60-second delay in process_image() function in Animalchannel.py:355-357 to simulate slow processing and test fallback behavior
+- **Polling State Management**: Added pollingInterval and lastCompletedScenes variables for proper interval management and change detection
+- **Dual-Mode Operation**: System now supports both SSE (preferred) and polling (fallback) modes with automatic switching based on connection stability
+- **All 6 Polling Fallback goals completed successfully** - System now provides bulletproof real-time updates regardless of connection issues
+
+### Redis SSE Configuration & Testing (2025-07-18):
+- **Flask-SSE Redis Configuration**: Updated flask_server.py line 17 to set app.config['SSE_REDIS_URL'] = os.getenv('REDIS_URL', None) for proper Redis or in-memory fallback
+- **SSE Error Handling Verification**: Confirmed all SSE publish operations in emit_image_event(), send_heartbeat(), and story completion/error handlers are properly wrapped in try/except blocks with comprehensive error logging
+- **Test Delay Removal**: Removed 60-second test delays from process_image() function (lines 355-357) and get_motion_prompt() function (line 421) in Animalchannel.py while preserving legitimate 30-second video polling delay
+- **Application Testing**: Successfully tested Flask server startup with proper SSE configuration, verified health endpoint functionality, confirmed SSE stream endpoint responsiveness, and validated quiz form structure in index.html
+- **Documentation Update**: Moved all 5 completed Redis SSE goals from active Goals section to Completed section in CLAUDE.md
+- **All 5 Redis SSE Configuration & Testing goals completed successfully** - SSE system now properly configured for Redis with robust error handling and clean test environment
+

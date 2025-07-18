@@ -13,8 +13,8 @@ app = Flask(__name__)
 CORS(app)
 
 # Configure Flask-SSE with Redis (fallback to in-memory for development)
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-app.config["REDIS_URL"] = redis_url
+redis_url = os.getenv("REDIS_URL", None)
+app.config["SSE_REDIS_URL"] = redis_url
 try:
     app.register_blueprint(sse, url_prefix='/stream')
 except Exception as e:
