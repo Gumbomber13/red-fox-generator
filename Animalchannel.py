@@ -11,10 +11,21 @@ from google.oauth2 import service_account
 from openai import OpenAI
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CallbackQueryHandler, MessageHandler, filters
 from dotenv import load_dotenv
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging with proper formatting and levels
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('animalchannel.log', mode='a')
+    ]
+)
+
+# Create logger instance
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,8 +64,56 @@ else:
 
 if TELEGRAM_TOKEN:
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    
+    # Global state for callback handling
+    callback_responses = {}
+    telegram_app = None
+    
+    async def approval_callback_handler(update, context):
+        """Handle approval/rejection callbacks"""
+        query = update.callback_query
+        await query.answer()
+        
+        # Store the response with a unique identifier
+        message_id = query.message.message_id
+        callback_responses[message_id] = query.data
+        
+        await query.edit_message_reply_markup(reply_markup=None)
+        if query.data == 'approve':
+            await query.edit_message_caption(caption=query.message.caption + " ✅ APPROVED")
+        else:
+            await query.edit_message_caption(caption=query.message.caption + " ❌ REJECTED")
+    
+    async def model_selection_callback_handler(update, context):
+        """Handle video model selection callbacks"""
+        query = update.callback_query
+        await query.answer()
+        
+        message_id = query.message.message_id
+        callback_responses[message_id] = query.data
+        
+        await query.edit_message_reply_markup(reply_markup=None)
+        await query.edit_message_text(text=f"Selected model: {query.data}")
+    
+    async def motion_prompt_handler(update, context):
+        """Handle motion prompt text messages"""
+        if update.message.reply_to_message:
+            reply_id = update.message.reply_to_message.message_id
+            callback_responses[reply_id] = update.message.text
+            await update.message.reply_text(f"Motion prompt received: {update.message.text}")
+    
+    def init_telegram_app():
+        """Initialize Telegram application for callback handling"""
+        global telegram_app
+        if telegram_app is None:
+            telegram_app = Application.builder().token(TELEGRAM_TOKEN).build()
+            telegram_app.add_handler(CallbackQueryHandler(approval_callback_handler, pattern='^(approve|reject)$'))
+            telegram_app.add_handler(CallbackQueryHandler(model_selection_callback_handler, pattern='^(kling|hailuo)$'))
+            telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, motion_prompt_handler))
 else:
     bot = None
+    callback_responses = {}
+    telegram_app = None
     print("Warning: Telegram bot not initialized - TELEGRAM_TOKEN missing")
 
 # Google Sheets setup
@@ -285,7 +344,7 @@ def edit_scenes(scenes):
     return scenes
 
 def create_prompts(scenes):
-    logging.info(f"Creating visual prompts for {len(scenes)} scenes")
+    logger.info(f"Creating visual prompts for {len(scenes)} scenes")
     system = """
 # Overview 
 You are a creative assistant that helps generate engaging content for a child series of a red panda that saves some sort of cute animal from some sort of predator or tragic situation. These are visual stories that are told in images and have no dialogue. Your job is to receive a series of 20 scenes  turn the scenes into a series of visual kling image prompts of the first frame of each scene. These prompts should be visual descriptions that describe each aspect of the image in a very detailed and precise way.Only output the prompts with no explanation or commentary. 
@@ -298,7 +357,7 @@ You are a creative assistant that helps generate engaging content for a child se
 4.Do not prompt for midair or jumping characters unless they are flying characters
 """.replace("red panda", "red fox").replace("victim", "fox").replace("saved", "transformed")  # Adjust for new theme
     
-    logging.info(f"Calling OpenAI for prompt refinement: {str(scenes)[:50]}...")
+    logger.info(f"Calling OpenAI for prompt refinement: {str(scenes)[:50]}...")
     try:
         response = openai_client.chat.completions.create(
             model="gpt-4o",
@@ -306,14 +365,14 @@ You are a creative assistant that helps generate engaging content for a child se
             response_format={"type": "json_object"}
         )
         prompts = json.loads(response.choices[0].message.content)
-        logging.info(f"Visual prompts created: {len(prompts)}")
+        logger.info(f"Visual prompts created: {len(prompts)}")
     except Exception as e:
-        logging.error(f"Visual prompt error: {e}")
+        logger.error(f"Visual prompt error: {e}")
         raise
     return [prompts[f"Prompt{i}"] for i in range(1, 21)]
 
 def standardize_prompts(prompts):
-    logging.info(f"Standardizing {len(prompts)} visual prompts")
+    logger.info(f"Standardizing {len(prompts)} visual prompts")
     system = """
 You are a creative assistant that helps generate engaging content for a child series of a red panda that saves some sort of cute animal from some sort of predator or tragic situation. These are visual stories that are told in images and have no dialogue. Your job is to receive a series of 20 prompts and add a starting description to the beginning of the prompt and a character description every time a character (person, animal) is mentioned
 
@@ -331,7 +390,7 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
 5. Do not remove anything from prompt given to you, output the same text with only the picture and character descriptions added
 """.replace("red panda", "red fox").replace("20", "20")  # Adjust
     
-    logging.info(f"Standardizing prompt: {str(prompts)[:50]}...")
+    logger.info(f"Standardizing prompt: {str(prompts)[:50]}...")
     try:
         response = openai_client.chat.completions.create(
             model="gpt-4o",
@@ -339,9 +398,9 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
             response_format={"type": "json_object"}
         )
         std_prompts = json.loads(response.choices[0].message.content)
-        logging.info(f"Standardized prompts: {len(std_prompts)}")
+        logger.info(f"Standardized prompts: {len(std_prompts)}")
     except Exception as e:
-        logging.error(f"Standardize prompt error: {e}")
+        logger.error(f"Standardize prompt error: {e}")
         raise
     return [std_prompts[f"Prompt{i}"] for i in range(1, 21)]
 
@@ -349,22 +408,22 @@ async def generate_async(prompt):
     """Async version of image generation using httpx"""
     try:
         client = httpx.AsyncClient()
-        logging.info("Async client created")
+        logger.info("Async client created")
     except Exception as e:
-        logging.error(f"Async client init error: {e}")
+        logger.error(f"Async client init error: {e}")
         raise
     
     try:
-        logging.info("Posting to DALL-E API")
+        logger.info("Posting to DALL-E API")
         # Use OpenAI client for DALL-E generation (synchronous)
         response = openai_client.images.generate(model="dall-e-3", prompt=prompt, size="1024x1024", n=1)
         img_url = response.data[0].url
-        logging.info("DALL-E post complete")
+        logger.info("DALL-E post complete")
         
         # Use httpx to download the image asynchronously
         img_response = await client.get(img_url)
         img_data = img_response.content
-        logging.info(f"Image data received: {len(img_data)} bytes")
+        logger.info(f"Image data received: {len(img_data)} bytes")
         await client.aclose()
         return img_data
     except Exception as e:
@@ -372,11 +431,11 @@ async def generate_async(prompt):
         raise
 
 def generate_image(prompt):
-    logging.info(f"Generating image for prompt: {prompt[:50]}...")
+    logger.info(f"Generating image for prompt: {prompt[:50]}...")
     try:
         return asyncio.run(generate_async(prompt))
     except Exception as e:
-        logging.error(f"Asyncio run error: {e}")
+        logger.error(f"Asyncio run error: {e}")
         raise
 
 def upload_image(img_data):
@@ -384,39 +443,119 @@ def upload_image(img_data):
         files = {'file': ('image.png', img_data, 'image/png'), 'upload_preset': (None, CLOUDINARY_PRESET)}
         response = requests.post(CLOUDINARY_URL + 'image/upload', files=files)
         url = response.json()['secure_url']
-        logging.info(f"Uploaded image URL: {url}")
+        logger.info(f"Uploaded image URL: {url}")
         return url
     except Exception as e:
-        logging.error(f"Cloudinary upload error: {e}")
+        logger.error(f"Cloudinary upload error: {e}")
         raise
 
 async def telegram_approve_async(url, prompt, classifier):
+    if not bot or not TELEGRAM_CHAT_ID:
+        logger.info("Telegram not configured, auto-approving")
+        return True
+    
+    # Initialize Telegram app if needed
+    if telegram_app is None:
+        init_telegram_app()
+        # Start polling in background
+        asyncio.create_task(telegram_app.initialize())
+        asyncio.create_task(telegram_app.start())
+        await asyncio.sleep(1)  # Brief delay for initialization
+    
     keyboard = [[InlineKeyboardButton("Approve", callback_data='approve'), InlineKeyboardButton("Reject", callback_data='reject')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await bot.send_photo(chat_id=TELEGRAM_CHAT_ID, photo=url, caption=f"Prompt {classifier}: {prompt}", reply_markup=reply_markup)
-    # Wait for callback (simplified; in full bot, use updater)
-    await asyncio.sleep(60)  # Placeholder; implement proper handler
-    return True  # Assume approve for script; replace with actual logic
+    
+    # Send photo with approval buttons
+    message = await bot.send_photo(
+        chat_id=TELEGRAM_CHAT_ID, 
+        photo=url, 
+        caption=f"Prompt {classifier}: {prompt}", 
+        reply_markup=reply_markup
+    )
+    
+    # Wait for callback response with timeout
+    timeout = 300  # 5 minutes timeout
+    elapsed = 0
+    poll_interval = 1
+    
+    while elapsed < timeout:
+        if message.message_id in callback_responses:
+            response = callback_responses.pop(message.message_id)
+            logger.info(f"Received Telegram response for {classifier}: {response}")
+            return response == 'approve'
+        
+        await asyncio.sleep(poll_interval)
+        elapsed += poll_interval
+    
+    # Timeout - auto approve with warning
+    logger.warning(f"Telegram approval timeout for {classifier}, auto-approving")
+    await bot.edit_message_caption(
+        chat_id=TELEGRAM_CHAT_ID,
+        message_id=message.message_id,
+        caption=f"Prompt {classifier}: {prompt} ⏰ TIMEOUT - AUTO-APPROVED",
+        reply_markup=None
+    )
+    return True
 
 def telegram_approve(url, prompt, classifier):
     return asyncio.run(telegram_approve_async(url, prompt, classifier))
 
-def reject_fix(prompt):
-    """Auto-retry with original prompt (no manual intervention)"""
-    print(f"Retrying with original prompt: {prompt}")
-    return prompt
+def reject_fix(prompt, attempt=1):
+    """Improve prompt based on rejection with progressive modifications"""
+    logger.info(f"Rejection attempt {attempt} for prompt: {prompt[:50]}...")
+    
+    # Progressive prompt improvements
+    improvements = [
+        # First attempt: Add quality and style descriptors
+        lambda p: f"high quality, detailed, professional artwork, {p}",
+        
+        # Second attempt: Adjust composition and lighting
+        lambda p: f"well-lit scene with good composition, clear focus, {p.replace('high quality, detailed, professional artwork, ', '')}",
+        
+        # Third attempt: Add specific visual improvements
+        lambda p: f"cinematic lighting, sharp details, vibrant colors, {p.replace('well-lit scene with good composition, clear focus, ', '')}",
+        
+        # Fourth attempt: Simplify and refocus
+        lambda p: p.split(',')[0] + ", simple clean composition, cartoon style",
+        
+        # Fifth attempt: Minimal prompt
+        lambda p: f"red fox character, {p.split(',')[0].split(' ')[-3:] if len(p.split(',')[0].split(' ')) > 3 else p.split(',')[0]}"
+    ]
+    
+    if attempt <= len(improvements):
+        improved_prompt = improvements[attempt - 1](prompt)
+        logger.info(f"Improved prompt (attempt {attempt}): {improved_prompt}")
+        return improved_prompt
+    else:
+        # After max attempts, return a basic fallback
+        fallback = "red fox character in simple cartoon style"
+        logger.warning(f"Max rejection attempts reached, using fallback: {fallback}")
+        return fallback
 
 def process_image(classifier, prompt, sheet_title, story_id=None):
-    while True:
-        logging.info(f"Processing image {classifier} with prompt: {prompt[:50]}...")
-        img_data = generate_image(prompt)
+    original_prompt = prompt
+    rejection_attempt = 0
+    max_attempts = 5
+    
+    while rejection_attempt <= max_attempts:
+        logger.info(f"Processing image {classifier} with prompt: {prompt[:50]}...")
+        
         try:
+            img_data = generate_image(prompt)
             url = upload_image(img_data)
-            logging.info(f"Successfully uploaded image {classifier} to: {url}")
+            logger.info(f"Successfully uploaded image {classifier} to: {url}")
         except Exception as e:
-            logging.error(f"Failed to upload image {classifier}: {str(e)}")
-            raise
+            logger.error(f"Failed to generate/upload image {classifier}: {str(e)}")
+            # If generation/upload fails, try with improved prompt
+            rejection_attempt += 1
+            if rejection_attempt <= max_attempts:
+                prompt = reject_fix(original_prompt, rejection_attempt)
+                update_sheet(sheet_title, classifier, 'Prompt', prompt)
+                continue
+            else:
+                raise
             
+        # Check approval
         if telegram_approve(url, prompt, classifier):
             update_sheet(sheet_title, classifier, 'Picture Generation', url)
             
@@ -431,8 +570,34 @@ def process_image(classifier, prompt, sheet_title, story_id=None):
             
             return url
         else:
-            prompt = reject_fix(prompt)
-            update_sheet(sheet_title, classifier, 'Prompt', prompt)
+            # Image was rejected
+            rejection_attempt += 1
+            logger.info(f"Image {classifier} rejected, attempt {rejection_attempt}/{max_attempts}")
+            
+            if rejection_attempt <= max_attempts:
+                prompt = reject_fix(original_prompt, rejection_attempt)
+                update_sheet(sheet_title, classifier, 'Prompt', prompt)
+                
+                # Emit retry event if story_id is provided
+                if story_id:
+                    try:
+                        from flask_server import emit_image_event
+                        emit_image_event(story_id, int(classifier), url, f"retry_attempt_{rejection_attempt}")
+                    except ImportError:
+                        pass
+            else:
+                # Max attempts reached, use the last generated image anyway
+                logger.warning(f"Max rejection attempts reached for {classifier}, using last image")
+                update_sheet(sheet_title, classifier, 'Picture Generation', url)
+                
+                if story_id:
+                    try:
+                        from flask_server import emit_image_event
+                        emit_image_event(story_id, int(classifier), url, "completed_after_max_retries")
+                    except ImportError:
+                        pass
+                
+                return url
 
 def update_sheet(sheet_title, classifier, column, value):
     if sheets_service is None:
@@ -464,19 +629,99 @@ def update_sheet(sheet_title, classifier, column, value):
         print(f"Warning: Failed to update sheet '{sheet_title}', column '{column}': {str(e)}")
 
 async def choose_video_model_async():
+    if not bot or not TELEGRAM_CHAT_ID:
+        logger.info("Telegram not configured, defaulting to Kling model")
+        return 'kling'
+    
+    # Initialize Telegram app if needed
+    if telegram_app is None:
+        init_telegram_app()
+        # Start polling in background
+        asyncio.create_task(telegram_app.initialize())
+        asyncio.create_task(telegram_app.start())
+        await asyncio.sleep(1)  # Brief delay for initialization
+    
     keyboard = [[InlineKeyboardButton("Kling", callback_data='kling'), InlineKeyboardButton("Hailuo", callback_data='hailuo')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="Choose model:", reply_markup=reply_markup)
-    await asyncio.sleep(60)  # Placeholder
-    return 'kling'  # Assume
+    
+    # Send model selection message
+    message = await bot.send_message(
+        chat_id=TELEGRAM_CHAT_ID, 
+        text="Choose video generation model:", 
+        reply_markup=reply_markup
+    )
+    
+    # Wait for callback response with timeout
+    timeout = 120  # 2 minutes timeout
+    elapsed = 0
+    poll_interval = 1
+    
+    while elapsed < timeout:
+        if message.message_id in callback_responses:
+            selected_model = callback_responses.pop(message.message_id)
+            logger.info(f"Selected video model: {selected_model}")
+            return selected_model
+        
+        await asyncio.sleep(poll_interval)
+        elapsed += poll_interval
+    
+    # Timeout - default to kling with warning
+    logger.warning("Video model selection timeout, defaulting to Kling")
+    await bot.edit_message_text(
+        chat_id=TELEGRAM_CHAT_ID,
+        message_id=message.message_id,
+        text="Choose video generation model: ⏰ TIMEOUT - Using Kling (default)"
+    )
+    return 'kling'
 
 def choose_video_model():
     return asyncio.run(choose_video_model_async())
 
 
+async def get_motion_prompt_async():
+    if not bot or not TELEGRAM_CHAT_ID:
+        logger.info("Telegram not configured, using default motion prompt")
+        return "smooth camera movement with natural transitions"
+    
+    # Initialize Telegram app if needed
+    if telegram_app is None:
+        init_telegram_app()
+        # Start polling in background
+        asyncio.create_task(telegram_app.initialize())
+        asyncio.create_task(telegram_app.start())
+        await asyncio.sleep(1)  # Brief delay for initialization
+    
+    # Send motion prompt request
+    message = await bot.send_message(
+        chat_id=TELEGRAM_CHAT_ID, 
+        text="Please enter the motion prompt for video generation (describe the camera movement, transitions, etc.):"
+    )
+    
+    # Wait for text response with timeout
+    timeout = 180  # 3 minutes timeout
+    elapsed = 0
+    poll_interval = 1
+    
+    while elapsed < timeout:
+        if message.message_id in callback_responses:
+            motion_prompt = callback_responses.pop(message.message_id)
+            logger.info(f"Received motion prompt: {motion_prompt}")
+            return motion_prompt
+        
+        await asyncio.sleep(poll_interval)
+        elapsed += poll_interval
+    
+    # Timeout - use default with warning
+    default_prompt = "smooth camera movement with natural transitions"
+    logger.warning(f"Motion prompt timeout, using default: {default_prompt}")
+    await bot.send_message(
+        chat_id=TELEGRAM_CHAT_ID,
+        text=f"⏰ Motion prompt timeout - Using default: {default_prompt}"
+    )
+    return default_prompt
+
 def get_motion_prompt():
-    # msg = bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="Motion prompt:")
-    return "user motion prompt"  # Placeholder
+    return asyncio.run(get_motion_prompt_async())
 
 def generate_video(model, prompt, image_url):
     if model == 'kling':
@@ -542,7 +787,7 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
         else:
             scenes.append(f"(Scene {i} missing)")
     
-    logging.info(f"Starting generation for {story_id} with {len(scenes)} scenes")
+    logger.info(f"Starting generation for {story_id} with {len(scenes)} scenes")
     
     scenes = edit_scenes(scenes)
     prompts = create_prompts(scenes)
@@ -555,15 +800,15 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
         original_title += f" - Fox finds {original_answers['find']}"
     create_sheet(idea, original_title)
 
-    logging.info(f"Starting image generation loop for {len(std_prompts)} prompts")
+    logger.info(f"Starting image generation loop for {len(std_prompts)} prompts")
     images = []
     for i, prompt in enumerate(std_prompts, 1):
-        logging.info(f"Processing image {i+1}: {prompt[:50]}...")
+        logger.info(f"Processing image {i+1}: {prompt[:50]}...")
         update_sheet(idea, str(i), 'Prompt', prompt)
         try:
             img_url = process_image(str(i), prompt, idea, story_id)
         except Exception as e:
-            logging.error(f"Image process error {i+1}: {e}")
+            logger.error(f"Image process error {i+1}: {e}")
             raise
         images.append(img_url)
 

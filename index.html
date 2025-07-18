@@ -322,6 +322,15 @@
   </div>
 
   <script>
+    // Debug configuration
+    const DEBUG_MODE = false; // Set to true for development debugging
+    
+    function debugLog(...args) {
+      if (DEBUG_MODE) {
+        console.log(...args);
+      }
+    }
+    
     const steps = document.querySelectorAll('.question');
     let current = 0;
 
@@ -419,10 +428,10 @@
       scenesGrid.innerHTML = '';
       
       // Debug logging to understand what's happening
-      console.log('=== DISPLAY SCENES DEBUG ===');
-      console.log('Scenes object received:', scenes);
-      console.log('Scene keys:', Object.keys(scenes));
-      console.log('Total scenes:', Object.keys(scenes).length);
+      debugLog('=== DISPLAY SCENES DEBUG ===');
+      debugLog('Scenes object received:', scenes);
+      debugLog('Scene keys:', Object.keys(scenes));
+      debugLog('Total scenes:', Object.keys(scenes).length);
       
       // Force loop from i=1 to 20, using scenes[Scene${i}] or default placeholder
       for (let i = 1; i <= 20; i++) {
@@ -434,7 +443,7 @@
           console.warn(`Missing scene key: ${sceneKey} - using placeholder text`);
         }
         
-        console.log(`Processing ${sceneKey}: ${sceneText ? 'EXISTS' : 'MISSING'}`);
+        debugLog(`Processing ${sceneKey}: ${sceneText ? 'EXISTS' : 'MISSING'}`);
         
         const sceneItem = document.createElement('div');
         sceneItem.className = 'scene-item';
@@ -462,8 +471,8 @@
         }
       }
       
-      console.log('=== DISPLAY SCENES COMPLETE ===');
-      console.log('Total scene items created:', scenesGrid.children.length);
+      debugLog('=== DISPLAY SCENES COMPLETE ===');
+      debugLog('Total scene items created:', scenesGrid.children.length);
       
       // Verify all 20 labels and textareas render, even if scenes dict is partial
       const expectedCount = 20;
@@ -471,7 +480,7 @@
       if (actualCount !== expectedCount) {
         console.error(`Scene rendering mismatch: Expected ${expectedCount} scenes, but created ${actualCount}`);
       } else {
-        console.log(`✓ Successfully rendered all ${actualCount} scene boxes`);
+        debugLog(`✓ Successfully rendered all ${actualCount} scene boxes`);
       }
     }
 
@@ -572,7 +581,7 @@
       });
       
       eventSource.addEventListener('story_complete', function(e) {
-        console.log('Story generation completed');
+        debugLog('Story generation completed');
         eventSource.close();
         hideReconnectingMessage();
         stopPolling(); // Stop polling when story completes
@@ -604,7 +613,7 @@
           const delay = retryDelays[eventSourceRetryCount] || retryDelays[retryDelays.length - 1];
           eventSourceRetryCount++;
           
-          console.log(`Retrying EventSource connection (${eventSourceRetryCount}/${maxRetries}) in ${delay/1000}s...`);
+          debugLog(`Retrying EventSource connection (${eventSourceRetryCount}/${maxRetries}) in ${delay/1000}s...`);
           showReconnectingMessage(`Reconnecting... (${eventSourceRetryCount}/${maxRetries})`);
           
           setTimeout(() => {
@@ -652,7 +661,7 @@
     let lastCompletedScenes = 0;
 
     function startPolling(storyId) {
-      console.log(`Starting polling fallback for story ${storyId}`);
+      debugLog(`Starting polling fallback for story ${storyId}`);
       
       // Clear any existing polling interval
       if (pollingInterval) {
@@ -689,7 +698,7 @@
       if (pollingInterval) {
         clearInterval(pollingInterval);
         pollingInterval = null;
-        console.log('Polling stopped');
+        debugLog('Polling stopped');
       }
     }
 
@@ -787,10 +796,10 @@
           const response = await res.json();
           
           // Debug logging to understand what the backend is returning
-          console.log('=== BACKEND RESPONSE DEBUG ===');
-          console.log('Full response:', response);
-          console.log('Response keys:', Object.keys(response));
-          console.log('Response length:', Object.keys(response).length);
+          debugLog('=== BACKEND RESPONSE DEBUG ===');
+          debugLog('Full response:', response);
+          debugLog('Response keys:', Object.keys(response));
+          debugLog('Response length:', Object.keys(response).length);
           
           // Store generated scenes and show scenes editor
           generatedScenes = response;

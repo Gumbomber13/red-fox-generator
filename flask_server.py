@@ -11,6 +11,19 @@ import logging
 import multiprocessing
 from Animalchannel import process_story_generation, process_story_generation_with_scenes
 
+# Configure logging with proper formatting
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('flask_server.log', mode='a')
+    ]
+)
+
+# Create logger instance
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 CORS(app)
 
@@ -20,12 +33,11 @@ try:
     app.register_blueprint(sse, url_prefix='/stream')
     print("Flask-SSE blueprint registered successfully")
 except Exception as e:
-    print(f"ERROR: Flask-SSE setup failed: {e}")
-    print(f"Exception type: {type(e).__name__}")
-    print(f"Exception details: {str(e)}")
-    print("SSE functionality will not be available")
-    import traceback
-    traceback.print_exc()
+    logger.error(f"Flask-SSE setup failed: {e}")
+    logger.error(f"Exception type: {type(e).__name__}")
+    logger.error(f"Exception details: {str(e)}")
+    logger.error("SSE functionality will not be available")
+    logger.exception("Flask-SSE initialization failed")
 
 # Store active story sessions and heartbeat timers
 active_stories = {}
@@ -149,16 +161,16 @@ def submit():
         return jsonify(scenes_dict)
         
     except Exception as e:
-        # Print the full traceback to console for debugging
-        print("=" * 80)
-        print("ERROR IN /submit ENDPOINT:")
-        print("=" * 80)
-        print(f"Exception Type: {type(e).__name__}")
-        print(f"Exception Message: {str(e)}")
-        print("-" * 80)
-        print("Full Traceback:")
-        traceback.print_exc()
-        print("=" * 80)
+        # Log the full traceback for debugging
+        logger.error("=" * 80)
+        logger.error("ERROR IN /submit ENDPOINT:")
+        logger.error("=" * 80)
+        logger.error(f"Exception Type: {type(e).__name__}")
+        logger.error(f"Exception Message: {str(e)}")
+        logger.error("-" * 80)
+        logger.error("Full Traceback:")
+        logger.exception("Submit endpoint error")
+        logger.error("=" * 80)
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/approve_scenes', methods=['POST'])
@@ -233,7 +245,7 @@ def approve_scenes():
                         except Exception as log_error:
                             print(f"Warning: Could not log error event error to file: {log_error}")
         
-        logging.info(f"Approved scenes for {story_id}, starting process")
+        logger.info(f"Approved scenes for {story_id}, starting process")
         process = multiprocessing.Process(target=process_story_generation_with_scenes, args=(approved_scenes, original_answers, story_id))
         process.daemon = True
         process.start()
@@ -246,16 +258,16 @@ def approve_scenes():
         })
         
     except Exception as e:
-        # Print the full traceback to console for debugging
-        print("=" * 80)
-        print("ERROR IN /approve_scenes ENDPOINT:")
-        print("=" * 80)
-        print(f"Exception Type: {type(e).__name__}")
-        print(f"Exception Message: {str(e)}")
-        print("-" * 80)
-        print("Full Traceback:")
-        traceback.print_exc()
-        print("=" * 80)
+        # Log the full traceback for debugging
+        logger.error("=" * 80)
+        logger.error("ERROR IN /approve_scenes ENDPOINT:")
+        logger.error("=" * 80)
+        logger.error(f"Exception Type: {type(e).__name__}")
+        logger.error(f"Exception Message: {str(e)}")
+        logger.error("-" * 80)
+        logger.error("Full Traceback:")
+        logger.exception("Approve scenes endpoint error")
+        logger.error("=" * 80)
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/story/<story_id>', methods=['GET'])
@@ -279,4 +291,6 @@ def health():
     return jsonify({"status": "online"})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Set debug mode via environment variable for production control
+    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
