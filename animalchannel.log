@@ -244,3 +244,16 @@ Traceback (most recent call last):
 redis.exceptions.ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
 2025-07-18 02:49:01,649 - flask_server - INFO - Getting story status for ID: invalid-story-id
 2025-07-18 02:49:01,649 - flask_server - WARNING - Story not found: invalid-story-id
+2025-07-18 03:07:53,881 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 03:07:53] "OPTIONS /submit HTTP/1.1" 200 -
+2025-07-18 03:07:54,128 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 03:07:54] "POST /submit HTTP/1.1" 200 -
+2025-07-18 03:08:13,569 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 03:08:13] "OPTIONS /submit HTTP/1.1" 200 -
+2025-07-18 03:08:13,874 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 03:08:13] "POST /submit HTTP/1.1" 200 -
+2025-07-18 03:10:30,894 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 03:10:30] "OPTIONS /submit HTTP/1.1" 200 -
+2025-07-18 03:10:31,162 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 03:10:31] "POST /submit HTTP/1.1" 200 -
+2025-07-18 03:15:51,862 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 03:15:51,862 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-18 03:15:51,862 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-18 03:15:51,862 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-18 03:15:51,862 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-18 03:15:51,862 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-18 03:15:51,862 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder

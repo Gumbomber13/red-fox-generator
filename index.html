@@ -535,7 +535,20 @@
           // Start listening for image events
           startImageEventStream(response.story_id);
         } else {
-          alert("Something went wrong! Please try again.");
+          const errorText = await res.text();
+          let errorMessage = "Failed to start image generation";
+          
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch (e) {
+            // Use status text if JSON parsing fails
+            errorMessage = `Server error (${res.status}): ${res.statusText}`;
+          }
+          
+          alert(errorMessage + "\nPlease try again.");
           // Show scenes editor again
           document.getElementById('scenesEditor').style.display = 'block';
           document.getElementById('loading').style.display = 'none';
@@ -861,6 +874,30 @@
         if (res.ok) {
           const response = await res.json();
           
+          // Check if response contains error
+          if (response.error) {
+            alert("Story generation failed: " + response.error + "\nPlease check your answers and try again.");
+            this.style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+            return;
+          }
+          
+          // Validate that we received scenes
+          if (!response || Object.keys(response).length === 0) {
+            alert("Story generation failed: No scenes received from server.\nPlease try again.");
+            this.style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+            return;
+          }
+          
+          // Check if all 20 scenes are present
+          const expectedScenes = Array.from({length: 20}, (_, i) => `Scene${i+1}`);
+          const missingScenes = expectedScenes.filter(scene => !response[scene]);
+          
+          if (missingScenes.length > 0) {
+            console.warn(`Missing scenes: ${missingScenes.join(', ')}`);
+          }
+          
           // Debug logging to understand what the backend is returning
           debugLog('=== BACKEND RESPONSE DEBUG ===');
           debugLog('Full response:', response);
@@ -877,8 +914,20 @@
           // Display the scenes
           displayScenes(response);
         } else {
-          alert("Something went wrong! Please try again.");
-          // Show form again
+          const errorText = await res.text();
+          let errorMessage = "Story generation failed";
+          
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch (e) {
+            // Use status text if JSON parsing fails
+            errorMessage = `Server error (${res.status}): ${res.statusText}`;
+          }
+          
+          alert(errorMessage + "\nPlease check your answers and try again.");
           this.style.display = 'block';
           document.getElementById('loading').style.display = 'none';
         }
