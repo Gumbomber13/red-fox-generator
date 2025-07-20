@@ -817,11 +817,13 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
     finally:
         signal.alarm(0)
 
-    for i, img_url in enumerate(images, 1):
-        if img_url and img_url != "Skipped":
-            process_video(str(i), img_url, idea)
-        else:
-            logger.info(f"Skipping video generation for image {i} (no valid image URL)")
+    # TODO: Video generation should only start after explicit frontend approval
+    # Will be triggered via new /approve_videos endpoint once all images are approved
+    # for i, img_url in enumerate(images, 1):
+    #     if img_url and img_url != "Skipped":
+    #         process_video(str(i), img_url, idea)
+    #     else:
+    #         logger.info(f"Skipping video generation for image {i} (no valid image URL)")
 
 def main():
     """For testing purposes only - use Flask server in production"""
