@@ -786,6 +786,7 @@
     let lastCompletedScenes = 0;
 
     function startPolling(storyId) {
+      console.log(`[POLLING] Starting polling fallback for story ${storyId} - SSE failed or unavailable`);
       debugLog(`Starting polling fallback for story ${storyId}`);
       
       // Clear any existing polling interval
@@ -836,8 +837,12 @@
       if (data.images) {
         for (const [sceneNumber, imageData] of Object.entries(data.images)) {
           if (imageData.url) {
-            // Display image with current status (could be pending_approval, completed, etc.)
+            // Display image with current status (pending_approval, completed, approved, rejected, etc.)
+            // This ensures pending_approval images render during polling fallback when SSE is blocked
+            console.log(`[POLLING] Displaying image ${sceneNumber} with status: ${imageData.status || 'completed'}`);
             displayImage(parseInt(sceneNumber), imageData.url, imageData.status || 'completed');
+          } else {
+            console.log(`[POLLING] Skipping image ${sceneNumber} - no URL available`);
           }
         }
       }
