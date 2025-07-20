@@ -256,7 +256,8 @@ def generate_story(system_prompt):
             response = openai_client.chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": "Generate exactly 20 scenes. Return your response as a JSON object with keys Scene1, Scene2, Scene3, ..., Scene20. Each scene should be a detailed description. Do not skip any scene numbers."}],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
+                timeout=120.0
             )
             
             # Print the full raw response for debugging
@@ -342,7 +343,7 @@ You are a creative assistant that helps generate engaging content for a child se
             model="gpt-4o",
             messages=[{"role": "system", "content": system}, {"role": "user", "content": json.dumps({"scenes": scenes}) + " Return as JSON with keys Prompt1, Prompt2, etc."}],
             response_format={"type": "json_object"},
-            timeout=120
+            timeout=120.0
         )
         prompts = json.loads(response.choices[0].message.content)
         logger.info(f"Visual prompts created: {len(prompts)}")
@@ -376,7 +377,7 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
             model="gpt-4o",
             messages=[{"role": "system", "content": system}, {"role": "user", "content": json.dumps({"prompts": prompts}) + " Return as JSON with keys Prompt1, Prompt2, etc."}],
             response_format={"type": "json_object"},
-            timeout=120
+            timeout=120.0
         )
         std_prompts = json.loads(response.choices[0].message.content)
         # Apply sanitization to all standardized prompts
@@ -389,28 +390,49 @@ Wholesome and animated with childlike wonder and charm. Features are rounded and
     return [std_prompts[f"Prompt{i}"] for i in range(1, 21)]
 
 async def generate_async(prompt):
-    """Async version of image generation using httpx"""
+    """Async version of image generation using httpx with timeouts"""
+    start_time = time.time()
+    logger.debug(f"[ASYNC-DEBUG] generate_async started with prompt length: {len(prompt)}")
+    
     try:
-        client = httpx.AsyncClient()
-        logger.info("Async client created")
+        # Add 120s timeout to httpx client
+        client_start = time.time()
+        client = httpx.AsyncClient(timeout=120.0)
+        client_elapsed = time.time() - client_start
+        logger.debug(f"[ASYNC-DEBUG] httpx client created in {client_elapsed:.3f}s with 120s timeout")
     except Exception as e:
-        logger.error(f"Async client init error: {e}")
+        logger.error(f"[ASYNC-DEBUG] Async client init error: {type(e).__name__}: {e}")
         raise
     
     try:
-        logger.info("Posting to DALL-E API")
-        # Use OpenAI client for DALL-E generation (synchronous)
-        response = openai_client.images.generate(model="dall-e-3", prompt=prompt, size="1024x1024", n=1)
+        dalle_start = time.time()
+        logger.debug(f"[ASYNC-DEBUG] Starting DALL-E API call with 120s timeout")
+        # Use OpenAI client for DALL-E generation with timeout
+        response = openai_client.images.generate(
+            model="dall-e-3", 
+            prompt=prompt, 
+            size="1024x1024", 
+            n=1,
+            timeout=120.0
+        )
+        dalle_elapsed = time.time() - dalle_start
         img_url = response.data[0].url
-        logger.info("DALL-E post complete")
+        logger.debug(f"[ASYNC-DEBUG] DALL-E API completed in {dalle_elapsed:.2f}s, got URL: {img_url[:50]}...")
         
-        # Use httpx to download the image asynchronously
+        # Use httpx to download the image asynchronously (inherits client timeout)
+        download_start = time.time()
+        logger.debug(f"[ASYNC-DEBUG] Starting image download from: {img_url}")
         img_response = await client.get(img_url)
+        download_elapsed = time.time() - download_start
         img_data = img_response.content
-        logger.info(f"Image data received: {len(img_data)} bytes")
+        total_elapsed = time.time() - start_time
+        logger.debug(f"[ASYNC-DEBUG] Image download completed in {download_elapsed:.2f}s, data size: {len(img_data)} bytes")
+        logger.debug(f"[ASYNC-DEBUG] Total generate_async time: {total_elapsed:.2f}s (DALL-E: {dalle_elapsed:.2f}s, Download: {download_elapsed:.2f}s)")
         await client.aclose()
         return img_data
     except Exception as e:
+        total_elapsed = time.time() - start_time
+        logger.error(f"[ASYNC-DEBUG] generate_async failed after {total_elapsed:.2f}s: {type(e).__name__}: {e}")
         await client.aclose()
         raise
 
@@ -489,10 +511,22 @@ async def process_image_async(semaphore, classifier, prompt, sheet_title, story_
         try:
             # Sanitize prompt before generation
             prompt = sanitize_prompt(prompt)
+            logger.debug(f"[ASYNC-ERROR] Image {classifier} sanitized prompt: {prompt[:100]}...")
             
             # Generate and upload image with retries
-            img_data = await generate_image_async_with_retries(prompt)
-            url = upload_image(img_data)
+            try:
+                img_data = await generate_image_async_with_retries(prompt)
+                logger.debug(f"[ASYNC-ERROR] Image {classifier} generation completed, data size: {len(img_data) if img_data else 0}")
+            except Exception as gen_error:
+                logger.error(f"[ASYNC-ERROR] Image {classifier} generation failed: {type(gen_error).__name__}: {gen_error}")
+                raise gen_error
+            
+            try:
+                url = upload_image(img_data)
+                logger.debug(f"[ASYNC-ERROR] Image {classifier} upload completed: {url}")
+            except Exception as upload_error:
+                logger.error(f"[ASYNC-ERROR] Image {classifier} upload failed: {type(upload_error).__name__}: {upload_error}")
+                raise upload_error
             
             elapsed = time.time() - start_time
             logger.info(f"[ASYNC] Successfully completed image {classifier} in {elapsed:.2f}s: {url}")
@@ -501,7 +535,7 @@ async def process_image_async(semaphore, classifier, prompt, sheet_title, story_
             try:
                 update_sheet(sheet_title, classifier, 'Picture Generation', url)
             except Exception as e:
-                logger.warning(f"Failed to update sheet for {classifier}: {e}")
+                logger.warning(f"[ASYNC-ERROR] Sheet update failed for {classifier}: {type(e).__name__}: {e}")
             
             # Emit image event if story_id is provided
             if story_id:
@@ -510,38 +544,57 @@ async def process_image_async(semaphore, classifier, prompt, sheet_title, story_
                     emit_image_event(story_id, int(classifier), url, "pending_approval")
                     logger.info(f"[APPROVAL] Emitted pending_approval for image {classifier}")
                 except ImportError:
-                    logger.warning(f"Could not emit image event for story {story_id}")
+                    logger.warning(f"[ASYNC-ERROR] Could not emit image event for story {story_id}: ImportError")
+                except Exception as emit_error:
+                    logger.error(f"[ASYNC-ERROR] SSE emit failed for image {classifier}: {type(emit_error).__name__}: {emit_error}")
             
             return classifier, url
             
         except Exception as e:
             elapsed = time.time() - start_time
-            logger.error(f"[ASYNC] Failed to generate image {classifier} after {elapsed:.2f}s: {str(e)}")
+            logger.error(f"[ASYNC-ERROR] Failed to generate image {classifier} after {elapsed:.2f}s: {type(e).__name__}: {str(e)}")
+            logger.debug(f"[ASYNC-ERROR] Image {classifier} full exception details:", exc_info=True)
             return classifier, None
 
 async def generate_image_async_with_retries(prompt):
     """Async image generation with retry logic"""
     max_retries = 3
+    start_time = time.time()
+    logger.debug(f"[ASYNC-DEBUG] generate_image_async_with_retries started with {max_retries} max retries")
     
     for retry in range(max_retries):
+        retry_start = time.time()
+        logger.debug(f"[ASYNC-DEBUG] Starting retry {retry + 1}/{max_retries}")
+        
         try:
             current_prompt = prompt
             if retry > 0:
+                logger.debug(f"[ASYNC-DEBUG] Applying sanitization for retry {retry + 1}")
                 current_prompt = sanitize_prompt(current_prompt)  # Base sanitization
                 if retry > 1:
+                    original_length = len(current_prompt)
                     current_prompt = current_prompt[:1000] + " (simplified)"  # Shorten on later retries
+                    logger.debug(f"[ASYNC-DEBUG] Prompt shortened from {original_length} to {len(current_prompt)} chars")
             
-            logger.debug(f"[ASYNC] Retry {retry + 1} prompt: {current_prompt[:50]}")
-            return await generate_async(current_prompt)
+            logger.debug(f"[ASYNC-DEBUG] Retry {retry + 1} prompt length: {len(current_prompt)}, preview: {current_prompt[:50]}...")
+            
+            result = await generate_async(current_prompt)
+            retry_elapsed = time.time() - retry_start
+            total_elapsed = time.time() - start_time
+            logger.debug(f"[ASYNC-DEBUG] Retry {retry + 1} succeeded in {retry_elapsed:.2f}s, total time: {total_elapsed:.2f}s")
+            return result
             
         except Exception as e:
-            logger.error(f"[ASYNC] DALL-E error attempt {retry + 1}: {e}")
+            retry_elapsed = time.time() - retry_start
+            logger.error(f"[ASYNC-DEBUG] Retry {retry + 1} failed after {retry_elapsed:.2f}s: {type(e).__name__}: {e}")
+            
             if retry < max_retries - 1:
                 wait_time = 5 * (retry + 1)  # 5, 10, 15 seconds
-                logger.warning(f"[ASYNC] Waiting {wait_time}s before retry {retry + 2}")
+                logger.debug(f"[ASYNC-DEBUG] Waiting {wait_time}s before retry {retry + 2}")
                 await asyncio.sleep(wait_time)
             else:
-                logger.error(f"[ASYNC] Generate failed after {max_retries} attempts: {e}")
+                total_elapsed = time.time() - start_time
+                logger.error(f"[ASYNC-DEBUG] All retries exhausted after {total_elapsed:.2f}s, final error: {e}")
                 raise
 
 async def generate_images_concurrently(prompts_with_metadata, story_id=None):
@@ -555,13 +608,17 @@ async def generate_images_concurrently(prompts_with_metadata, story_id=None):
     Returns:
         List of tuples (scene_number, image_url_or_none)
     """
-    logger.info(f"[CONCURRENT] Starting parallel generation of {len(prompts_with_metadata)} images")
+    start_time = time.time()
+    logger.info(f"[ASYNC-DEBUG] generate_images_concurrently started with {len(prompts_with_metadata)} images")
+    logger.debug(f"[ASYNC-DEBUG] Concurrent limits: MAX_CONCURRENT={MAX_CONCURRENT}, BATCH_SIZE={BATCH_SIZE}, MAX_IMAGES_PER_MIN={MAX_IMAGES_PER_MIN}")
     
     # Create semaphore to limit concurrent requests
     semaphore = asyncio.Semaphore(MAX_CONCURRENT)
+    logger.debug(f"[ASYNC-DEBUG] Semaphore created with limit {MAX_CONCURRENT}")
     
     # Split into batches to respect rate limits
     batches = [prompts_with_metadata[i:i + BATCH_SIZE] for i in range(0, len(prompts_with_metadata), BATCH_SIZE)]
+    logger.debug(f"[ASYNC-DEBUG] Split into {len(batches)} batches of max size {BATCH_SIZE}")
     
     all_results = []
     total_images_processed = 0
@@ -572,20 +629,40 @@ async def generate_images_concurrently(prompts_with_metadata, story_id=None):
         
         # Create async tasks for this batch
         tasks = []
-        for scene_number, prompt, sheet_title in batch:
+        logger.debug(f"[ASYNC-DEBUG] Creating {len(batch)} tasks for batch {batch_num}")
+        for i, (scene_number, prompt, sheet_title) in enumerate(batch):
+            logger.debug(f"[ASYNC-DEBUG] Creating task {i+1} for scene {scene_number}, prompt length: {len(prompt)}")
             task = process_image_async(semaphore, str(scene_number), prompt, sheet_title, story_id)
             tasks.append(task)
+        logger.debug(f"[ASYNC-DEBUG] All {len(tasks)} tasks created for batch {batch_num}")
         
-        # Execute batch concurrently
-        batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Execute batch concurrently with enhanced error handling
+        try:
+            batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+            logger.info(f"[ASYNC-ERROR] Batch {batch_num} gather completed with {len(batch_results)} results")
+        except Exception as gather_error:
+            logger.error(f"[ASYNC-ERROR] asyncio.gather failed for batch {batch_num}: {gather_error}")
+            batch_results = [Exception(f"Gather failed: {gather_error}") for _ in tasks]
         
-        # Process results and handle exceptions
-        for result in batch_results:
+        # Process results and handle exceptions with detailed logging
+        failed_count = 0
+        success_count = 0
+        for i, result in enumerate(batch_results):
             if isinstance(result, Exception):
-                logger.error(f"[CONCURRENT] Batch task failed: {result}")
+                failed_count += 1
+                logger.error(f"[ASYNC-ERROR] Task {i+1} in batch {batch_num} failed: {type(result).__name__}: {result}")
+                # Try to extract scene number from task if possible
+                try:
+                    scene_info = batch[i][0] if i < len(batch) else "unknown"
+                    logger.error(f"[ASYNC-ERROR] Failed scene: {scene_info}")
+                except:
+                    pass
                 all_results.append((0, None))  # Placeholder for failed task
             else:
+                success_count += 1
                 all_results.append(result)
+        
+        logger.info(f"[ASYNC-ERROR] Batch {batch_num} results: {success_count} success, {failed_count} failed")
         
         total_images_processed += len(batch)
         batch_elapsed = time.time() - batch_start_time
@@ -596,9 +673,17 @@ async def generate_images_concurrently(prompts_with_metadata, story_id=None):
         # Rate limiting: Sleep between batches to stay under 15 images/min
         if batch_num < len(batches):  # Don't sleep after the last batch
             sleep_time = (60 / MAX_IMAGES_PER_MIN) * len(batch)
+            logger.debug(f"[ASYNC-DEBUG] Rate limiting calculation: {len(batch)} images * 60s / {MAX_IMAGES_PER_MIN} = {sleep_time:.1f}s")
             logger.info(f"[CONCURRENT] Sleeping {sleep_time:.1f}s to respect {MAX_IMAGES_PER_MIN} images/min limit")
             await asyncio.sleep(sleep_time)
     
+    total_elapsed = time.time() - start_time
+    success_count = len([result for result in all_results if result[1] is not None])
+    failure_count = len(all_results) - success_count
+    overall_rate = (total_images_processed / total_elapsed) * 60 if total_elapsed > 0 else 0
+    
+    logger.info(f"[ASYNC-DEBUG] generate_images_concurrently completed in {total_elapsed:.2f}s")
+    logger.info(f"[ASYNC-DEBUG] Final results: {success_count} success, {failure_count} failed, {overall_rate:.1f} images/min")
     logger.info(f"[CONCURRENT] All {total_images_processed} images processed successfully")
     return all_results
 
@@ -780,10 +865,27 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
             update_sheet(idea, str(i), 'Prompt', prompt)
             prompts_with_metadata.append((i, prompt, idea))
         
-        # Use async processing for parallel image generation
-        concurrent_start_time = time.time()
-        results = asyncio.run(generate_images_concurrently(prompts_with_metadata, story_id))
-        concurrent_elapsed = time.time() - concurrent_start_time
+        # Use async processing for parallel image generation with 10-min timeout
+        def async_timeout_handler(signum, frame):
+            raise TimeoutError("Async generation timed out after 10 minutes")
+        
+        # Set 10-minute timeout for async generation
+        old_handler = signal.signal(signal.SIGALRM, async_timeout_handler)
+        signal.alarm(600)  # 10 minutes
+        
+        try:
+            concurrent_start_time = time.time()
+            logger.info("[ASYNC-TIMEOUT] Starting async generation with 10-min timeout")
+            results = asyncio.run(generate_images_concurrently(prompts_with_metadata, story_id))
+            concurrent_elapsed = time.time() - concurrent_start_time
+            logger.info(f"[ASYNC-TIMEOUT] Async generation completed in {concurrent_elapsed:.2f}s")
+        except TimeoutError as timeout_e:
+            logger.error(f"[ASYNC-TIMEOUT] Async generation timed out: {timeout_e}")
+            raise
+        finally:
+            # Restore original signal handler and cancel alarm
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
         
         # Process results in order
         results_dict = {int(scene): url for scene, url in results if scene != 0}
