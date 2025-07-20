@@ -155,6 +155,81 @@
       cursor: pointer;
       text-decoration: underline;
     }
+    .image-item.pending-approval {
+      background: #fff9e6;
+      border-color: #ffcc00;
+    }
+    .image-item.approved {
+      background: #e8f5e8;
+      border-color: #4caf50;
+    }
+    .image-item.rejected {
+      background: #ffe6e6;
+      border-color: #f44336;
+    }
+    .approval-buttons {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .approve-btn, .reject-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    .approve-btn {
+      background: #4caf50;
+      color: white;
+    }
+    .approve-btn:hover {
+      background: #45a049;
+    }
+    .reject-btn {
+      background: #f44336;
+      color: white;
+    }
+    .reject-btn:hover {
+      background: #da190b;
+    }
+    .approve-btn:disabled, .reject-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .approval-status {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .approval-status.approved {
+      color: #4caf50;
+    }
+    .approval-status.rejected {
+      color: #f44336;
+    }
+    #generateVideosBtn {
+      background: #ff9800;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 6px;
+      font-size: 1.2em;
+      cursor: pointer;
+      margin: 20px auto;
+      display: none;
+      width: 100%;
+      max-width: 400px;
+    }
+    #generateVideosBtn:hover {
+      background: #f57c00;
+    }
+    #generateVideosBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
     .image-item img {
       max-width: 100%;
       height: auto;
@@ -324,6 +399,7 @@
       <div id="imageGrid">
         <!-- Images will be dynamically inserted here -->
       </div>
+      <button id="generateVideosBtn" onclick="generateVideos()">Generate Videos</button>
     </div>
     <div id="scenesEditor">
       <h2>Edit Your Story Scenes</h2>
@@ -336,17 +412,11 @@
   </div>
 
   <script>
-    // Backend URL configuration
-    const BASE_URL = window.location.hostname === 'localhost' 
-      ? 'http://localhost:5000' 
-      : 'https://red-fox-generator.onrender.com';
-    
     // Debug configuration
     const DEBUG_MODE = true; // Set to true for development debugging
     
     function debugLog(...args) {
       if (DEBUG_MODE) {
-        console.log('BASE_URL:', BASE_URL);
         console.log(...args);
       }
     }
@@ -519,7 +589,7 @@
       document.getElementById('loading').style.display = 'block';
       
       try {
-        const res = await fetch(`${BASE_URL}/approve_scenes`, {
+        const res = await fetch('http://localhost:5000/approve_scenes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -601,14 +671,14 @@
         currentEventSource.close();
       }
 
-      const eventSource = new EventSource(`${BASE_URL}/stream?channel=${storyId}`);
+      const eventSource = new EventSource(`http://localhost:5000/stream?channel=${storyId}`);
       currentEventSource = eventSource;
       
       eventSource.addEventListener('image_ready', function(e) {
         try {
           const data = JSON.parse(e.data);
           console.log('Received image_ready:', e.data);
-          displayImage(data.scene_number, data.image_url);
+          displayImage(data.scene_number, data.image_url, data.status || 'completed');
           updateProgress(data.completed_scenes, data.total_scenes);
           eventSourceRetryCount = 0; // Reset retry count on success
           hideReconnectingMessage(); // Hide reconnecting message on success
@@ -640,6 +710,17 @@
           hideReconnectingMessage();
           stopPolling(); // Stop polling when story fails
           showErrorMessage('Story generation failed due to an unknown error.');
+        }
+      });
+
+      eventSource.addEventListener('all_approved', function(e) {
+        try {
+          const data = JSON.parse(e.data);
+          console.log('All images approved:', e.data);
+          document.getElementById('generateVideosBtn').style.display = 'block';
+          showCompletionMessage('All images approved! You can now generate videos.');
+        } catch (error) {
+          console.error('Error parsing all_approved event:', error);
         }
       });
       
@@ -708,7 +789,7 @@
       
       pollingInterval = setInterval(async () => {
         try {
-          const response = await fetch(`${BASE_URL}/story/${storyId}`);
+          const response = await fetch(`http://localhost:5000/story/${storyId}`);
           
           if (response.ok) {
             const data = await response.json();
@@ -748,8 +829,9 @@
       // Check for new images since last poll
       if (data.images) {
         for (const [sceneNumber, imageData] of Object.entries(data.images)) {
-          if (imageData.status === 'completed' && imageData.url) {
-            displayImage(parseInt(sceneNumber), imageData.url);
+          if (imageData.url) {
+            // Display image with current status (could be pending_approval, completed, etc.)
+            displayImage(parseInt(sceneNumber), imageData.url, imageData.status || 'completed');
           }
         }
       }
@@ -757,18 +839,51 @@
       lastCompletedScenes = data.completed_scenes;
     }
 
-    function displayImage(sceneNumber, imageUrl) {
-      console.log('Displaying image for scene', sceneNumber, 'URL:', imageUrl);
+    function displayImage(sceneNumber, imageUrl, status = 'completed') {
+      console.log('Displaying image for scene', sceneNumber, 'URL:', imageUrl, 'Status:', status);
       const imageItem = document.getElementById(`image-${sceneNumber}`);
       if (imageItem) {
         if (imageUrl && imageUrl.trim() !== '') {
-          imageItem.className = 'image-item completed';
-          imageItem.innerHTML = `
-            <div class="scene-number">Scene ${sceneNumber}</div>
-            <img src="${imageUrl}" alt="Scene ${sceneNumber}" onclick="enlargeImage('${imageUrl}')"
-                 onerror="handleImageError(this, ${sceneNumber})"
-                 onload="handleImageLoad(this, ${sceneNumber})">
-          `;
+          if (status === 'pending_approval') {
+            imageItem.className = 'image-item pending-approval';
+            imageItem.innerHTML = `
+              <div class="scene-number">Scene ${sceneNumber}</div>
+              <img src="${imageUrl}" alt="Scene ${sceneNumber}" onclick="enlargeImage('${imageUrl}')"
+                   onerror="handleImageError(this, ${sceneNumber})"
+                   onload="handleImageLoad(this, ${sceneNumber})">
+              <div class="approval-buttons">
+                <button class="approve-btn" onclick="approveImage(${sceneNumber})">Approve</button>
+                <button class="reject-btn" onclick="rejectImage(${sceneNumber})">Reject</button>
+              </div>
+            `;
+          } else if (status === 'approved') {
+            imageItem.className = 'image-item approved';
+            imageItem.innerHTML = `
+              <div class="scene-number">Scene ${sceneNumber}</div>
+              <img src="${imageUrl}" alt="Scene ${sceneNumber}" onclick="enlargeImage('${imageUrl}')"
+                   onerror="handleImageError(this, ${sceneNumber})"
+                   onload="handleImageLoad(this, ${sceneNumber})">
+              <div class="approval-status approved">✓ Approved</div>
+            `;
+          } else if (status === 'rejected') {
+            imageItem.className = 'image-item rejected';
+            imageItem.innerHTML = `
+              <div class="scene-number">Scene ${sceneNumber}</div>
+              <img src="${imageUrl}" alt="Scene ${sceneNumber}" onclick="enlargeImage('${imageUrl}')"
+                   onerror="handleImageError(this, ${sceneNumber})"
+                   onload="handleImageLoad(this, ${sceneNumber})">
+              <div class="approval-status rejected">✗ Rejected</div>
+            `;
+          } else {
+            // Default 'completed' status
+            imageItem.className = 'image-item completed';
+            imageItem.innerHTML = `
+              <div class="scene-number">Scene ${sceneNumber}</div>
+              <img src="${imageUrl}" alt="Scene ${sceneNumber}" onclick="enlargeImage('${imageUrl}')"
+                   onerror="handleImageError(this, ${sceneNumber})"
+                   onload="handleImageLoad(this, ${sceneNumber})">
+            `;
+          }
         } else {
           imageItem.className = 'image-item error';
           imageItem.innerHTML = `
@@ -800,7 +915,7 @@
 
     function retryImageLoad(sceneNumber) {
       // Try to fetch the latest image URL from the server
-      fetch(`${BASE_URL}/story/${currentStoryId}`)
+      fetch(`http://localhost:5000/story/${currentStoryId}`)
         .then(response => response.json())
         .then(data => {
           if (data.images && data.images[sceneNumber] && data.images[sceneNumber].url) {
@@ -828,9 +943,9 @@
       window.open(imageUrl, '_blank');
     }
 
-    function showCompletionMessage() {
+    function showCompletionMessage(message = 'Story generation completed! 🎉') {
       const progressText = document.getElementById('progressText');
-      progressText.textContent = 'Story generation completed! 🎉';
+      progressText.textContent = message;
       progressText.style.color = '#4a90e2';
       progressText.style.fontWeight = 'bold';
     }
@@ -840,6 +955,106 @@
       progressText.textContent = message;
       progressText.style.color = '#d32f2f';
       progressText.style.fontWeight = 'bold';
+    }
+
+    // Image approval tracking
+    let imageApprovals = {}; // Track approval status for each scene
+
+    async function approveImage(sceneNumber) {
+      console.log(`[APPROVAL] Approving image ${sceneNumber} for story ${currentStoryId}`);
+      try {
+        const response = await fetch(`http://localhost:5000/approve_image/${currentStoryId}/${sceneNumber}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'approve' })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log(`[APPROVAL] Image ${sceneNumber} approved successfully:`, result);
+          imageApprovals[sceneNumber] = 'approved';
+          displayImage(sceneNumber, getImageUrl(sceneNumber), 'approved');
+          checkAllImagesApproved();
+        } else {
+          console.error('[APPROVAL] Failed to approve image:', response.status);
+          alert('Failed to approve image. Please try again.');
+        }
+      } catch (error) {
+        console.error('[APPROVAL] Error approving image:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    async function rejectImage(sceneNumber) {
+      console.log(`[APPROVAL] Rejecting image ${sceneNumber} for story ${currentStoryId} - will trigger regeneration`);
+      try {
+        const response = await fetch(`http://localhost:5000/approve_image/${currentStoryId}/${sceneNumber}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'reject' })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log(`[APPROVAL] Image ${sceneNumber} rejected successfully:`, result);
+          imageApprovals[sceneNumber] = 'rejected';
+          displayImage(sceneNumber, getImageUrl(sceneNumber), 'rejected');
+          checkAllImagesApproved();
+          
+          // Show regeneration message
+          showCompletionMessage(`Image ${sceneNumber} rejected - regenerating...`);
+        } else {
+          console.error('[APPROVAL] Failed to reject image:', response.status);
+          alert('Failed to reject image. Please try again.');
+        }
+      } catch (error) {
+        console.error('[APPROVAL] Error rejecting image:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    function getImageUrl(sceneNumber) {
+      // Get current image URL from the DOM
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      const img = imageItem?.querySelector('img');
+      return img?.src || '';
+    }
+
+    function checkAllImagesApproved() {
+      // Check if all 20 images have been approved
+      const approvedCount = Object.values(imageApprovals).filter(status => status === 'approved').length;
+      const rejectedCount = Object.values(imageApprovals).filter(status => status === 'rejected').length;
+      const totalImages = 20;
+      
+      console.log(`[APPROVAL] Status: ${approvedCount}/${totalImages} approved, ${rejectedCount} rejected`);
+      
+      if (approvedCount === totalImages) {
+        document.getElementById('generateVideosBtn').style.display = 'block';
+        console.log('[APPROVAL] All images approved - showing Generate Videos button');
+        showCompletionMessage('All images approved! Click Generate Videos to continue.');
+      } else {
+        document.getElementById('generateVideosBtn').style.display = 'none';
+      }
+    }
+
+    async function generateVideos() {
+      console.log('Starting video generation...');
+      document.getElementById('generateVideosBtn').disabled = true;
+      document.getElementById('generateVideosBtn').textContent = 'Generating Videos...';
+      
+      try {
+        // For now, just show a message
+        alert('Video generation would start here (placeholder)');
+        
+        // TODO: Implement actual video generation endpoint
+        
+      } catch (error) {
+        console.error('Error generating videos:', error);
+        alert('Failed to start video generation. Please try again.');
+      } finally {
+        document.getElementById('generateVideosBtn').disabled = false;
+        document.getElementById('generateVideosBtn').textContent = 'Generate Videos';
+      }
     }
 
     document.getElementById('quizForm').addEventListener('submit', async function (e) {
@@ -871,7 +1086,7 @@
       document.getElementById('loading').style.display = 'block';
 
       try {
-        const res = await fetch(`${BASE_URL}/submit`, {
+        const res = await fetch('http://localhost:5000/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)

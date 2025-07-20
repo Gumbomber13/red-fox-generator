@@ -50,7 +50,12 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
             'url': image_url,
             'status': status
         }
-        if status == "completed":
+        
+        # Initialize approval status for pending_approval images
+        if status == "pending_approval":
+            active_stories[story_id]['image_approvals'][scene_number] = 'pending'
+            logger.info(f"[APPROVAL] Image {scene_number} set to pending approval")
+        elif status == "completed":
             active_stories[story_id]['completed_scenes'] += 1
         
         # Emit the event to connected clients
@@ -186,7 +191,8 @@ def approve_scenes():
             'scenes': approved_scenes,
             'images': {},
             'total_scenes': 20,
-            'completed_scenes': 0
+            'completed_scenes': 0,
+            'image_approvals': {}  # Track approval status: {scene_number: 'pending' | 'approved' | 'rejected'}
         }
         
         # Start heartbeat to keep SSE connection alive
@@ -289,6 +295,98 @@ def get_story_status(story_id):
         'images': story['images']
     })
 
+@app.route('/approve_image/<story_id>/<int:scene_number>', methods=['POST'])
+def approve_image(story_id, scene_number):
+    """Handle image approval/rejection"""
+    try:
+        data = request.get_json()
+        action = data.get('action')  # 'approve' or 'reject'
+        
+        if story_id not in active_stories:
+            logger.warning(f"Story not found for approval: {story_id}")
+            return jsonify({'error': 'Story not found'}), 404
+        
+        if action not in ['approve', 'reject']:
+            logger.warning(f"Invalid action: {action}")
+            return jsonify({'error': 'Invalid action'}), 400
+        
+        # Update approval status
+        active_stories[story_id]['image_approvals'][scene_number] = action + 'd'  # 'approved' or 'rejected'
+        logger.info(f"[APPROVAL] Image {scene_number} {action}d for story {story_id}")
+        
+        # Handle rejection - trigger regeneration
+        if action == 'reject':
+            logger.info(f"[APPROVAL] Triggering regeneration for rejected image {scene_number}")
+            # Get the current prompt for regeneration
+            try:
+                # Import here to avoid circular imports
+                from Animalchannel import process_image
+                
+                # Get scene text and regenerate
+                scenes = active_stories[story_id]['scenes']
+                scene_key = f'Scene{scene_number}'
+                
+                if scene_key in scenes:
+                    scene_text = scenes[scene_key]
+                    
+                    # Create a simple prompt from scene text for regeneration
+                    regeneration_prompt = f"Digital art of: {scene_text}"
+                    
+                    # Start regeneration in background thread
+                    def regenerate_image():
+                        try:
+                            new_url = process_image(str(scene_number), regeneration_prompt, 
+                                                 f"Regen_{story_id}", story_id)
+                            if new_url:
+                                logger.info(f"[APPROVAL] Successfully regenerated image {scene_number}")
+                            else:
+                                logger.error(f"[APPROVAL] Failed to regenerate image {scene_number}")
+                        except Exception as e:
+                            logger.error(f"[APPROVAL] Regeneration error for image {scene_number}: {e}")
+                    
+                    # Start regeneration in background
+                    thread = threading.Thread(target=regenerate_image)
+                    thread.daemon = True
+                    thread.start()
+                else:
+                    logger.warning(f"[APPROVAL] Scene text not found for regeneration: {scene_key}")
+                    
+            except Exception as e:
+                logger.error(f"[APPROVAL] Error setting up regeneration: {e}")
+        
+        # Check if all images are approved
+        approvals = active_stories[story_id]['image_approvals']
+        total_images = active_stories[story_id]['total_scenes']
+        approved_count = sum(1 for status in approvals.values() if status == 'approved')
+        
+        logger.info(f"[APPROVAL] Status: {approved_count}/{total_images} images approved")
+        
+        # If all approved, emit 'all_approved' event
+        if approved_count == total_images:
+            logger.info(f"[APPROVAL] All images approved for story {story_id}")
+            try:
+                sse.publish({
+                    "message": "all_approved",
+                    "story_id": story_id,
+                    "approved_count": approved_count,
+                    "total_images": total_images
+                }, type='all_approved', channel=story_id)
+                logger.info(f"[APPROVAL] Emitted all_approved event for story {story_id}")
+            except Exception as e:
+                logger.error(f"[APPROVAL] Failed to emit all_approved event: {e}")
+        
+        return jsonify({
+            'success': True,
+            'action': action,
+            'scene_number': scene_number,
+            'approved_count': approved_count,
+            'total_images': total_images
+        })
+        
+    except Exception as e:
+        logger.error(f"[APPROVAL] Error in approve_image endpoint: {e}")
+        logger.exception("Approve image error")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/test_emit/<story_id>', methods=['GET'])
 def test_emit(story_id):

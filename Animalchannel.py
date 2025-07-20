@@ -507,7 +507,8 @@ async def process_image_async(semaphore, classifier, prompt, sheet_title, story_
             if story_id:
                 try:
                     from flask_server import emit_image_event
-                    emit_image_event(story_id, int(classifier), url, "completed")
+                    emit_image_event(story_id, int(classifier), url, "pending_approval")
+                    logger.info(f"[APPROVAL] Emitted pending_approval for image {classifier}")
                 except ImportError:
                     logger.warning(f"Could not emit image event for story {story_id}")
             

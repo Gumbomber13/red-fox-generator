@@ -252,6 +252,63 @@ All major features have been implemented and tested:
 - No OpenAI rate limit errors (429 responses)
 - Performance metrics logged: "Rate achieved: X.X images/min (limit: 15)"
 
+## Image Approval Feature Implementation (2025-07-20)
+
+### ✅ All 8 Goals Successfully Completed
+
+**Phase 1: Backend Preparation**
+1. **✅ Goal 1**: Updated `generate_images_concurrently()` to emit `pending_approval` status via SSE for each generated image
+2. **✅ Goal 2**: Added `image_approvals` dict to `active_stories` to track per-image approval status (`pending`, `approved`, `rejected`)
+
+**Phase 2: Frontend Updates**
+3. **✅ Goal 3**: Enhanced `displayImage()` function to show Approve/Reject buttons for `pending_approval` images
+4. **✅ Goal 4**: Added UI logic with button state management, approval tracking, and conditional "Generate Videos" button display
+
+**Phase 3: Approval Handling and Video Trigger**
+5. **✅ Goal 5**: Implemented `/approve_image/<story_id>/<scene_number>` endpoint with rejection-triggered regeneration and `all_approved` SSE events
+6. **✅ Goal 6**: Added `all_approved` event listener to enable "Generate Videos" button when all 20 images are approved
+
+**Phase 4: Testing and Edge Cases**
+7. **✅ Goal 7**: Added comprehensive `[APPROVAL]` logging throughout backend and frontend for approval/rejection flow monitoring
+8. **✅ Goal 8**: Updated CLAUDE.md with complete approval flow documentation
+
+### Technical Implementation Summary:
+- **Approval Workflow**: Images emit as `pending_approval` → User approves/rejects → Backend tracks status → Auto-regeneration on rejection
+- **UI Components**: Dynamic button states, visual status indicators (yellow/green/red borders), approval progress tracking
+- **SSE Integration**: Real-time approval status updates, `all_approved` event triggers video generation enablement
+- **Error Handling**: Graceful rejection handling with automatic regeneration, comprehensive logging for debugging
+- **Rate Limiting**: Maintains existing 15 images/min compliance during regeneration
+
+### New API Endpoints:
+- `POST /approve_image/<story_id>/<scene_number>`: Handle image approval/rejection with body `{action: 'approve'|'reject'}`
+
+### New SSE Events:
+- `all_approved`: Emitted when all 20 images are approved, triggers "Generate Videos" button display
+
+### Files Modified:
+- `Animalchannel.py`: Changed image emission from `completed` to `pending_approval` status
+- `flask_server.py`: Added approval tracking dict, `/approve_image` endpoint, regeneration logic
+- `index.html`: Enhanced UI with approval buttons, status tracking, video generation trigger
+- `CLAUDE.md`: Documented complete approval flow implementation
+
+### Expected User Flow:
+1. User approves scenes → Images generate in parallel with `pending_approval` status
+2. Each image displays with Approve/Reject buttons
+3. User reviews and approves/rejects individual images
+4. Rejected images automatically regenerate and re-emit as `pending_approval`
+5. When all 20 images approved → "Generate Videos" button appears
+6. User clicks "Generate Videos" to proceed to next phase
+
+### Logging Examples:
+```
+[APPROVAL] Emitted pending_approval for image 1
+[APPROVAL] Image 1 approved for story abc-123
+[APPROVAL] Status: 19/20 images approved, 1 rejected
+[APPROVAL] Triggering regeneration for rejected image 5
+[APPROVAL] All images approved for story abc-123
+[APPROVAL] Emitted all_approved event for story abc-123
+```
+
 ## Image Fixes Progress (2025-07-18)
 
 🎯 **All 8 Goals Completed Successfully**
