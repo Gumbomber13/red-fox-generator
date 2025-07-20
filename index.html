@@ -672,6 +672,13 @@
       // Store the story ID globally
       currentStoryId = storyId;
       
+      // Force polling mode on production (non-localhost) to bypass Render SSE issues
+      if (window.location.hostname !== 'localhost') {
+        console.log('Production environment detected - using polling mode instead of SSE');
+        startPolling(storyId);
+        return;
+      }
+      
       // Close existing connection if any
       if (currentEventSource) {
         currentEventSource.close();

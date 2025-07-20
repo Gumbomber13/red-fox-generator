@@ -59,6 +59,13 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
         elif status == "completed":
             active_stories[story_id]['completed_scenes'] += 1
         
+        # Debug logging: Print full active_stories state after update
+        story_state = active_stories[story_id]
+        logger.info(f"[DEBUG-DATA] Story {story_id} state after scene {scene_number} update:")
+        logger.info(f"[DEBUG-DATA] Status: {story_state['status']}, Completed: {story_state['completed_scenes']}/{story_state['total_scenes']}")
+        logger.info(f"[DEBUG-DATA] Images dict: {len(story_state['images'])} scenes - {list(story_state['images'].keys())}")
+        logger.info(f"[DEBUG-DATA] Full story state: {story_state}")
+        
         # Emit the event to connected clients
         logger.debug(f"Attempting SSE emit for story {story_id}, scene {scene_number}, URL length {len(image_url)}")
         try:
@@ -296,6 +303,29 @@ def get_story_status(story_id):
         'images': story['images']
     })
 
+@app.route('/debug_story/<story_id>', methods=['GET'])
+def debug_story_full(story_id):
+    """Debug endpoint to return full active_stories state for manual checking"""
+    logger.info(f"[DEBUG-ENDPOINT] Full debug request for story ID: {story_id}")
+    
+    if story_id not in active_stories:
+        logger.warning(f"[DEBUG-ENDPOINT] Story not found: {story_id}")
+        return jsonify({'error': 'Story not found'}), 404
+    
+    story = active_stories[story_id]
+    
+    # Log the full state
+    logger.info(f"[DEBUG-ENDPOINT] Full story state for {story_id}: {story}")
+    
+    # Return complete story state for debugging
+    return jsonify({
+        'story_id': story_id,
+        'full_state': story,
+        'timestamp': time.time(),
+        'total_active_stories': len(active_stories),
+        'active_story_ids': list(active_stories.keys())
+    })
+
 @app.route('/approve_image/<story_id>/<int:scene_number>', methods=['POST'])
 def approve_image(story_id, scene_number):
     """Handle image approval/rejection"""
@@ -418,7 +448,36 @@ def health():
     """Health check endpoint"""
     return jsonify({"status": "online"})
 
+def start_keep_alive_thread():
+    """Start background thread to keep app awake on Render free tier"""
+    def keep_alive():
+        while True:
+            try:
+                time.sleep(600)  # Sleep for 10 minutes
+                logger.info("[KEEP-ALIVE] Internal ping to prevent Render app sleep")
+                # Make internal health check to keep app awake
+                import requests
+                try:
+                    response = requests.get("http://localhost:5000/health", timeout=30)
+                    logger.info(f"[KEEP-ALIVE] Health check response: {response.status_code}")
+                except Exception as ping_error:
+                    logger.warning(f"[KEEP-ALIVE] Health check failed: {ping_error}")
+            except Exception as e:
+                logger.error(f"[KEEP-ALIVE] Keep-alive thread error: {e}")
+    
+    # Start keep-alive thread for Render deployments
+    if os.getenv("RENDER"):  # Render sets this environment variable
+        keep_alive_thread = threading.Thread(target=keep_alive)
+        keep_alive_thread.daemon = True
+        keep_alive_thread.start()
+        logger.info("[KEEP-ALIVE] Started keep-alive thread for Render deployment")
+    else:
+        logger.info("[KEEP-ALIVE] Skipping keep-alive thread (not on Render)")
+
 if __name__ == '__main__':
+    # Start keep-alive thread for Render deployments
+    start_keep_alive_thread()
+    
     # Set debug mode via environment variable for production control
     debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
     app.run(debug=debug_mode, host='0.0.0.0', port=5000)

@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 # Rate limiting constants for DALL-E API compliance
 MAX_CONCURRENT = 10  # Semaphore limit for concurrent requests
 MAX_IMAGES_PER_MIN = 15  # OpenAI DALL-E rate limit
-BATCH_SIZE = 10  # Process images in batches to respect rate limits
+BATCH_SIZE = 5  # Process images in smaller batches for Render memory constraints
 
 # Configure logging with proper formatting and levels
 logging.basicConfig(
