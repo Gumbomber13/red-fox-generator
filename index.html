@@ -336,11 +336,17 @@
   </div>
 
   <script>
+    // Backend URL configuration
+    const BASE_URL = window.location.hostname === 'localhost' 
+      ? 'http://localhost:5000' 
+      : 'https://red-fox-generator.onrender.com';
+    
     // Debug configuration
     const DEBUG_MODE = true; // Set to true for development debugging
     
     function debugLog(...args) {
       if (DEBUG_MODE) {
+        console.log('BASE_URL:', BASE_URL);
         console.log(...args);
       }
     }
