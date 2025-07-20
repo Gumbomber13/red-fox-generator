@@ -45,6 +45,7 @@ heartbeat_timers = {}
 
 def emit_image_event(story_id, scene_number, image_url, status="completed"):
     """Emit image generation event via SSE"""
+    logger.info(f"[SSE-FIX] emit_image_event called: story={story_id}, scene={scene_number}, status={status}")
     if story_id in active_stories:
         active_stories[story_id]['images'][scene_number] = {
             'url': image_url,
