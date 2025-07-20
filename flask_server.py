@@ -8,7 +8,7 @@ import threading
 import time
 import os
 import logging
-import multiprocessing
+# import multiprocessing  # Replaced with threading for SSE memory sharing
 from Animalchannel import process_story_generation, process_story_generation_with_scenes
 
 # Configure logging with proper formatting
@@ -245,13 +245,13 @@ def approve_scenes():
                         except Exception as log_error:
                             print(f"Warning: Could not log error event error to file: {log_error}")
         
-        logger.info(f"Approved scenes for {story_id}, starting process")
-        process = multiprocessing.Process(target=generate_story_async)
-        process.daemon = True
-        process.start()
+        logger.info(f"Approved scenes for {story_id}, starting background thread")
+        thread = threading.Thread(target=generate_story_async)
+        thread.daemon = True
+        thread.start()
         
-        # Store process reference for potential timeout monitoring
-        active_stories[story_id]['process'] = process
+        # Store thread reference for potential monitoring (shared memory with main process)
+        active_stories[story_id]['process'] = thread
         
         # Return story ID for client to connect to SSE stream
         return jsonify({
