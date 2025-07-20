@@ -513,7 +513,7 @@
       document.getElementById('loading').style.display = 'block';
       
       try {
-        const res = await fetch('http://localhost:5000/approve_scenes', {
+        const res = await fetch(`${BASE_URL}/approve_scenes`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -595,7 +595,7 @@
         currentEventSource.close();
       }
 
-      const eventSource = new EventSource(`http://localhost:5000/stream?channel=${storyId}`);
+      const eventSource = new EventSource(`${BASE_URL}/stream?channel=${storyId}`);
       currentEventSource = eventSource;
       
       eventSource.addEventListener('image_ready', function(e) {
@@ -702,7 +702,7 @@
       
       pollingInterval = setInterval(async () => {
         try {
-          const response = await fetch(`http://localhost:5000/story/${storyId}`);
+          const response = await fetch(`${BASE_URL}/story/${storyId}`);
           
           if (response.ok) {
             const data = await response.json();
@@ -794,7 +794,7 @@
 
     function retryImageLoad(sceneNumber) {
       // Try to fetch the latest image URL from the server
-      fetch(`http://localhost:5000/story/${currentStoryId}`)
+      fetch(`${BASE_URL}/story/${currentStoryId}`)
         .then(response => response.json())
         .then(data => {
           if (data.images && data.images[sceneNumber] && data.images[sceneNumber].url) {
@@ -865,7 +865,7 @@
       document.getElementById('loading').style.display = 'block';
 
       try {
-        const res = await fetch('http://localhost:5000/submit', {
+        const res = await fetch(`${BASE_URL}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
