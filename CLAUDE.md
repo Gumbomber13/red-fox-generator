@@ -309,6 +309,44 @@ All major features have been implemented and tested:
 [APPROVAL] Emitted all_approved event for story abc-123
 ```
 
+## Frontend → Backend Connectivity Fix (2025-07-20)
+
+### ✅ BASE_URL Restoration Completed Successfully
+
+**Issue**: The `BASE_URL` constant was missing from `index.html`, causing all fetch calls to fail with `ReferenceError: BASE_URL is not defined` on production.
+
+**Root Cause**: Previous changes replaced `${BASE_URL}` template literals with hardcoded `http://localhost:5000` URLs, breaking production connectivity to `https://red-fox-generator.onrender.com`.
+
+**Actions Completed**:
+1. **✅ Diagnosis**: Located 7 hardcoded `localhost:5000` URLs in `index.html` on lines 592, 674, 792, 918, 966, 991, 1089
+2. **✅ Implementation**: Restored `BASE_URL` constant with environment detection:
+   ```javascript
+   const BASE_URL = window.location.hostname === 'localhost'
+     ? 'http://localhost:5000'
+     : 'https://red-fox-generator.onrender.com';
+   ```
+3. **✅ URL Replacement**: Converted all hardcoded URLs back to `${BASE_URL}` template literals
+4. **✅ Debug Logging**: Added `console.log('BASE_URL:', BASE_URL)` for production debugging
+
+**Affected Endpoints Restored**:
+- `/submit`: Story scene generation
+- `/approve_scenes`: Image generation trigger
+- `/stream`: SSE events for real-time updates  
+- `/story/<id>`: Polling fallback for image status
+- `/approve_image/<story_id>/<scene_number>`: Image approval/rejection
+
+**Expected Results**:
+- ✅ No `ReferenceError: BASE_URL` in browser console
+- ✅ Production logs show `BASE_URL: https://red-fox-generator.onrender.com`
+- ✅ Quiz proceeds past scene generation without connectivity errors
+- ✅ All SSE events and approval workflows function correctly
+
+**Files Modified**:
+- `index.html`: Restored BASE_URL constant and fixed all fetch/EventSource URLs
+- `CLAUDE.md`: Documented connectivity restoration
+
+**Status**: ✅ **Ready for Production** - Frontend can now reach backend on both localhost and production environments.
+
 ## Image Fixes Progress (2025-07-18)
 
 🎯 **All 8 Goals Completed Successfully**
