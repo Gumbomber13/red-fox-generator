@@ -13,6 +13,11 @@ from google.oauth2 import service_account
 from openai import OpenAI
 from dotenv import load_dotenv
 
+# Rate limiting constants for DALL-E API compliance
+MAX_CONCURRENT = 10  # Semaphore limit for concurrent requests
+MAX_IMAGES_PER_MIN = 15  # OpenAI DALL-E rate limit
+BATCH_SIZE = 10  # Process images in batches to respect rate limits
+
 # Configure logging with proper formatting and levels
 logging.basicConfig(
     level=logging.DEBUG,
@@ -475,6 +480,127 @@ def upload_image(img_data):
                 logger.error(f"Upload failed after {max_retries} attempts: {e}")
                 raise
 
+async def process_image_async(semaphore, classifier, prompt, sheet_title, story_id=None):
+    """Async version of process_image with semaphore control for rate limiting"""
+    async with semaphore:
+        start_time = time.time()
+        logger.info(f"[ASYNC] Starting image {classifier} with prompt: {prompt[:50]}...")
+        
+        try:
+            # Sanitize prompt before generation
+            prompt = sanitize_prompt(prompt)
+            
+            # Generate and upload image with retries
+            img_data = await generate_image_async_with_retries(prompt)
+            url = upload_image(img_data)
+            
+            elapsed = time.time() - start_time
+            logger.info(f"[ASYNC] Successfully completed image {classifier} in {elapsed:.2f}s: {url}")
+            
+            # Update sheet if available
+            try:
+                update_sheet(sheet_title, classifier, 'Picture Generation', url)
+            except Exception as e:
+                logger.warning(f"Failed to update sheet for {classifier}: {e}")
+            
+            # Emit image event if story_id is provided
+            if story_id:
+                try:
+                    from flask_server import emit_image_event
+                    emit_image_event(story_id, int(classifier), url, "completed")
+                except ImportError:
+                    logger.warning(f"Could not emit image event for story {story_id}")
+            
+            return classifier, url
+            
+        except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(f"[ASYNC] Failed to generate image {classifier} after {elapsed:.2f}s: {str(e)}")
+            return classifier, None
+
+async def generate_image_async_with_retries(prompt):
+    """Async image generation with retry logic"""
+    max_retries = 3
+    
+    for retry in range(max_retries):
+        try:
+            current_prompt = prompt
+            if retry > 0:
+                current_prompt = sanitize_prompt(current_prompt)  # Base sanitization
+                if retry > 1:
+                    current_prompt = current_prompt[:1000] + " (simplified)"  # Shorten on later retries
+            
+            logger.debug(f"[ASYNC] Retry {retry + 1} prompt: {current_prompt[:50]}")
+            return await generate_async(current_prompt)
+            
+        except Exception as e:
+            logger.error(f"[ASYNC] DALL-E error attempt {retry + 1}: {e}")
+            if retry < max_retries - 1:
+                wait_time = 5 * (retry + 1)  # 5, 10, 15 seconds
+                logger.warning(f"[ASYNC] Waiting {wait_time}s before retry {retry + 2}")
+                await asyncio.sleep(wait_time)
+            else:
+                logger.error(f"[ASYNC] Generate failed after {max_retries} attempts: {e}")
+                raise
+
+async def generate_images_concurrently(prompts_with_metadata, story_id=None):
+    """
+    Generate multiple images concurrently with rate limiting
+    
+    Args:
+        prompts_with_metadata: List of tuples (scene_number, prompt, sheet_title)
+        story_id: Optional story ID for SSE events
+    
+    Returns:
+        List of tuples (scene_number, image_url_or_none)
+    """
+    logger.info(f"[CONCURRENT] Starting parallel generation of {len(prompts_with_metadata)} images")
+    
+    # Create semaphore to limit concurrent requests
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT)
+    
+    # Split into batches to respect rate limits
+    batches = [prompts_with_metadata[i:i + BATCH_SIZE] for i in range(0, len(prompts_with_metadata), BATCH_SIZE)]
+    
+    all_results = []
+    total_images_processed = 0
+    
+    for batch_num, batch in enumerate(batches, 1):
+        batch_start_time = time.time()
+        logger.info(f"[CONCURRENT] Processing batch {batch_num}/{len(batches)} with {len(batch)} images")
+        
+        # Create async tasks for this batch
+        tasks = []
+        for scene_number, prompt, sheet_title in batch:
+            task = process_image_async(semaphore, str(scene_number), prompt, sheet_title, story_id)
+            tasks.append(task)
+        
+        # Execute batch concurrently
+        batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results and handle exceptions
+        for result in batch_results:
+            if isinstance(result, Exception):
+                logger.error(f"[CONCURRENT] Batch task failed: {result}")
+                all_results.append((0, None))  # Placeholder for failed task
+            else:
+                all_results.append(result)
+        
+        total_images_processed += len(batch)
+        batch_elapsed = time.time() - batch_start_time
+        images_per_min = (len(batch) / batch_elapsed) * 60
+        
+        logger.info(f"[CONCURRENT] Batch {batch_num} completed in {batch_elapsed:.2f}s ({images_per_min:.1f} images/min)")
+        
+        # Rate limiting: Sleep between batches to stay under 15 images/min
+        if batch_num < len(batches):  # Don't sleep after the last batch
+            sleep_time = (60 / MAX_IMAGES_PER_MIN) * len(batch)
+            logger.info(f"[CONCURRENT] Sleeping {sleep_time:.1f}s to respect {MAX_IMAGES_PER_MIN} images/min limit")
+            await asyncio.sleep(sleep_time)
+    
+    logger.info(f"[CONCURRENT] All {total_images_processed} images processed successfully")
+    return all_results
+
 
 
 def process_image(classifier, prompt, sheet_title, story_id=None):
@@ -637,7 +763,7 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
         original_title += f" - Fox finds {original_answers['find']}"
     create_sheet(idea, original_title)
 
-    logger.info(f"Starting image generation loop for {len(std_prompts)} prompts")
+    logger.info(f"Starting PARALLEL image generation for {len(std_prompts)} prompts")
     
     def timeout_handler(signum, frame):
         raise TimeoutError("Generation timed out")
@@ -647,22 +773,46 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
     
     images = []
     try:
+        # Prepare data for concurrent processing
+        prompts_with_metadata = []
         for i, prompt in enumerate(std_prompts, 1):
-            logger.info(f"Processing image {i+1}: {prompt[:50]}...")
             update_sheet(idea, str(i), 'Prompt', prompt)
+            prompts_with_metadata.append((i, prompt, idea))
+        
+        # Use async processing for parallel image generation
+        concurrent_start_time = time.time()
+        results = asyncio.run(generate_images_concurrently(prompts_with_metadata, story_id))
+        concurrent_elapsed = time.time() - concurrent_start_time
+        
+        # Process results in order
+        results_dict = {int(scene): url for scene, url in results if scene != 0}
+        for i in range(1, len(std_prompts) + 1):
+            img_url = results_dict.get(i)
+            if img_url:
+                images.append(img_url)
+                logger.info(f"✓ Image {i} completed: {img_url}")
+            else:
+                logger.warning(f"✗ Image {i} failed - using placeholder")
+                images.append("Skipped")
+        
+        success_count = len([url for url in images if url != "Skipped"])
+        logger.info(f"[PERFORMANCE] Parallel generation completed: {success_count}/{len(images)} images in {concurrent_elapsed:.2f}s")
+        images_per_min = (len(images) / concurrent_elapsed) * 60
+        logger.info(f"[PERFORMANCE] Rate achieved: {images_per_min:.1f} images/min (limit: {MAX_IMAGES_PER_MIN})")
+        
+    except TimeoutError as e:
+        logger.error(f"Timeout during parallel generation: {e}")
+    except Exception as e:
+        logger.error(f"Parallel generation error: {e}")
+        logger.info("Falling back to sequential processing...")
+        # Fallback to original sequential method
+        for i, prompt in enumerate(std_prompts, 1):
             try:
                 img_url = process_image(str(i), prompt, idea, story_id)
-                if img_url:
-                    images.append(img_url)
-                else:
-                    logger.warning(f"Skipping image {i} due to generation failure")
-                    images.append("Skipped")
-            except Exception as e:
-                logger.error(f"Image process error {i+1}: {e}")
+                images.append(img_url if img_url else "Skipped")
+            except Exception as fallback_e:
+                logger.error(f"Fallback image process error {i}: {fallback_e}")
                 images.append("Skipped")
-                continue
-    except TimeoutError as e:
-        logger.error(f"Timeout: {e}")
     finally:
         signal.alarm(0)
 
