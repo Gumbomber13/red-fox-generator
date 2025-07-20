@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Test SSE functionality: `python test_sse_emit.py`
 - Test full workflow: `python test_full_flow.py`
 - Test frontend integration: `python test_frontend_integration.py`
+- Test async hang bug fixes: `python test_async_hang_fix.py`
 - Test specific story endpoint: `curl http://localhost:5000/test_emit/<story_id>`
 - Interactive browser test: Open `test_browser_compatibility.html` in browser
 
@@ -502,7 +503,7 @@ All major features have been implemented and tested:
 - Handles errors gracefully with user-friendly messages
 - Includes comprehensive logging and testing infrastructure
 
-###goals  (2025-07-20 – Fix Front-End Image Display)
+###goals (2025-07-20 – Fix Front-End Image Display)
 The polling path currently ignores images whose `status` is `pending_approval`, so nothing renders when SSE is blocked (e.g., on Render).  Claude Code must:
 
 1. **Update `index.html`**  
@@ -584,3 +585,56 @@ _Use this section to paste Claude Code session summaries or important commit SHA
 - ✅ SSE and polling both function correctly without Redis dependency
 
 **Status**: ✅ **Production Ready** - SSE isolation bug completely resolved through memory sharing via threading.
+
+### ✅ Parallel Generation Hang Bug Fix Completed (2025-07-20)
+
+**Problem**: Async image generation was stalling after prompt 16 sanitization with no further logs/errors (server staying responsive via /health).
+
+**Solution**: Comprehensive timeout and error handling implementation with complete async debugging infrastructure.
+
+**Actions Completed:**
+
+1. **✅ Timeouts Added Everywhere** (Goal 1)
+   - Added 120s timeout to all OpenAI chat.completions.create calls
+   - Added 120s timeout to openai_client.images.generate 
+   - Added 120s timeout to httpx.AsyncClient initialization
+   - Added 10-minute signal.alarm timeout around asyncio.run call
+   - Enhanced timeout logging with [ASYNC-TIMEOUT] tags
+
+2. **✅ Enhanced Error Handling** (Goal 2)  
+   - Updated generate_images_concurrently with return_exceptions=True in asyncio.gather
+   - Added comprehensive exception logging with type and details
+   - Wrapped each async task in try/except with individual error tracking
+   - Added [ASYNC-ERROR] logs for all caught exceptions
+   - Enhanced batch error reporting with success/failure counts
+
+3. **✅ Debug Logging Added** (Goal 3)
+   - Added entry/exit logging for all async functions with [ASYNC-DEBUG] tags
+   - Added timing logs for each generation stage (DALL-E, download, upload)
+   - Added batch completion logs with success rates and performance metrics
+   - Added progressive retry logs with prompt sanitization tracking
+   - Added comprehensive rate limiting and timeout monitoring
+
+4. **✅ Testing Completed** (Goal 4)
+   - Created test_async_hang_fix.py with 4 comprehensive test scenarios
+   - Small batch generation test (3 images) - PASSED
+   - Timeout scenarios (client, API, download timeouts) - PASSED  
+   - Error recovery and retry mechanisms - PASSED
+   - Rate limiting verification (15 images/min compliance) - PASSED
+   - All 4/4 tests passing with proper error handling and recovery
+
+5. **✅ Documentation Updated** (Goal 5)
+   - Updated CLAUDE.md with completion status and commit SHA
+   - Added comprehensive test command: `python test_async_hang_fix.py`
+
+**Technical Implementation:**
+- File: `Animalchannel.py` - Enhanced with comprehensive async error handling
+- File: `test_async_hang_fix.py` - New comprehensive test suite 
+- Commit SHA: `41faabc` - Complete parallel generation hang bug fixes
+- Enhanced logging with [ASYNC-DEBUG], [ASYNC-ERROR], and [ASYNC-TIMEOUT] tags
+- Progressive retry mechanisms with prompt sanitization and shortening
+- Robust batch processing with individual task error isolation
+
+**Result**: ✅ **Production Ready** - All async hang scenarios resolved with comprehensive timeout protection, error recovery, and detailed debug logging. The image generation pipeline now properly handles timeouts, API failures, and network issues without hanging the entire process.
+
+**Testing Command**: `python test_async_hang_fix.py` (verifies all timeout and error handling scenarios)
