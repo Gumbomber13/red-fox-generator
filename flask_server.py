@@ -48,6 +48,9 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
     logger.info(f"[SSE-FIX] emit_image_event called: story={story_id}, scene={scene_number}, status={status}")
     logger.debug(f"[SSE-DETAILED] Thread info: current={threading.current_thread().name}, daemon={threading.current_thread().daemon}")
     logger.debug(f"[SSE-DETAILED] Flask app context available: {bool(app.app_context)}")
+    logger.info(f"[SSE-FIX] Total active stories: {len(active_stories)}")
+    logger.info(f"[SSE-FIX] Active story IDs: {list(active_stories.keys())}")
+    logger.info(f"[SSE-FIX] Story {story_id} exists in active_stories: {story_id in active_stories}")
     if story_id in active_stories:
         active_stories[story_id]['images'][scene_number] = {
             'url': image_url,
@@ -114,6 +117,10 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
                     print(f"Exception type: {type(e).__name__}")
                     print(f"Exception message: {str(e)}")
                     print(f"Fallback: Scene {scene_number} image ready: {image_url}")
+    else:
+        logger.warning(f"[SSE-FIX] Story {story_id} NOT found in active_stories - cannot update image data")
+        logger.warning(f"[SSE-FIX] Available stories: {list(active_stories.keys())}")
+        logger.warning(f"[SSE-FIX] This means images are generating but not being tracked properly")
 
 def send_heartbeat(story_id):
     """Send periodic heartbeat/ping events to keep SSE connection alive"""
@@ -341,25 +348,39 @@ def get_story_status(story_id):
 @app.route('/debug_story/<story_id>', methods=['GET'])
 def debug_story_full(story_id):
     """Debug endpoint to return full active_stories state for manual checking"""
-    logger.info(f"[DEBUG-ENDPOINT] Full debug request for story ID: {story_id}")
-    
-    if story_id not in active_stories:
-        logger.warning(f"[DEBUG-ENDPOINT] Story not found: {story_id}")
-        return jsonify({'error': 'Story not found'}), 404
-    
-    story = active_stories[story_id]
-    
-    # Log the full state
-    logger.info(f"[DEBUG-ENDPOINT] Full story state for {story_id}: {story}")
-    
-    # Return complete story state for debugging
-    return jsonify({
-        'story_id': story_id,
-        'full_state': story,
-        'timestamp': time.time(),
-        'total_active_stories': len(active_stories),
-        'active_story_ids': list(active_stories.keys())
-    })
+    try:
+        logger.info(f"[DEBUG-ENDPOINT] Full debug request for story ID: {story_id}")
+        logger.info(f"[DEBUG-ENDPOINT] Total active stories: {len(active_stories)}")
+        logger.info(f"[DEBUG-ENDPOINT] Active story IDs: {list(active_stories.keys())}")
+        
+        if story_id not in active_stories:
+            logger.warning(f"[DEBUG-ENDPOINT] Story not found: {story_id}")
+            # Return available info even if story not found
+            return jsonify({
+                'error': 'Story not found',
+                'story_id': story_id,
+                'timestamp': time.time(),
+                'total_active_stories': len(active_stories),
+                'active_story_ids': list(active_stories.keys())
+            }), 404
+        
+        story = active_stories[story_id]
+        
+        # Log the full state
+        logger.info(f"[DEBUG-ENDPOINT] Full story state for {story_id}: {story}")
+        
+        # Return complete story state for debugging
+        return jsonify({
+            'story_id': story_id,
+            'full_state': story,
+            'timestamp': time.time(),
+            'total_active_stories': len(active_stories),
+            'active_story_ids': list(active_stories.keys())
+        })
+    except Exception as e:
+        logger.error(f"[DEBUG-ENDPOINT] Error in debug endpoint: {e}")
+        logger.exception("Debug endpoint error")
+        return jsonify({'error': f'Debug endpoint error: {str(e)}'}), 500
 
 @app.route('/approve_image/<story_id>/<int:scene_number>', methods=['POST'])
 def approve_image(story_id, scene_number):
