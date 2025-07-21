@@ -241,12 +241,21 @@ def approve_scenes():
             'image_approvals': {}  # Track approval status: {scene_number: 'pending' | 'approved' | 'rejected'}
         }
         
+        # Debug logging for story creation
+        logger.info(f"[STORY-CREATE] Created story {story_id} in active_stories")
+        logger.info(f"[STORY-CREATE] Total active stories after creation: {len(active_stories)}")
+        logger.info(f"[STORY-CREATE] Active story IDs: {list(active_stories.keys())}")
+        
         # Start heartbeat to keep SSE connection alive
         send_heartbeat(story_id)
         
         # Start story generation in background process with approved scenes
         def generate_story_async():
             try:
+                # Debug: Check if story still exists when background thread starts
+                logger.info(f"[STORY-CREATE] Background thread starting for story {story_id}")
+                logger.info(f"[STORY-CREATE] Story exists at thread start: {story_id in active_stories}")
+                logger.info(f"[STORY-CREATE] Total stories at thread start: {len(active_stories)}")
                 process_story_generation_with_scenes(approved_scenes, original_answers, story_id)
                 # Mark as completed and stop heartbeat
                 if story_id in active_stories:
