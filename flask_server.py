@@ -46,6 +46,8 @@ heartbeat_timers = {}
 def emit_image_event(story_id, scene_number, image_url, status="completed"):
     """Emit image generation event via SSE"""
     logger.info(f"[SSE-FIX] emit_image_event called: story={story_id}, scene={scene_number}, status={status}")
+    logger.debug(f"[SSE-DETAILED] Thread info: current={threading.current_thread().name}, daemon={threading.current_thread().daemon}")
+    logger.debug(f"[SSE-DETAILED] Flask app context available: {bool(app.app_context)}")
     if story_id in active_stories:
         active_stories[story_id]['images'][scene_number] = {
             'url': image_url,
@@ -68,31 +70,59 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
         
         # Emit the event to connected clients
         logger.debug(f"Attempting SSE emit for story {story_id}, scene {scene_number}, URL length {len(image_url)}")
-        try:
-            sse.publish({
-                "scene_number": scene_number,
-                "image_url": image_url,
-                "status": status,
-                "completed_scenes": active_stories[story_id]['completed_scenes'],
-                "total_scenes": active_stories[story_id]['total_scenes']
-            }, type='image_ready', channel=story_id)
-            logger.info(f"SSE emit success for {scene_number}")
-            print(f"SSE Event emitted successfully: Scene {scene_number} for story {story_id}")
-        except Exception as e:
-            # Enhanced error logging for SSE connection issues
-            logger.exception(f"Failed to emit SSE event for story {story_id}, scene {scene_number}")
-            print(f"ERROR: Failed to emit SSE event for story {story_id}, scene {scene_number}")
-            print(f"Exception type: {type(e).__name__}")
-            print(f"Exception message: {str(e)}")
-            print(f"Fallback: Scene {scene_number} image ready: {image_url}")
+        # RETRY LOGIC: Implement retry for transient SSE failures
+        max_retries = 3
+        retry_delay = 1  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                # CRITICAL FIX: Ensure Flask application context for SSE operations
+                logger.debug(f"[SSE-DETAILED] Attempt {attempt + 1}/{max_retries}: Thread={threading.current_thread().name}")
+                with app.app_context():
+                    logger.debug(f"[SSE-CONTEXT] Inside Flask app context for SSE emission (attempt {attempt + 1})")
+                    logger.debug(f"[SSE-DETAILED] App context: name={app.name}, config_keys={list(app.config.keys())[:5]}")
+                    
+                    sse_data = {
+                        "scene_number": scene_number,
+                        "image_url": image_url,
+                        "status": status,
+                        "completed_scenes": active_stories[story_id]['completed_scenes'],
+                        "total_scenes": active_stories[story_id]['total_scenes']
+                    }
+                    logger.debug(f"[SSE-DETAILED] Publishing SSE data: {sse_data}")
+                    
+                    sse.publish(sse_data, type='image_ready', channel=story_id)
+                    logger.info(f"[SSE-CONTEXT] SSE emit success for {scene_number} with app context (attempt {attempt + 1})")
+                    logger.debug(f"[SSE-DETAILED] SSE publish completed without errors")
+                    print(f"SSE Event emitted successfully: Scene {scene_number} for story {story_id}")
+                    return  # Success, exit function
+                    
+            except Exception as e:
+                logger.warning(f"[SSE-RETRY] Attempt {attempt + 1}/{max_retries} failed: {type(e).__name__}: {str(e)}")
+                
+                if attempt < max_retries - 1:  # Not the last attempt
+                    logger.info(f"[SSE-RETRY] Retrying in {retry_delay}s...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    # Final attempt failed, log error and continue
+                    logger.error(f"[SSE-RETRY] All {max_retries} attempts failed for scene {scene_number}")
+                    # Enhanced error logging for SSE connection issues (final failure)
+                    logger.exception(f"[SSE-CONTEXT] All retries failed to emit SSE event for story {story_id}, scene {scene_number}")
+                    print(f"ERROR: Failed to emit SSE event for story {story_id}, scene {scene_number} after {max_retries} attempts")
+                    print(f"Exception type: {type(e).__name__}")
+                    print(f"Exception message: {str(e)}")
+                    print(f"Fallback: Scene {scene_number} image ready: {image_url}")
 
 def send_heartbeat(story_id):
     """Send periodic heartbeat/ping events to keep SSE connection alive"""
     def heartbeat_loop():
         while story_id in active_stories and active_stories[story_id]['status'] == 'processing':
             try:
-                sse.publish({"timestamp": time.time()}, type='ping', channel=story_id)
-                print(f"Sent heartbeat for story {story_id}")
+                # CRITICAL FIX: Ensure Flask application context for SSE heartbeat
+                with app.app_context():
+                    sse.publish({"timestamp": time.time()}, type='ping', channel=story_id)
+                    print(f"[SSE-CONTEXT] Sent heartbeat for story {story_id} with app context")
             except Exception as e:
                 # Enhanced error logging for heartbeat failures
                 print(f"ERROR: Failed to send heartbeat for story {story_id}")
@@ -215,8 +245,10 @@ def approve_scenes():
                     active_stories[story_id]['status'] = 'completed'
                     stop_heartbeat(story_id)
                     try:
-                        sse.publish({"status": "completed"}, type='story_complete', channel=story_id)
-                        print(f"Story completion event emitted successfully for {story_id}")
+                        # CRITICAL FIX: Ensure Flask application context for SSE story completion
+                        with app.app_context():
+                            sse.publish({"status": "completed"}, type='story_complete', channel=story_id)
+                            print(f"[SSE-CONTEXT] Story completion event emitted successfully for {story_id} with app context")
                     except Exception as sse_error:
                         print(f"ERROR: Failed to emit story completion event for {story_id}")
                         print(f"Exception type: {type(sse_error).__name__}")
@@ -236,8 +268,10 @@ def approve_scenes():
                     active_stories[story_id]['status'] = 'failed'
                     stop_heartbeat(story_id)
                     try:
-                        sse.publish({"status": "failed", "error": str(e)}, type='story_error', channel=story_id)
-                        print(f"Story error event emitted successfully for {story_id}")
+                        # CRITICAL FIX: Ensure Flask application context for SSE story error
+                        with app.app_context():
+                            sse.publish({"status": "failed", "error": str(e)}, type='story_error', channel=story_id)
+                            print(f"[SSE-CONTEXT] Story error event emitted successfully for {story_id} with app context")
                     except Exception as sse_error:
                         print(f"ERROR: Failed to emit story error event for {story_id}")
                         print(f"SSE Exception type: {type(sse_error).__name__}")
@@ -396,13 +430,15 @@ def approve_image(story_id, scene_number):
         if approved_count == total_images:
             logger.info(f"[APPROVAL] All images approved for story {story_id}")
             try:
-                sse.publish({
-                    "message": "all_approved",
-                    "story_id": story_id,
-                    "approved_count": approved_count,
-                    "total_images": total_images
-                }, type='all_approved', channel=story_id)
-                logger.info(f"[APPROVAL] Emitted all_approved event for story {story_id}")
+                # CRITICAL FIX: Ensure Flask application context for SSE all_approved event
+                with app.app_context():
+                    sse.publish({
+                        "message": "all_approved",
+                        "story_id": story_id,
+                        "approved_count": approved_count,
+                        "total_images": total_images
+                    }, type='all_approved', channel=story_id)
+                    logger.info(f"[SSE-CONTEXT] [APPROVAL] Emitted all_approved event for story {story_id} with app context")
             except Exception as e:
                 logger.error(f"[APPROVAL] Failed to emit all_approved event: {e}")
         
