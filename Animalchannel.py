@@ -423,13 +423,25 @@ async def generate_async(prompt):
         logger.debug(f"[STOPPAGE-DEBUG] GPT-Image-1 API call completed at {time.time()}")
         gpt_image_elapsed = time.time() - gpt_image_start
         
-        # Validate API response structure
-        if not response or not hasattr(response, 'data') or not response.data or not response.data[0].url:
+        # Validate API response structure and handle both URL and base64 formats
+        if not response or not hasattr(response, 'data') or not response.data:
             logger.error(f"[ASYNC-DEBUG] Invalid API response: {response}")
             raise ValueError("OpenAI API returned invalid response structure")
-            
-        img_url = response.data[0].url
-        logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 API completed in {gpt_image_elapsed:.2f}s, got URL: {img_url[:50]}...")
+        
+        # GPT-Image-1 returns base64 data instead of URL
+        if hasattr(response.data[0], 'b64_json') and response.data[0].b64_json:
+            logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 returned base64 data, converting to bytes")
+            import base64
+            img_data = base64.b64decode(response.data[0].b64_json)
+            logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 API completed in {gpt_image_elapsed:.2f}s, got {len(img_data)} bytes of image data")
+            await client.aclose()
+            return img_data
+        elif hasattr(response.data[0], 'url') and response.data[0].url:
+            img_url = response.data[0].url
+            logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 API completed in {gpt_image_elapsed:.2f}s, got URL: {img_url[:50]}...")
+        else:
+            logger.error(f"[ASYNC-DEBUG] Invalid API response - no URL or b64_json: {response}")
+            raise ValueError("OpenAI API returned neither URL nor base64 data")
         
         # Use httpx to download the image asynchronously (inherits client timeout)
         download_start = time.time()
