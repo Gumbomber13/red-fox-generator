@@ -139,29 +139,42 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
     logger.info(f"[SSE-FIX] emit_image_event called: story={story_id}, scene={scene_number}, status={status}")
     logger.debug(f"[SSE-DETAILED] Thread info: current={threading.current_thread().name}, daemon={threading.current_thread().daemon}")
     logger.debug(f"[SSE-DETAILED] Flask app context available: {bool(app.app_context)}")
-    logger.info(f"[SSE-FIX] Total active stories: {len(active_stories)}")
-    logger.info(f"[SSE-FIX] Active story IDs: {list(active_stories.keys())}")
-    logger.info(f"[SSE-FIX] Story {story_id} exists in active_stories: {story_id in active_stories}")
-    if story_id in active_stories:
-        active_stories[story_id]['images'][scene_number] = {
+    
+    # Get story data using Redis-backed storage
+    story_data = get_story_data(story_id)
+    all_story_ids = get_all_story_ids()
+    
+    logger.info(f"[REDIS] Total active stories: {len(all_story_ids)}")
+    logger.info(f"[REDIS] Active story IDs: {all_story_ids}")
+    logger.info(f"[REDIS] Story {story_id} exists in storage: {story_data is not None}")
+    
+    if story_data:
+        # Update image data
+        if 'images' not in story_data:
+            story_data['images'] = {}
+        story_data['images'][scene_number] = {
             'url': image_url,
             'status': status
         }
         
         # Initialize approval status for pending_approval images
         if status == "pending_approval":
-            active_stories[story_id]['image_approvals'][scene_number] = 'pending'
-            active_stories[story_id]['completed_scenes'] += 1  # Count pending_approval as completed for progress tracking
+            if 'image_approvals' not in story_data:
+                story_data['image_approvals'] = {}
+            story_data['image_approvals'][scene_number] = 'pending'
+            story_data['completed_scenes'] += 1  # Count pending_approval as completed for progress tracking
             logger.info(f"[APPROVAL] Image {scene_number} set to pending approval")
         elif status == "completed":
-            active_stories[story_id]['completed_scenes'] += 1
+            story_data['completed_scenes'] += 1
         
-        # Debug logging: Print full active_stories state after update
-        story_state = active_stories[story_id]
+        # Save updated story data back to Redis
+        set_story_data(story_id, story_data)
+        
+        # Debug logging: Print full story state after update
         logger.info(f"[DEBUG-DATA] Story {story_id} state after scene {scene_number} update:")
-        logger.info(f"[DEBUG-DATA] Status: {story_state['status']}, Completed: {story_state['completed_scenes']}/{story_state['total_scenes']}")
-        logger.info(f"[DEBUG-DATA] Images dict: {len(story_state['images'])} scenes - {list(story_state['images'].keys())}")
-        logger.info(f"[DEBUG-DATA] Full story state: {story_state}")
+        logger.info(f"[DEBUG-DATA] Status: {story_data['status']}, Completed: {story_data['completed_scenes']}/{story_data['total_scenes']}")
+        logger.info(f"[DEBUG-DATA] Images dict: {len(story_data['images'])} scenes - {list(story_data['images'].keys())}")
+        logger.info(f"[DEBUG-DATA] Updated story saved to Redis")
         
         # Emit the event to connected clients
         logger.debug(f"Attempting SSE emit for story {story_id}, scene {scene_number}, URL length {len(image_url)}")
@@ -181,8 +194,8 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
                         "scene_number": scene_number,
                         "image_url": image_url,
                         "status": status,
-                        "completed_scenes": active_stories[story_id]['completed_scenes'],
-                        "total_scenes": active_stories[story_id]['total_scenes']
+                        "completed_scenes": story_data['completed_scenes'],
+                        "total_scenes": story_data['total_scenes']
                     }
                     logger.debug(f"[SSE-DETAILED] Publishing SSE data: {sse_data}")
                     
@@ -209,9 +222,9 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
                     print(f"Exception message: {str(e)}")
                     print(f"Fallback: Scene {scene_number} image ready: {image_url}")
     else:
-        logger.warning(f"[SSE-FIX] Story {story_id} NOT found in active_stories - cannot update image data")
-        logger.warning(f"[SSE-FIX] Available stories: {list(active_stories.keys())}")
-        logger.warning(f"[SSE-FIX] This means images are generating but not being tracked properly")
+        logger.warning(f"[REDIS] Story {story_id} NOT found in Redis storage - cannot update image data")
+        logger.warning(f"[REDIS] Available stories: {all_story_ids}")
+        logger.warning(f"[REDIS] This means images are generating but story was not created properly")
 
 def send_heartbeat(story_id):
     """Send periodic heartbeat/ping events to keep SSE connection alive"""
@@ -321,8 +334,8 @@ def approve_scenes():
         # Generate unique story ID
         story_id = str(uuid.uuid4())
         
-        # Store story session
-        active_stories[story_id] = {
+        # Store story session using Redis-backed storage
+        story_data = {
             'status': 'processing',
             'answers': original_answers,
             'scenes': approved_scenes,
@@ -331,11 +344,13 @@ def approve_scenes():
             'completed_scenes': 0,
             'image_approvals': {}  # Track approval status: {scene_number: 'pending' | 'approved' | 'rejected'}
         }
+        set_story_data(story_id, story_data)
         
         # Debug logging for story creation
-        logger.info(f"[STORY-CREATE] Created story {story_id} in active_stories")
-        logger.info(f"[STORY-CREATE] Total active stories after creation: {len(active_stories)}")
-        logger.info(f"[STORY-CREATE] Active story IDs: {list(active_stories.keys())}")
+        all_story_ids = get_all_story_ids()
+        logger.info(f"[STORY-CREATE] Created story {story_id} using Redis storage")
+        logger.info(f"[STORY-CREATE] Total active stories after creation: {len(all_story_ids)}")
+        logger.info(f"[STORY-CREATE] Active story IDs: {all_story_ids}")
         
         # Start heartbeat to keep SSE connection alive
         send_heartbeat(story_id)
@@ -428,21 +443,21 @@ def get_story_status(story_id):
     """Get current status of a story generation"""
     logger.info(f"Getting story status for ID: {story_id}")
     
-    if story_id not in active_stories:
+    # Get story data using Redis-backed storage
+    story_data = get_story_data(story_id)
+    if not story_data:
         logger.warning(f"Story not found: {story_id}")
         return jsonify({'error': 'Story not found'}), 404
     
-    story = active_stories[story_id]
-    
     # Log the current state for debugging
-    logger.debug(f"Story {story_id} status: {story['status']}, completed: {story['completed_scenes']}/{story['total_scenes']}")
-    logger.debug(f"Story {story_id} images: {len(story['images'])} images available")
+    logger.debug(f"Story {story_id} status: {story_data['status']}, completed: {story_data['completed_scenes']}/{story_data['total_scenes']}")
+    logger.debug(f"Story {story_id} images: {len(story_data['images'])} images available")
     
     return jsonify({
-        'status': story['status'],
-        'completed_scenes': story['completed_scenes'],
-        'total_scenes': story['total_scenes'],
-        'images': story['images']
+        'status': story_data['status'],
+        'completed_scenes': story_data['completed_scenes'],
+        'total_scenes': story_data['total_scenes'],
+        'images': story_data['images']
     })
 
 @app.route('/debug_story/<story_id>', methods=['GET'])
