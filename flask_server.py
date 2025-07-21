@@ -61,11 +61,20 @@ def set_story_data(story_id, story_data):
     if redis_client:
         try:
             import json
-            redis_client.setex(f"story:{story_id}", 3600, json.dumps(story_data))  # 1 hour expiry
+            # Create a copy of the data to avoid modifying the original
+            serializable_data = {}
+            for key, value in story_data.items():
+                # Skip non-serializable objects like Thread
+                if key == 'process':
+                    continue
+                serializable_data[key] = value
+            
+            redis_client.setex(f"story:{story_id}", 3600, json.dumps(serializable_data))  # 1 hour expiry
             logger.debug(f"[REDIS] Stored story {story_id} in Redis")
             return True
         except Exception as e:
             logger.error(f"[REDIS] Failed to store story {story_id}: {e}")
+            logger.exception(f"[REDIS] Redis serialization error details")
     
     # Fallback to in-memory
     active_stories[story_id] = story_data
@@ -364,9 +373,8 @@ def approve_scenes():
                 logger.info(f"[STORY-CREATE] Total stories at thread start: {len(active_stories)}")
                 process_story_generation_with_scenes(approved_scenes, original_answers, story_id)
                 # Mark as completed and stop heartbeat
-                if story_id in active_stories:
-                    active_stories[story_id]['status'] = 'completed'
-                    stop_heartbeat(story_id)
+                update_story_data(story_id, {'status': 'completed'})
+                stop_heartbeat(story_id)
                     try:
                         # CRITICAL FIX: Ensure Flask application context for SSE story completion
                         with app.app_context():
@@ -387,9 +395,8 @@ def approve_scenes():
                             print(f"Warning: Could not log completion error to file: {log_error}")
             except Exception as e:
                 # Mark as failed and stop heartbeat
-                if story_id in active_stories:
-                    active_stories[story_id]['status'] = 'failed'
-                    stop_heartbeat(story_id)
+                update_story_data(story_id, {'status': 'failed'})
+                stop_heartbeat(story_id)
                     try:
                         # CRITICAL FIX: Ensure Flask application context for SSE story error
                         with app.app_context():
@@ -415,8 +422,8 @@ def approve_scenes():
         thread.daemon = True
         thread.start()
         
-        # Store thread reference for potential monitoring (shared memory with main process)
-        active_stories[story_id]['process'] = thread
+        # Store thread reference in in-memory dict only (Thread objects can't be serialized to Redis)
+        active_stories[story_id] = {'process': thread}
         
         # Return story ID for client to connect to SSE stream
         return jsonify({
