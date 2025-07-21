@@ -39,8 +39,99 @@ except Exception as e:
     logger.error("SSE functionality will not be available")
     logger.exception("Flask-SSE initialization failed")
 
-# Store active story sessions and heartbeat timers
-active_stories = {}
+# Configure Redis client for shared story storage
+redis_client = None
+try:
+    redis_url = os.getenv("REDIS_URL")
+    if redis_url:
+        import redis
+        redis_client = redis.from_url(redis_url, decode_responses=True)
+        # Test Redis connection
+        redis_client.ping()
+        logger.info(f"[REDIS] Redis connected successfully: {redis_url}")
+    else:
+        logger.warning("[REDIS] REDIS_URL not set, using in-memory storage (may cause multi-instance issues)")
+except Exception as e:
+    logger.error(f"[REDIS] Redis connection failed: {e}")
+    redis_client = None
+
+# Shared storage functions
+def set_story_data(story_id, story_data):
+    """Store story data in Redis or in-memory fallback"""
+    if redis_client:
+        try:
+            import json
+            redis_client.setex(f"story:{story_id}", 3600, json.dumps(story_data))  # 1 hour expiry
+            logger.debug(f"[REDIS] Stored story {story_id} in Redis")
+            return True
+        except Exception as e:
+            logger.error(f"[REDIS] Failed to store story {story_id}: {e}")
+    
+    # Fallback to in-memory
+    active_stories[story_id] = story_data
+    logger.debug(f"[REDIS] Stored story {story_id} in memory (fallback)")
+    return True
+
+def get_story_data(story_id):
+    """Get story data from Redis or in-memory fallback"""
+    if redis_client:
+        try:
+            import json
+            data = redis_client.get(f"story:{story_id}")
+            if data:
+                story_data = json.loads(data)
+                logger.debug(f"[REDIS] Retrieved story {story_id} from Redis")
+                return story_data
+        except Exception as e:
+            logger.error(f"[REDIS] Failed to get story {story_id}: {e}")
+    
+    # Fallback to in-memory
+    story_data = active_stories.get(story_id)
+    if story_data:
+        logger.debug(f"[REDIS] Retrieved story {story_id} from memory (fallback)")
+    return story_data
+
+def update_story_data(story_id, updates):
+    """Update specific fields in story data"""
+    story_data = get_story_data(story_id)
+    if story_data:
+        story_data.update(updates)
+        set_story_data(story_id, story_data)
+        return True
+    return False
+
+def delete_story_data(story_id):
+    """Delete story data from Redis or in-memory"""
+    if redis_client:
+        try:
+            redis_client.delete(f"story:{story_id}")
+            logger.debug(f"[REDIS] Deleted story {story_id} from Redis")
+        except Exception as e:
+            logger.error(f"[REDIS] Failed to delete story {story_id}: {e}")
+    
+    # Also remove from in-memory fallback
+    if story_id in active_stories:
+        del active_stories[story_id]
+        logger.debug(f"[REDIS] Deleted story {story_id} from memory")
+
+def get_all_story_ids():
+    """Get all active story IDs"""
+    story_ids = []
+    if redis_client:
+        try:
+            story_ids = [key.replace("story:", "") for key in redis_client.keys("story:*")]
+            logger.debug(f"[REDIS] Found {len(story_ids)} stories in Redis")
+        except Exception as e:
+            logger.error(f"[REDIS] Failed to get story IDs from Redis: {e}")
+    
+    # Also include in-memory stories
+    memory_ids = list(active_stories.keys())
+    all_ids = list(set(story_ids + memory_ids))  # Deduplicate
+    logger.debug(f"[REDIS] Total unique story IDs: {len(all_ids)}")
+    return all_ids
+
+# Store active story sessions and heartbeat timers (heartbeat_timers stays in-memory since it's process-specific)
+active_stories = {}  # Keep for fallback
 heartbeat_timers = {}
 
 def emit_image_event(story_id, scene_number, image_url, status="completed"):
