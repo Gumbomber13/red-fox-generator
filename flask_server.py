@@ -375,12 +375,12 @@ def approve_scenes():
                 # Mark as completed and stop heartbeat
                 update_story_data(story_id, {'status': 'completed'})
                 stop_heartbeat(story_id)
-                    try:
-                        # CRITICAL FIX: Ensure Flask application context for SSE story completion
-                        with app.app_context():
-                            sse.publish({"status": "completed"}, type='story_complete', channel=story_id)
-                            print(f"[SSE-CONTEXT] Story completion event emitted successfully for {story_id} with app context")
-                    except Exception as sse_error:
+                try:
+                    # CRITICAL FIX: Ensure Flask application context for SSE story completion
+                    with app.app_context():
+                        sse.publish({"status": "completed"}, type='story_complete', channel=story_id)
+                        print(f"[SSE-CONTEXT] Story completion event emitted successfully for {story_id} with app context")
+                except Exception as sse_error:
                         print(f"ERROR: Failed to emit story completion event for {story_id}")
                         print(f"Exception type: {type(sse_error).__name__}")
                         print(f"Exception message: {str(sse_error)}")
@@ -397,12 +397,12 @@ def approve_scenes():
                 # Mark as failed and stop heartbeat
                 update_story_data(story_id, {'status': 'failed'})
                 stop_heartbeat(story_id)
-                    try:
-                        # CRITICAL FIX: Ensure Flask application context for SSE story error
-                        with app.app_context():
-                            sse.publish({"status": "failed", "error": str(e)}, type='story_error', channel=story_id)
-                            print(f"[SSE-CONTEXT] Story error event emitted successfully for {story_id} with app context")
-                    except Exception as sse_error:
+                try:
+                    # CRITICAL FIX: Ensure Flask application context for SSE story error
+                    with app.app_context():
+                        sse.publish({"status": "failed", "error": str(e)}, type='story_error', channel=story_id)
+                        print(f"[SSE-CONTEXT] Story error event emitted successfully for {story_id} with app context")
+                except Exception as sse_error:
                         print(f"ERROR: Failed to emit story error event for {story_id}")
                         print(f"SSE Exception type: {type(sse_error).__name__}")
                         print(f"SSE Exception message: {str(sse_error)}")
