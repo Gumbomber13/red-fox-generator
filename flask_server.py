@@ -378,10 +378,18 @@ def debug_story_full(story_id):
         # Log the full state
         logger.info(f"[DEBUG-ENDPOINT] Full story state for {story_id}: {story}")
         
+        # Create a JSON-serializable copy of the story (exclude Thread object)
+        story_debug = {}
+        for key, value in story.items():
+            if key == 'process':
+                story_debug[key] = f"Thread: {value.name if hasattr(value, 'name') else str(type(value))}"
+            else:
+                story_debug[key] = value
+        
         # Return complete story state for debugging
         return jsonify({
             'story_id': story_id,
-            'full_state': story,
+            'full_state': story_debug,
             'timestamp': time.time(),
             'total_active_stories': len(active_stories),
             'active_story_ids': list(active_stories.keys())
