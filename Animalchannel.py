@@ -411,13 +411,15 @@ async def generate_async(prompt):
         logger.debug(f"[ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout")
         logger.debug(f"[STOPPAGE-DEBUG] GPT-Image-1 API call starting at {time.time()}")
         # Use OpenAI client for GPT-Image-1 generation with timeout (can take up to 2 minutes)
-        response = openai_client.images.generate(
+        # CRITICAL FIX: Run synchronous OpenAI call in thread pool to avoid blocking event loop
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(None, lambda: openai_client.images.generate(
             model="gpt-image-1", 
             prompt=prompt, 
             size="1024x1024", 
             n=1,
             timeout=180.0
-        )
+        ))
         logger.debug(f"[STOPPAGE-DEBUG] GPT-Image-1 API call completed at {time.time()}")
         gpt_image_elapsed = time.time() - gpt_image_start
         img_url = response.data[0].url
