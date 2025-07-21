@@ -57,6 +57,7 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
         # Initialize approval status for pending_approval images
         if status == "pending_approval":
             active_stories[story_id]['image_approvals'][scene_number] = 'pending'
+            active_stories[story_id]['completed_scenes'] += 1  # Count pending_approval as completed for progress tracking
             logger.info(f"[APPROVAL] Image {scene_number} set to pending approval")
         elif status == "completed":
             active_stories[story_id]['completed_scenes'] += 1
