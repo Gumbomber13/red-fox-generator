@@ -422,6 +422,12 @@ async def generate_async(prompt):
         ))
         logger.debug(f"[STOPPAGE-DEBUG] GPT-Image-1 API call completed at {time.time()}")
         gpt_image_elapsed = time.time() - gpt_image_start
+        
+        # Validate API response structure
+        if not response or not hasattr(response, 'data') or not response.data or not response.data[0].url:
+            logger.error(f"[ASYNC-DEBUG] Invalid API response: {response}")
+            raise ValueError("OpenAI API returned invalid response structure")
+            
         img_url = response.data[0].url
         logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 API completed in {gpt_image_elapsed:.2f}s, got URL: {img_url[:50]}...")
         
