@@ -1229,11 +1229,8 @@
                 <button class="approve-btn" id="approve-btn-${sceneNumber}" onclick="approveSelectedVariation(${sceneNumber})" disabled>
                   Approve Selected
                 </button>
-                <button class="reject-btn" onclick="rejectAllVariations(${sceneNumber})">
-                  Reject All & Regenerate
-                </button>
-                <button class="fullscreen-btn" onclick="openImagePopup(${sceneNumber})">
-                  Full Screen
+                <button class="edit-regenerate-btn" onclick="showEditOptions(${sceneNumber})">
+                  Edit & Regenerate
                 </button>
               </div>
             `;
@@ -1252,6 +1249,92 @@
           `;
         }
       }
+    }
+
+    function showEditOptions(sceneNumber) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        imageItem.innerHTML += `
+          <div class="popup-edit-buttons">
+            <button class="edit-btn" onclick="showEditInput(${sceneNumber})">Edit</button>
+            <button class="new-image-btn" onclick="showNewImageInput(${sceneNumber})">New Image</button>
+            <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
+          </div>
+        `;
+      }
+    }
+
+    function showEditInput(sceneNumber) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        imageItem.innerHTML += `
+          <div class="popup-input-section">
+            <textarea id="edit-input-${sceneNumber}" placeholder="Describe your edits..."></textarea>
+            <button class="submit-btn" onclick="submitEdit(${sceneNumber}, 'edit')">Submit Edit</button>
+            <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
+          </div>
+        `;
+      }
+    }
+
+    function showNewImageInput(sceneNumber) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        imageItem.innerHTML += `
+          <div class="popup-input-section">
+            <textarea id="new-image-input-${sceneNumber}" placeholder="Enter a new prompt..."></textarea>
+            <button class="submit-btn" onclick="submitEdit(${sceneNumber}, 'new')">Generate New Image</button>
+            <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
+          </div>
+        `;
+      }
+    }
+
+    function cancelEdit(sceneNumber) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        displayImageVariations(sceneNumber, currentPopupVariations, 'pending_approval');
+      }
+    }
+
+    function submitEdit(sceneNumber, mode) {
+      const inputId = mode === 'edit' ? `edit-input-${sceneNumber}` : `new-image-input-${sceneNumber}`;
+      const inputElement = document.getElementById(inputId);
+      const userInput = inputElement ? inputElement.value.trim() : '';
+      
+      if (!userInput) {
+        alert('Please enter your input.');
+        return;
+      }
+      
+      console.log(`Submitting ${mode} for scene ${sceneNumber}:`, userInput);
+      
+      // Call backend to process edit or new image
+      fetch(`${BASE_URL}/edit_image/${currentStoryId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scene_number: sceneNumber,
+          user_input: userInput,
+          edit_mode: mode
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Edit/New Image response:', data);
+        if (data.success) {
+          // Update the display with new variations
+          displayImageVariations(sceneNumber, data.new_variations, 'pending_approval');
+        } else {
+          alert('Failed to generate new variations. Please try again.');
+        }
+      })
+      .catch(error => {
+        console.error('Error processing edit/new image:', error);
+        alert('Error processing request. Please try again.');
+      });
     }
 
     function handleImageError(img, sceneNumber) {
