@@ -160,14 +160,12 @@ def create_sheet(title, original_title=None):
 
 
 
-def build_system_prompt(answers):
-    prompt = """
-You are a creative assistant that generates emotionally-driven Power Fantasy stories starring a red fox. These stories are told entirely through images only — with no dialogue, narration, or text.
-The red fox begins each story powerless or humiliated. Through grit, invention, or training, he transforms into something strong. His journey is emotional, exaggerated, and symbolic — like a mini cinematic redemption arc. 
-
-CRITICAL REQUIREMENT: Each story must be exactly 20 scenes, with each scene being a self-contained visual moment. You must provide all 20 scenes numbered Scene1, Scene2, Scene3, ... Scene20 in your JSON response. Do not skip any scene numbers.
-
-Story Structure (20 Scenes)
+def get_story_structure_template(story_type):
+    """Return the specific story structure template based on story type"""
+    
+    templates = {
+        "Power Fantasy": """
+Story Structure (20 Scenes) - POWER FANTASY
 1. Underdog Setup (Scenes 1–3)
 The red fox is weak, dirty and poor. Each scene shows a different hardship or form of rejection in a visually expressive environment.
 Scene 1. Scene of Humiliation - The Red Fox is humiliated in some way he is either rejected by a pretty and wealthy girl fox, or he is laughed at by a group of another type of animal While he stands devastated. 
@@ -187,23 +185,160 @@ Scene 8. The fox lies defeated on the ground, bruised and embarrassed, looking u
 4. Montage: Training / Building (Scenes 9–10)
 He commits to change. These scenes show him building, lifting, planning, improving, or imagining.
 Scene 9. More disciplined training or building - first session
-Scene 10. More disciplined training or building - advanced session
+Scene 10. More disciplined training or building - second session improved with more skill 
 5. Transformation (Scenes 11–12)
-The fox undergoes a dramatic change, becoming stronger, more capable, and ready to face his challenges.
-Scene 11. The fox undergoing transformation - becoming stronger, more confident, cleaner, and more powerful
-Scene 12. The fox's transformation is complete - he stands tall, confident, and ready to face the world
-6. Power Reveal (Scenes 13–14)
-He unveils his transformation — mech, wings, elemental form, or super reflexes — and shocks the world around him.
-Scene 13: His new power his finished or revealed
-Scene 14: His power is displayed and others look in awe
-7. Test or Consequence (Scenes 15–20)
-The new power causes unexpected damage or a new challenge appears. These scenes increase the emotional complexity.
-Scene 15: Whoever rejected the red fox from earlier, is committing a crime and getting away with it
-Scene 16: The red fox beats up the criminal with his new power
-Scene 17: The police takes The criminal rejector away as he is crying (No fox in shot)
-Scene 18: Everyone cheers for the fox
-Scene 19: The fox walks down a street with sunglasses on and a really sexy woman while everyone is flashing pictures at him
-Scene 20: The fox stands on a mountaintop or high building, looking out over the city with confidence and satisfaction, having completed his transformation from underdog to hero 
+He experiences a transformation moment — inside and outside. Often visual or physical.
+Scene 11. The transformation starts to be visible - his appearance changes
+Scene 12. The transformation is complete - new appearance fully realized
+6. First Test / Show of Power (Scenes 13–14)
+He uses his newfound skills or technology to achieve something small but meaningful.
+Scene 13. The fox displays his new power or skill for the first time
+Scene 14. Others are amazed or intimidated by his new abilities
+7. Challenge / Justice / Redemption (Scenes 15–19)
+The final test. He overcomes a villain, helps those in need, or achieves his original goal.
+Scene 15. A major challenge or villain appears
+Scene 16. The fox confronts the challenge with his new abilities
+Scene 17. Intense struggle or battle
+Scene 18. The fox overcomes the challenge
+Scene 19. Victory and recognition from others
+8. New Life / Closing (Scene 20)
+A symbolic close showing the fox in his new life — powerful, respected, or achieving his original dream.
+Scene 20. The fox in his new life, transformed and triumphant""",
+
+        "Redemption Arc": """
+Story Structure (20 Scenes) - REDEMPTION ARC
+1. Past Mistakes (Scenes 1–4)
+The red fox's past mistakes and their consequences are revealed, showing regret and the need for redemption.
+Scene 1. Past wrongdoing - The fox is shown having hurt someone or made a terrible mistake
+Scene 2. Consequences - The damage caused by the fox's actions is revealed
+Scene 3. Isolation - The fox is alone, shunned by former friends or community
+Scene 4. Guilt and regret - The fox shows deep remorse for past actions
+2. Call to Redemption (Scenes 5–6)
+Something or someone shows the fox a path toward making amends.
+Scene 5. Meeting the guide - The fox encounters someone who offers wisdom or a chance at redemption
+Scene 6. Accepting the path - The fox decides to try to make things right
+3. First Attempts (Scenes 7–8)
+Early efforts to make amends fail or are rejected, showing the difficulty of earning forgiveness.
+Scene 7. Rejected attempt - The fox tries to help but is turned away
+Scene 8. Continued determination - Despite rejection, the fox persists in trying to help
+4. Learning and Growth (Scenes 9–10)
+The fox learns valuable lessons about empathy, sacrifice, and what true redemption means.
+Scene 9. Learning empathy - The fox begins to understand others' pain
+Scene 10. Personal sacrifice - The fox gives up something important to help others
+5. Proving Change (Scenes 11–12)
+The fox demonstrates genuine change through actions, not just words.
+Scene 11. Selfless act - The fox helps someone with no expectation of reward
+Scene 12. Recognition of change - Others begin to notice the fox's transformation
+6. Test of Character (Scenes 13–14)
+A situation arises that tests whether the fox's change is genuine.
+Scene 13. Temptation returns - The fox faces a choice to return to old ways
+Scene 14. Choosing redemption - The fox makes the right choice despite personal cost
+7. Major Redemption (Scenes 15–19)
+The fox faces the ultimate test of redemption, often helping those they originally wronged.
+Scene 15. Ultimate challenge - A crisis that requires the fox's help
+Scene 16. Rising to the challenge - The fox uses newfound wisdom and selflessness
+Scene 17. Making amends - The fox directly addresses past wrongs
+Scene 18. Acceptance and forgiveness - Others recognize the fox's genuine change
+Scene 19. Community restored - Relationships are healed and trust rebuilt
+8. New Beginning (Scene 20)
+The fox has earned redemption and begins a new chapter, having learned from the past.
+Scene 20. Redeemed and renewed - The fox in their new life, forgiven and at peace""",
+
+        "Hero's Journey": """
+Story Structure (20 Scenes) - HERO'S JOURNEY
+1. Ordinary World (Scenes 1–2)
+The red fox lives a simple, ordinary life before adventure calls.
+Scene 1. Normal life - The fox in their everyday routine and environment
+Scene 2. Ordinary challenges - The fox deals with normal, mundane problems
+2. Call to Adventure (Scenes 3–4)
+Something disrupts the ordinary world and calls the fox to adventure.
+Scene 3. The call - A messenger, event, or discovery that signals adventure
+Scene 4. Hesitation - The fox is uncertain and fears leaving the familiar
+3. Meeting the Mentor (Scenes 5–6)
+The fox encounters a wise guide who provides help for the journey ahead.
+Scene 5. The mentor appears - A wise character offers guidance and tools
+Scene 6. Receiving aid - The fox gets magical items, advice, or training
+4. Crossing the Threshold (Scenes 7–8)
+The fox commits to the adventure and enters a new, unfamiliar world.
+Scene 7. Departure - The fox leaves the ordinary world behind
+Scene 8. First challenges - Initial obstacles in the new world
+5. Tests and Allies (Scenes 9–10)
+The fox faces challenges and meets companions who will aid the journey.
+Scene 9. Finding allies - The fox meets friends who will help on the quest
+Scene 10. Team building - The group learns to work together through trials
+6. Approach to the Ordeal (Scenes 11–12)
+The fox prepares for the greatest challenge of the journey.
+Scene 11. Planning the approach - Strategy and preparation for the final challenge
+Scene 12. Gathering courage - The fox overcomes fears and doubts
+7. The Ordeal (Scenes 13–15)
+The fox faces the greatest fear or most difficult challenge of the journey.
+Scene 13. Entering the ordeal - The fox confronts the ultimate challenge
+Scene 14. Darkest moment - The fox appears to fail or face defeat
+Scene 15. Death and rebirth - The fox finds inner strength and overcomes
+8. Reward and Return (Scenes 16–19)
+The fox gains wisdom and begins the journey home, facing final tests.
+Scene 16. Seizing the reward - The fox gains what was sought
+Scene 17. The road back - Beginning the return journey with new wisdom
+Scene 18. Resurrection - Final test that proves the fox's transformation
+Scene 19. Master of two worlds - The fox demonstrates new abilities
+9. Return with Elixir (Scene 20)
+The fox returns home transformed, bringing wisdom to benefit others.
+Scene 20. Sharing the gift - The fox uses their new wisdom to help their community""",
+
+        "Coming of Age": """
+Story Structure (20 Scenes) - COMING OF AGE
+1. Childhood Innocence (Scenes 1–3)
+The young red fox lives in a simple world without understanding of complexity.
+Scene 1. Innocent play - The young fox enjoys simple pleasures and games
+Scene 2. Protected world - The fox is sheltered from harsh realities
+Scene 3. Naive perspective - The fox has simple, black-and-white views of the world
+2. First Awakening (Scenes 4–5)
+Something happens that begins to shatter the fox's innocent worldview.
+Scene 4. First loss - The fox experiences loss, disappointment, or unfairness
+Scene 5. Confusion - The fox struggles to understand this new complexity
+3. Seeking Understanding (Scenes 6–7)
+The fox begins to question and explore, seeking answers to new questions.
+Scene 6. Asking questions - The fox seeks answers from adults or mentors
+Scene 7. First independence - The fox tries to figure things out alone
+4. Making Mistakes (Scenes 8–9)
+The fox makes errors in judgment as they learn about consequences.
+Scene 8. Poor decision - The fox makes a choice based on inexperience
+Scene 9. Facing consequences - The fox learns that actions have real results
+5. Finding Identity (Scenes 10–11)
+The fox begins to discover who they are apart from family expectations.
+Scene 10. Self-discovery - The fox finds their own interests and values
+Scene 11. Standing apart - The fox begins to assert their individual identity
+6. Testing Relationships (Scenes 12–13)
+The fox learns about friendship, loyalty, and the complexity of relationships.
+Scene 12. Friendship tested - A relationship faces challenges and disagreement
+Scene 13. Learning loyalty - The fox learns the true meaning of friendship
+7. Major Challenge (Scenes 14–16)
+The fox faces a significant test that requires adult-like responsibility.
+Scene 14. The challenge appears - A situation requiring maturity and courage
+Scene 15. Rising to meet it - The fox attempts to handle the situation
+Scene 16. Growth through struggle - The fox perseveres despite difficulties
+8. Wisdom Gained (Scenes 17–18)
+The fox demonstrates newfound maturity and understanding.
+Scene 17. Wise decision - The fox makes a choice showing real growth
+Scene 18. Helping others - The fox uses their experience to help someone else
+9. New Maturity (Scenes 19–20)
+The fox has grown up and gained the wisdom of experience.
+Scene 19. Acceptance of complexity - The fox understands that life has gray areas
+Scene 20. Mature fox - The fox has grown up, ready for adult responsibilities"""
+    }
+    
+    return templates.get(story_type, templates["Power Fantasy"])
+
+def build_system_prompt(answers):
+    story_type = answers.get('story_type', 'Power Fantasy')
+    story_structure = get_story_structure_template(story_type)
+    
+    prompt = f"""
+You are a creative assistant that generates emotionally-driven {story_type} stories starring a red fox. These stories are told entirely through images only — with no dialogue, narration, or text.
+
+CRITICAL REQUIREMENT: Each story must be exactly 20 scenes, with each scene being a self-contained visual moment. You must provide all 20 scenes numbered Scene1, Scene2, Scene3, ... Scene20 in your JSON response. Do not skip any scene numbers.
+
+{story_structure}
 
 Scene Rules
 One single action per scene.
@@ -1067,13 +1202,8 @@ def process_story_generation_with_scenes(approved_scenes, original_answers, stor
             images_per_minute = (len(images) / total_process_time) * 60
             logger.info(f"[PROCESS-SUMMARY] Overall rate: {images_per_minute:.1f} images/min")
 
-    # TODO: Video generation should only start after explicit frontend approval
-    # Will be triggered via new /approve_videos endpoint once all images are approved
-    # for i, img_url in enumerate(images, 1):
-    #     if img_url and img_url != "Skipped":
-    #         process_video(str(i), img_url, idea)
-    #     else:
-    #         logger.info(f"Skipping video generation for image {i} (no valid image URL)")
+    # Video generation is now implemented via /approve_videos endpoint
+    # This is triggered by explicit frontend approval after all images are approved
 
 def main():
     """For testing purposes only - use Flask server in production"""

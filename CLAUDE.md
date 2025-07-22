@@ -57,8 +57,8 @@ Place Google service account JSON at `/etc/secrets/service-account.json` for Goo
   - `/stream`: Server-Sent Events endpoint for real-time image updates
   - `/health`: Health check endpoint
   - `/story/<story_id>`: Polling endpoint for SSE fallback
-- Session management via in-memory `active_stories` dict
-- Uses multiprocessing for background story generation
+- **CRITICAL**: Redis-backed shared storage for `active_stories` to support multi-instance deployments
+- Uses threading for background story generation (memory sharing)
 - Flask-SSE with Redis support or in-memory fallback
 
 **Story Generation Pipeline (`Animalchannel.py`)**
@@ -82,28 +82,55 @@ Place Google service account JSON at `/etc/secrets/service-account.json` for Goo
 4. User modifies scenes and clicks "Approve Scenes" button
 5. Approved scenes sent to `/approve_scenes`, returns `story_id`
 6. Frontend opens SSE connection to `/stream?channel={story_id}`
-7. Flask server launches multiprocessing `process_story_generation_with_scenes()`
+7. Flask server launches threading `process_story_generation_with_scenes()`
 8. Background process: Scenes → Visual prompts → Standardization → Async DALL-E generation → Cloudinary upload
 9. SSE events emitted for each completed image with real-time updates
 10. Frontend updates image grid in real-time or falls back to polling
-11. Optional: Google Sheets tracking and Telegram approval (deprecated)
-12. Optional: Final video generation via Kling/Hailuo APIs
+11. User approves/rejects individual images via approval buttons
+12. When all 20 images approved → "Generate Videos" button appears
+13. User clicks "Generate Videos" → `/approve_videos` endpoint triggered
+14. Background video generation: Approved images → Kling/Hailuo APIs → Video URLs
+15. SSE events emitted for each completed video with real-time updates
+16. Optional: Google Sheets tracking and Telegram approval (deprecated)
 
 ### Key Integration Points
-- **OpenAI**: Scene generation (GPT), visual prompt creation, image generation (DALL-E 3)
+- **OpenAI**: Scene generation (GPT), visual prompt creation, image generation (GPT-Image-1)
 - **Cloudinary**: Image hosting and URL generation for frontend display
+- **Redis**: **CRITICAL** - Shared storage for story data across multiple Flask instances
 - **Flask-SSE + Redis**: Real-time event streaming with fallback to in-memory
 - **Telegram**: Optional approval workflow for generated images (deprecated, disabled by default)
 - **Google Sheets**: Optional prompt storage and progress tracking
-- **Kling/Hailuo**: Optional video generation from final image sets
+- **Kling/Hailuo**: Video generation from approved images via `/approve_videos` endpoint
+
+### Multi-Instance Deployment Architecture (CRITICAL)
+
+**Problem Solved**: Production deployments (Render, Heroku) run multiple Flask instances, causing in-memory `active_stories` data to be isolated per instance. This resulted in images generating successfully but never appearing in the frontend.
+
+**Solution**: Redis-backed shared storage system with automatic fallbacks:
+
+**Storage Functions (`flask_server.py`):**
+- `set_story_data(story_id, story_data)`: Store story data in Redis with 1-hour expiry
+- `get_story_data(story_id)`: Retrieve story data from Redis or in-memory fallback  
+- `update_story_data(story_id, updates)`: Update specific fields in story data
+- `delete_story_data(story_id)`: Remove story data from Redis and memory
+- `get_all_story_ids()`: Get all active story IDs across instances
+
+**Key Benefits:**
+- All Flask instances share the same story data via Redis
+- Automatic fallback to in-memory storage if Redis unavailable
+- Thread references stored separately (non-serializable objects)
+- 1-hour TTL prevents data accumulation
+- Cross-instance image tracking and progress updates
+
+**Critical for Production**: Without Redis, images generate but aren't tracked because `emit_image_event()` calls from background threads can't access the `active_stories` data created in different Flask instances.
 
 ### Error Handling & Resilience
 - Comprehensive logging throughout all pipeline stages
-- Graceful fallback for optional services (Telegram, Google Sheets)
+- Graceful fallback for optional services (Telegram, Google Sheets, Redis)
 - SSE with exponential backoff retry and polling fallback
 - Async image generation with proper error handling
 - Environment variable validation with warnings
-- Multiprocessing isolation prevents main server crashes
+- Threading isolation with shared memory prevents crashes
 
 ## Development Notes
 
@@ -158,7 +185,9 @@ Place Google service account JSON at `/etc/secrets/service-account.json` for Goo
 **Result**: All core development goals have been successfully completed. The application now provides robust error handling, comprehensive logging, and reliable scene generation with proper fallback mechanisms.
 
 ### Story Structure Format
-Stories follow a strict 20-scene "Power Fantasy" narrative:
+Stories support 4 different narrative templates selectable via the frontend quiz:
+
+**1. Power Fantasy** (Default)
 - Scenes 1–4: Underdog setup (rejection, sadness)
 - Scenes 5–6: Discovery of something powerful
 - Scenes 7–8: First failure or obstacle
@@ -167,6 +196,38 @@ Stories follow a strict 20-scene "Power Fantasy" narrative:
 - Scenes 13–14: Power display
 - Scenes 15–19: Challenge, justice, redemption
 - Scene 20: Closing triumph and symbolism
+
+**2. Redemption Arc**
+- Scenes 1–4: Past mistakes and consequences
+- Scenes 5–6: Call to redemption and accepting the path
+- Scenes 7–8: First attempts at making amends
+- Scenes 9–10: Learning empathy and personal sacrifice
+- Scenes 11–12: Proving genuine change
+- Scenes 13–14: Test of character and choosing redemption
+- Scenes 15–19: Major redemption and making amends
+- Scene 20: New beginning, forgiven and at peace
+
+**3. Hero's Journey**
+- Scenes 1–2: Ordinary world
+- Scenes 3–4: Call to adventure and hesitation
+- Scenes 5–6: Meeting the mentor and receiving aid
+- Scenes 7–8: Crossing the threshold and first challenges
+- Scenes 9–10: Tests, allies, and team building
+- Scenes 11–12: Approach to the ordeal
+- Scenes 13–15: The ordeal, darkest moment, and rebirth
+- Scenes 16–19: Reward, return journey, and final test
+- Scene 20: Return with wisdom to help community
+
+**4. Coming of Age**
+- Scenes 1–3: Childhood innocence and protected world
+- Scenes 4–5: First awakening and confusion
+- Scenes 6–7: Seeking understanding and independence
+- Scenes 8–9: Making mistakes and facing consequences
+- Scenes 10–11: Finding identity and standing apart
+- Scenes 12–13: Testing relationships and learning loyalty
+- Scenes 14–16: Major challenge requiring maturity
+- Scenes 17–18: Wisdom gained and helping others
+- Scenes 19–20: Acceptance of complexity and mature responsibility
 
 ### Critical Functions
 
@@ -724,10 +785,28 @@ _Use this section to paste Claude Code session summaries or important commit SHA
 ## Future Goals
 
 ### Planned Enhancements
-- Video generation integration (Kling/Hailuo APIs already configured)
-- Additional story structure templates beyond "Power Fantasy"
+- ✅ Video generation integration (Kling/Hailuo APIs already configured) - **COMPLETED**
+- ✅ Additional story structure templates beyond "Power Fantasy" - **COMPLETED**
 - Enhanced image approval workflow with bulk operations
 - Performance optimizations for larger batch processing
+
+###Goals
+// Phase 1: Preparation
+1. ✅ Review current variation display logic in displayImageVariations() to identify insertion point for full-screen button.
+// Phase 2: Implementation
+2. ✅ Add modal HTML structure to index.html with enlarged image, thumbnails container, approve/reject buttons, and close X.
+// Phase 3: CSS Styling
+3. ✅ Extend styles for modal: fixed position, dark overlay, centered content, thumbnail grid, selected states.
+// Phase 4: JavaScript Functions
+4. ✅ Create openFullscreenModal() to populate modal with scene variations, set initial selected, and show modal.
+5. ✅ Implement switchModalVariation() to update enlarged image and thumbnail selection.
+6. ✅ Add approveFromModal() and rejectFromModal() to handle actions and close modal.
+7. ✅ Create closeModal() to hide the modal.
+// Phase 5: Integration
+8. ✅ Update displayImageVariations() to add 'Full Screen' button that calls openFullscreenModal().
+// Phase 6: Testing and Documentation
+9. ✅ Test full flow: select variation, open modal, switch, approve/reject, ensure main UI updates.
+10. ✅ Document the feature in CLAUDE.md under Architecture Overview.
 
 ## GPT-Image-1 Migration - COMPLETED ✅ (2025-07-20)
 
@@ -1109,3 +1188,229 @@ _Use this section to paste Claude Code session summaries or important commit SHA
 - **Comprehensive Logging**: Added 15+ logging tags for detailed debugging and performance analysis
 - **Testing**: Created test suites to verify fixes and ensure thread safety
 - **Performance**: Enhanced process visibility with timing breakdown and bottleneck identification
+
+## Multi-Instance Deployment Fix - COMPLETED ✅ (2025-07-21)
+
+### ✅ Critical Architecture Fix Successfully Completed
+
+**Problem**: Production deployments (Render, Heroku) run multiple Flask instances, causing `active_stories` data isolation. Images generated successfully but never appeared in frontend because `emit_image_event()` calls from background threads couldn't access story data created in different Flask instances.
+
+**Root Cause Discovery**: 
+- Debug logs showed `Total active stories: 0` and `Active story IDs: []` during `emit_image_event()` calls
+- Story existed for polling endpoint but not for background thread
+- Confirmed multi-instance isolation via `/debug_story/<id>` endpoint
+
+**Solution Implemented**: Redis-backed shared storage with automatic fallbacks
+
+**Actions Completed**:
+1. **✅ Redis Integration**: Added Redis client configuration with connection testing
+2. **✅ Storage Functions**: Created `set_story_data()`, `get_story_data()`, `update_story_data()`, `delete_story_data()`, `get_all_story_ids()`
+3. **✅ Serialization Handling**: Added filtering for non-serializable objects (Thread references)
+4. **✅ Endpoint Updates**: Updated `emit_image_event()`, `/approve_scenes`, `/story/<id>` to use Redis storage
+5. **✅ Fallback System**: Automatic degradation to in-memory storage if Redis unavailable
+6. **✅ Error Handling**: Comprehensive error logging and JSON serialization fixes
+
+**Technical Implementation**:
+- **File**: `flask_server.py` - Added Redis client, storage functions, updated all endpoints
+- **Redis TTL**: 1-hour expiry on story data to prevent accumulation
+- **Thread Safety**: Thread references stored in in-memory dict only (non-serializable)
+- **Fallback**: Graceful degradation to in-memory storage for development
+
+**Files Modified**:
+- `flask_server.py`: Redis integration, storage functions, endpoint updates
+- `requirements.txt`: Redis dependency already present
+- `CLAUDE.md`: Documentation of multi-instance architecture
+
+**Expected Results**:
+- ✅ Images appear incrementally across all Flask instances
+- ✅ Progress tracking works correctly (1/20, 2/20, etc.)
+- ✅ Approval workflow functions in multi-instance deployments
+- ✅ Automatic fallback for development environments without Redis
+
+**Status**: ✅ **PRODUCTION READY** - Multi-instance isolation completely resolved. All Flask instances now share story data via Redis, enabling proper image tracking and display.
+
+**Commit SHA**: `04378ca` - Complete multi-instance deployment architecture fix
+
+## Video Generation Implementation - COMPLETED ✅ (2025-07-22)
+
+### ✅ All Goals Successfully Completed
+
+**Objective**: Implement video generation workflow with explicit frontend approval after all images are approved.
+
+**Actions Completed**:
+1. **✅ Backend Video Endpoint**: Implemented `/approve_videos/<story_id>` endpoint with comprehensive validation
+   - Validates all 20 images are approved before allowing video generation
+   - Launches background thread for video processing using existing `process_video()` function
+   - Emits SSE events for video generation progress and completion
+
+2. **✅ Frontend Integration**: Updated `generateVideos()` function to call correct endpoint
+   - Fixed endpoint URL from `/generate_videos/` to `/approve_videos/`
+   - Added proper error handling and user feedback
+   - Integrated with existing SSE event system for real-time updates
+
+3. **✅ SSE Event System**: Added comprehensive video generation events
+   - `video_generation_started`: Emitted when video processing begins
+   - `video_ready`: Emitted for each individual video completion with progress
+   - `video_generation_complete`: Emitted when all videos are processed
+   - `video_generation_error`: Emitted on video generation failures
+
+4. **✅ UI Components**: Enhanced frontend with video display capabilities
+   - Added `displayVideo()` function to show video players alongside images
+   - Added CSS styling for video-ready state with visual indicators
+   - Updated progress tracking to handle both images and videos
+   - Maintained existing image display while adding video overlay
+
+5. **✅ Error Handling**: Comprehensive error handling throughout video pipeline
+   - Backend validation of image approval status before video generation
+   - Thread-safe video generation with proper Flask context
+   - Frontend error parsing and user-friendly error messages
+   - Graceful fallback and recovery mechanisms
+
+### Technical Implementation Summary
+
+**Backend Architecture**:
+- `/approve_videos/<story_id>` endpoint validates image approval and launches video generation
+- Background threading for video processing with Flask context management
+- Integration with existing `process_video()` function for Kling/Hailuo API calls
+- Redis-backed story data storage for multi-instance compatibility
+
+**Frontend Architecture**:
+- Video generation button appears only after all 20 images are approved
+- Real-time video progress via SSE events with polling fallback
+- Video players embedded in image grid with thumbnail and controls
+- Comprehensive error handling and user feedback
+
+**SSE Events**:
+- `video_generation_started`: Initial progress setup
+- `video_ready`: Individual video completion with scene number and URL
+- `video_generation_complete`: Final completion with success statistics
+- `video_generation_error`: Error notifications with details
+
+### New API Endpoints
+- `POST /approve_videos/<story_id>`: Trigger video generation after image approval validation
+
+### New Frontend Functions
+- `displayVideo(sceneNumber, videoUrl)`: Display video player in image grid
+- Enhanced SSE event listeners for video generation events
+
+### Files Modified
+- `flask_server.py`: Added video generation endpoint and SSE events
+- `index.html`: Updated video generation function and SSE listeners
+- `Animalchannel.py`: Removed TODO comment, updated documentation
+- `CLAUDE.md`: Complete video generation documentation
+
+### Expected User Flow
+1. User completes quiz and approves 20 story scenes
+2. Images generate with approval/rejection workflow
+3. User approves all 20 images → "Generate Videos" button appears
+4. User clicks "Generate Videos" → Backend validates approval status
+5. Video generation starts in background → SSE events provide progress
+6. Videos appear one by one as they complete → Final completion message
+7. User can view/download individual videos alongside images
+
+**Status**: ✅ **PRODUCTION READY** - Complete video generation workflow implemented with explicit approval, real-time progress tracking, and comprehensive error handling.
+
+## Story Structure Templates Implementation - COMPLETED ✅ (2025-07-22)
+
+### ✅ All Goals Successfully Completed
+
+**Objective**: Implement additional story structure templates beyond the default "Power Fantasy" to provide users with diverse narrative options.
+
+**Actions Completed**:
+1. **✅ Template Creation**: Implemented 4 comprehensive story structure templates
+   - **Power Fantasy**: Classic underdog-to-hero transformation (20 scenes)
+   - **Redemption Arc**: Journey from past mistakes to forgiveness (20 scenes)
+   - **Hero's Journey**: Traditional monomyth structure (20 scenes)
+   - **Coming of Age**: Growth from innocence to maturity (20 scenes)
+
+2. **✅ Backend Integration**: Added dynamic story template system
+   - Created `get_story_structure_template(story_type)` function in `Animalchannel.py`
+   - Updated `build_system_prompt()` to use dynamic story structures
+   - Replaced hardcoded Power Fantasy template with template selection system
+   - Each template provides detailed 20-scene breakdown with narrative guidance
+
+3. **✅ Frontend Integration**: Updated quiz to support story type selection
+   - Added radio button options for all 4 story types in `index.html`
+   - Default selection remains "Power Fantasy" for backward compatibility
+   - Story type selection integrated into existing quiz workflow
+   - User choice passed to backend via form submission
+
+4. **✅ Template Architecture**: Comprehensive narrative structures
+   - Each template provides scene-by-scene guidance for OpenAI generation
+   - Maintains consistent 20-scene format across all story types
+   - Preserves existing personalization system (humiliation, discovery, villain)
+   - Templates work seamlessly with existing image and video generation pipeline
+
+### Technical Implementation Summary
+
+**Backend Architecture**:
+- `get_story_structure_template()`: Returns detailed 20-scene templates based on story type
+- Dynamic template integration in `build_system_prompt()` function
+- Maintains all existing quiz personalization and answer substitution
+- Templates provide comprehensive narrative guidance for consistent story generation
+
+**Frontend Architecture**:
+- Story type selection via radio buttons in quiz interface
+- Integration with existing form submission and validation
+- Default "Power Fantasy" selection for new users
+- Story type passed to backend as part of quiz answers
+
+**Template Structure**:
+- Each template divided into narrative phases (8-9 phases per story)
+- Detailed scene descriptions with emotional progression
+- Character development arcs appropriate to each story type
+- Maintains visual storytelling focus (no dialogue/narration)
+
+### New Story Templates
+
+**1. Power Fantasy** (Original)
+- Classic underdog transformation with power acquisition and triumph
+
+**2. Redemption Arc**
+- Past mistakes → Guidance → Learning → Proving change → Ultimate redemption
+
+**3. Hero's Journey**
+- Ordinary world → Call to adventure → Tests → Ordeal → Return with wisdom
+
+**4. Coming of Age**
+- Innocence → Awakening → Mistakes → Growth → Mature responsibility
+
+### Files Modified
+- `Animalchannel.py`: Added `get_story_structure_template()` function and dynamic prompt system
+- `index.html`: Added story type selection radio buttons to quiz
+- `CLAUDE.md`: Updated story structure documentation and completion status
+
+### Expected User Experience
+1. User starts quiz and selects preferred story type (Power Fantasy, Redemption Arc, Hero's Journey, or Coming of Age)
+2. User completes existing quiz questions with personalization options
+3. Backend generates story using selected template structure
+4. Story follows chosen narrative arc while maintaining personalization
+5. Image and video generation proceed normally with template-appropriate scenes
+
+### Template Benefits
+- **Narrative Diversity**: 4 distinct story archetypes for varied user preferences
+- **Educational Value**: Each template teaches different storytelling structures
+- **Replayability**: Users can generate multiple stories with different narrative frameworks
+- **Cultural Relevance**: Templates span classic and modern storytelling traditions
+
+**Status**: ✅ **PRODUCTION READY** - Complete story structure template system implemented with 4 narrative options, dynamic backend integration, and seamless frontend selection interface.
+
+### Video Generation Implementation Goals - COMPLETED ✅ (2025-07-21)
+
+✅ All 8 Goals Successfully Completed
+
+**Phase 1: Backend Preparation**
+1. ✅ Add /generate_videos/<story_id> endpoint in flask_server.py to trigger video generation.
+2. ✅ Update process_video in Animalchannel.py to handle Kling/Hailuo APIs properly.
+
+**Phase 2: Frontend Integration**
+3. ✅ Update generateVideos() in index.html to call the new endpoint.
+4. ✅ Add SSE listeners for video_ready and videos_complete events.
+
+**Phase 3: Progress and UI**
+5. ✅ Extend updateProgress to handle video mode.
+6. ✅ Add displayVideo function to show video players in the UI.
+
+**Phase 4: Testing and Documentation**
+7. ✅ Test end-to-end: approve images, generate videos, display results.
+8. ✅ Document in CLAUDE.md under Architecture Overview.
