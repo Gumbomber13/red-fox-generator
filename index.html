@@ -1319,12 +1319,11 @@
         // Replace the approval buttons section with edit options
         const approvalButtons = imageItem.querySelector('.approval-buttons');
         if (approvalButtons) {
+          approvalButtons.className = 'approval-buttons popup-edit-buttons';
           approvalButtons.innerHTML = `
-            <div class="popup-edit-buttons">
-              <button class="edit-btn" onclick="showEditInput(${sceneNumber})">Edit</button>
-              <button class="new-image-btn" onclick="showNewImageInput(${sceneNumber})">New Image</button>
-              <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
-            </div>
+            <button class="edit-btn" onclick="showEditInput(${sceneNumber})">Edit</button>
+            <button class="new-image-btn" onclick="showNewImageInput(${sceneNumber})">New Image</button>
+            <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
           `;
           console.log(`[DEBUG] Replaced approval buttons with edit options for scene ${sceneNumber}`);
         } else {
@@ -1341,13 +1340,13 @@
         // Replace the edit buttons with input section
         const approvalButtons = imageItem.querySelector('.approval-buttons');
         if (approvalButtons) {
+          approvalButtons.className = 'approval-buttons popup-input-section';
           approvalButtons.innerHTML = `
-            <div class="popup-input-section">
-              <textarea id="edit-input-${sceneNumber}" placeholder="Describe your edits..."></textarea>
-              <button class="submit-btn" onclick="submitEdit(${sceneNumber}, 'edit')">Submit Edit</button>
-              <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
-            </div>
+            <textarea id="edit-input-${sceneNumber}" placeholder="Describe your edits..."></textarea>
+            <button class="submit-btn" onclick="submitEdit(${sceneNumber}, 'edit')">Submit Edit</button>
+            <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
           `;
+          console.log(`[DEBUG] Showed edit input for scene ${sceneNumber}`);
         }
       }
     }
@@ -1358,13 +1357,13 @@
         // Replace the edit buttons with input section
         const approvalButtons = imageItem.querySelector('.approval-buttons');
         if (approvalButtons) {
+          approvalButtons.className = 'approval-buttons popup-input-section';
           approvalButtons.innerHTML = `
-            <div class="popup-input-section">
-              <textarea id="new-image-input-${sceneNumber}" placeholder="Enter a new prompt..."></textarea>
-              <button class="submit-btn" onclick="submitEdit(${sceneNumber}, 'new')">Generate New Image</button>
-              <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
-            </div>
+            <textarea id="new-image-input-${sceneNumber}" placeholder="Enter a new prompt..."></textarea>
+            <button class="submit-btn" onclick="submitEdit(${sceneNumber}, 'new')">Generate New Image</button>
+            <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
           `;
+          console.log(`[DEBUG] Showed new image input for scene ${sceneNumber}`);
         }
       }
     }
