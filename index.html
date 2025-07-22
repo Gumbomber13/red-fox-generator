@@ -579,6 +579,54 @@
     .submit-btn:hover {
       background: #1976d2;
     }
+
+    /* Main page edit styles */
+    .main-edit-buttons {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .main-input-section {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .main-input-section textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+
+    .main-input-section textarea:focus {
+      outline: none;
+      border-color: #2196f3;
+    }
+
+    .main-edit-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .loading-message {
+      padding: 20px;
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -1156,7 +1204,7 @@
                    onload="handleImageLoad(this, ${sceneNumber})">
               <div class="approval-buttons">
                 <button class="approve-btn" onclick="approveImage(${sceneNumber})">Approve</button>
-                <button class="reject-btn" onclick="rejectImage(${sceneNumber})">Reject</button>
+                <button class="edit-regenerate-btn" onclick="showMainEditOptions(${sceneNumber})">Edit & Regenerate</button>
               </div>
             `;
           } else if (status === 'approved') {
@@ -1334,6 +1382,121 @@
       .catch(error => {
         console.error('Error processing edit/new image:', error);
         alert('Error processing request. Please try again.');
+      });
+    }
+
+    // Main page edit functions (for single images)
+    function showMainEditOptions(sceneNumber) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        // Store the current HTML for cancel functionality
+        const currentHTML = imageItem.innerHTML;
+        imageItem.setAttribute('data-original-html', currentHTML);
+        
+        imageItem.innerHTML = `
+          <div class="scene-number">Scene ${sceneNumber}</div>
+          <div class="main-edit-buttons">
+            <button class="edit-btn" onclick="showMainEditInput(${sceneNumber})">Edit</button>
+            <button class="new-image-btn" onclick="showMainNewImageInput(${sceneNumber})">New Image</button>
+            <button class="cancel-btn" onclick="cancelMainEdit(${sceneNumber})">Cancel</button>
+          </div>
+        `;
+      }
+    }
+
+    function showMainEditInput(sceneNumber) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        imageItem.innerHTML = `
+          <div class="scene-number">Scene ${sceneNumber}</div>
+          <div class="main-input-section">
+            <textarea id="main-edit-input-${sceneNumber}" placeholder="Describe your edits..." rows="3"></textarea>
+            <div class="main-edit-actions">
+              <button class="submit-btn" onclick="submitMainEdit(${sceneNumber}, 'edit')">Submit Edit</button>
+              <button class="cancel-btn" onclick="cancelMainEdit(${sceneNumber})">Cancel</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function showMainNewImageInput(sceneNumber) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        imageItem.innerHTML = `
+          <div class="scene-number">Scene ${sceneNumber}</div>
+          <div class="main-input-section">
+            <textarea id="main-new-image-input-${sceneNumber}" placeholder="Enter a new prompt..." rows="3"></textarea>
+            <div class="main-edit-actions">
+              <button class="submit-btn" onclick="submitMainEdit(${sceneNumber}, 'new')">Generate New Image</button>
+              <button class="cancel-btn" onclick="cancelMainEdit(${sceneNumber})">Cancel</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function cancelMainEdit(sceneNumber) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        const originalHTML = imageItem.getAttribute('data-original-html');
+        if (originalHTML) {
+          imageItem.innerHTML = originalHTML;
+          imageItem.removeAttribute('data-original-html');
+        }
+      }
+    }
+
+    function submitMainEdit(sceneNumber, mode) {
+      const inputId = mode === 'edit' ? `main-edit-input-${sceneNumber}` : `main-new-image-input-${sceneNumber}`;
+      const inputElement = document.getElementById(inputId);
+      const userInput = inputElement ? inputElement.value.trim() : '';
+      
+      if (!userInput) {
+        alert('Please enter your input.');
+        return;
+      }
+      
+      console.log(`Submitting main page ${mode} for scene ${sceneNumber}:`, userInput);
+      
+      // Show loading state
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        imageItem.innerHTML = `
+          <div class="scene-number">Scene ${sceneNumber}</div>
+          <div class="loading-message">Processing ${mode === 'edit' ? 'edit' : 'new image'}...</div>
+        `;
+      }
+      
+      // Call backend to process edit or new image
+      fetch(`${BASE_URL}/edit_image/${currentStoryId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scene_number: sceneNumber,
+          user_input: userInput,
+          edit_mode: mode
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Main edit response:', data);
+        if (data.success) {
+          // Update the display with new variations
+          displayImageVariations(sceneNumber, data.new_variations, 'pending_approval');
+        } else {
+          alert('Failed to generate new variations. Please try again.');
+          // Restore original state on error
+          cancelMainEdit(sceneNumber);
+        }
+      })
+      .catch(error => {
+        console.error('Error processing main edit:', error);
+        alert('Error processing request. Please try again.');
+        // Restore original state on error
+        cancelMainEdit(sceneNumber);
       });
     }
 
