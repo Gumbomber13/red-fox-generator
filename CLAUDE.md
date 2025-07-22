@@ -367,4 +367,56 @@ Enhance the image variation popup to allow users to edit and regenerate images. 
 - **Mobile Support**: Responsive design maintains functionality on all devices
 - **Pipeline Consistency**: Uses existing prompt processing for quality and safety
 
-**Status**: ✅ **PRODUCTION READY** - Complete edit and regenerate system implemented with seamless integration to existing image variation workflow."
+**Status**: ✅ **PRODUCTION READY** - Complete edit and regenerate system implemented with seamless integration to existing image variation workflow.
+
+## Main Page Edit & Regenerate Feature - COMPLETED ✅ (2025-07-22)
+
+### ✅ All 5 Goals Successfully Completed
+
+**Objective**: Extend the edit & regenerate functionality from the fullscreen popup to the main image generation page for consistent user experience.
+
+**Actions Completed**:
+1. **✅ Replace Reject Button**: Updated `displayImage` function to use "Edit & Regenerate" instead of "Reject" for single images
+2. **✅ UI Implementation**: Added main page edit interface with Edit/New Image button options
+3. **✅ JavaScript Functions**: Implemented dedicated main page functions to avoid conflicts with popup functions:
+   - `showMainEditOptions()` - Initial edit options display
+   - `showMainEditInput()` - Edit existing image interface  
+   - `showMainNewImageInput()` - New custom prompt interface
+   - `submitMainEdit()` - Backend integration with loading states
+   - `cancelMainEdit()` - Restore original state functionality
+4. **✅ CSS Styling**: Added responsive styles for main page edit interface (`.main-edit-buttons`, `.main-input-section`, `.main-edit-actions`)
+5. **✅ Backend Integration**: Connected to existing `/edit_image` endpoint with proper error handling and loading states
+
+### Technical Implementation Summary
+
+**Frontend Changes**:
+- Updated single image display to use consistent edit workflow
+- Separate function namespace for main page vs popup to prevent conflicts
+- Loading states and error recovery with original HTML restoration
+- Responsive CSS design maintaining mobile compatibility
+
+**Integration Points**:
+- Uses existing `/edit_image/<story_id>` backend endpoint
+- Same prompt processing pipeline (standardization, sanitization)
+- Transitions single images to variation display after edit
+- Maintains SSE event system compatibility
+
+**User Experience**:
+- Consistent edit workflow across single images and image variations
+- Clear visual feedback during edit processing
+- Intuitive button progression: Edit & Regenerate → Edit/New Image → Submit/Cancel
+- Seamless integration with existing approval workflow
+
+### Files Modified
+- `index.html`: Updated `displayImage()`, added main page edit functions and CSS styles
+- Commit: `88b5d17` - Complete main page edit functionality implementation
+
+### Expected User Flow
+1. User sees single image with "Approve" and "Edit & Regenerate" buttons
+2. User clicks "Edit & Regenerate" → Shows Edit/New Image/Cancel options  
+3. User clicks "Edit" → Text area for describing changes
+4. User clicks "New Image" → Text area for custom prompt
+5. User submits → Loading state → New variations display
+6. User proceeds with normal variation approval workflow
+
+**Status**: ✅ **PRODUCTION READY** - Main page and popup now have identical edit & regenerate functionality with consistent user experience across all image types."
