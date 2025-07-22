@@ -1439,12 +1439,16 @@
         const currentHTML = imageItem.innerHTML;
         imageItem.setAttribute('data-original-html', currentHTML);
         
+        // Extract the existing image element to preserve it
+        const existingImg = imageItem.querySelector('img');
+        const imgHTML = existingImg ? existingImg.outerHTML : '';
+        
         imageItem.innerHTML = `
           <div class="scene-number">Scene ${sceneNumber}</div>
-          <div class="main-edit-buttons">
+          ${imgHTML}
+          <div class="approval-buttons">
             <button class="edit-btn" onclick="showMainEditInput(${sceneNumber})">Edit</button>
             <button class="new-image-btn" onclick="showMainNewImageInput(${sceneNumber})">New Image</button>
-            <button class="cancel-btn" onclick="cancelMainEdit(${sceneNumber})">Cancel</button>
           </div>
         `;
       }
@@ -1453,8 +1457,13 @@
     function showMainEditInput(sceneNumber) {
       const imageItem = document.getElementById(`image-${sceneNumber}`);
       if (imageItem) {
+        // Extract the existing image element to preserve it
+        const existingImg = imageItem.querySelector('img');
+        const imgHTML = existingImg ? existingImg.outerHTML : '';
+        
         imageItem.innerHTML = `
           <div class="scene-number">Scene ${sceneNumber}</div>
+          ${imgHTML}
           <div class="main-input-section">
             <textarea id="main-edit-input-${sceneNumber}" placeholder="Describe your edits..." rows="3"></textarea>
             <div class="main-edit-actions">
@@ -1463,14 +1472,24 @@
             </div>
           </div>
         `;
+        // Focus the textarea after inserting HTML
+        setTimeout(() => {
+          const textarea = document.getElementById(`main-edit-input-${sceneNumber}`);
+          if (textarea) textarea.focus();
+        }, 0);
       }
     }
 
     function showMainNewImageInput(sceneNumber) {
       const imageItem = document.getElementById(`image-${sceneNumber}`);
       if (imageItem) {
+        // Extract the existing image element to preserve it
+        const existingImg = imageItem.querySelector('img');
+        const imgHTML = existingImg ? existingImg.outerHTML : '';
+        
         imageItem.innerHTML = `
           <div class="scene-number">Scene ${sceneNumber}</div>
+          ${imgHTML}
           <div class="main-input-section">
             <textarea id="main-new-image-input-${sceneNumber}" placeholder="Enter a new prompt..." rows="3"></textarea>
             <div class="main-edit-actions">
@@ -1479,6 +1498,11 @@
             </div>
           </div>
         `;
+        // Focus the textarea after inserting HTML
+        setTimeout(() => {
+          const textarea = document.getElementById(`main-new-image-input-${sceneNumber}`);
+          if (textarea) textarea.focus();
+        }, 0);
       }
     }
 
