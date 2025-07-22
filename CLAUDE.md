@@ -790,6 +790,23 @@ _Use this section to paste Claude Code session summaries or important commit SHA
 - Enhanced image approval workflow with bulk operations
 - Performance optimizations for larger batch processing
 
+###Goals
+// Phase 1: Preparation
+1. ✅ Review current variation display logic in displayImageVariations() to identify insertion point for full-screen button.
+// Phase 2: Implementation
+2. ✅ Add modal HTML structure to index.html with enlarged image, thumbnails container, approve/reject buttons, and close X.
+// Phase 3: CSS Styling
+3. ✅ Extend styles for modal: fixed position, dark overlay, centered content, thumbnail grid, selected states.
+// Phase 4: JavaScript Functions
+4. ✅ Create openFullscreenModal() to populate modal with scene variations, set initial selected, and show modal.
+5. ✅ Implement switchModalVariation() to update enlarged image and thumbnail selection.
+6. ✅ Add approveFromModal() and rejectFromModal() to handle actions and close modal.
+7. ✅ Create closeModal() to hide the modal.
+// Phase 5: Integration
+8. ✅ Update displayImageVariations() to add 'Full Screen' button that calls openFullscreenModal().
+// Phase 6: Testing and Documentation
+9. ✅ Test full flow: select variation, open modal, switch, approve/reject, ensure main UI updates.
+10. ✅ Document the feature in CLAUDE.md under Architecture Overview.
 
 ## GPT-Image-1 Migration - COMPLETED ✅ (2025-07-20)
 
@@ -1378,22 +1395,3 @@ _Use this section to paste Claude Code session summaries or important commit SHA
 
 **Status**: ✅ **PRODUCTION READY** - Complete story structure template system implemented with 4 narrative options, dynamic backend integration, and seamless frontend selection interface.
 
-### Video Generation Implementation Goals - COMPLETED ✅ (2025-07-21)
-
-✅ All 8 Goals Successfully Completed
-
-**Phase 1: Backend Preparation**
-1. ✅ Add /generate_videos/<story_id> endpoint in flask_server.py to trigger video generation.
-2. ✅ Update process_video in Animalchannel.py to handle Kling/Hailuo APIs properly.
-
-**Phase 2: Frontend Integration**
-3. ✅ Update generateVideos() in index.html to call the new endpoint.
-4. ✅ Add SSE listeners for video_ready and videos_complete events.
-
-**Phase 3: Progress and UI**
-5. ✅ Extend updateProgress to handle video mode.
-6. ✅ Add displayVideo function to show video players in the UI.
-
-**Phase 4: Testing and Documentation**
-7. ✅ Test end-to-end: approve images, generate videos, display results.
-8. ✅ Document in CLAUDE.md under Architecture Overview.
