@@ -134,8 +134,38 @@
       padding: 0.5em;
       text-align: center;
       position: relative;
-      width: 150px;
+      width: 600px;
       flex-shrink: 0;
+    }
+    .variations-container {
+      display: flex;
+      gap: 0.5em;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .variation-item {
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      padding: 0.3em;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      flex: 1;
+      min-width: 120px;
+      max-width: 140px;
+    }
+    .variation-item:hover {
+      border-color: #4a90e2;
+    }
+    .variation-item.selected {
+      border-color: #4caf50;
+      border-width: 3px;
+    }
+    .variation-item img {
+      width: 100%;
+      height: auto;
+      border-radius: 2px;
+      max-height: 100px;
+      object-fit: cover;
     }
     .image-item.loading {
       background: #f0f0f0;
@@ -708,6 +738,20 @@
           console.error('Error parsing image_ready event:', error);
         }
       });
+
+      eventSource.addEventListener('image_variations_ready', function(e) {
+        try {
+          const data = JSON.parse(e.data);
+          console.log('Received image_variations_ready:', e.data);
+          displayImageVariations(data.scene_number, data.variations, data.status || 'pending_approval');
+          updateProgress(data.completed_scenes, data.total_scenes);
+          eventSourceRetryCount = 0; // Reset retry count on success
+          hideReconnectingMessage(); // Hide reconnecting message on success
+          stopPolling(); // Stop polling if SSE is working
+        } catch (error) {
+          console.error('Error parsing image_variations_ready event:', error);
+        }
+      });
       
       eventSource.addEventListener('story_complete', function(e) {
         debugLog('Story generation completed');
@@ -921,6 +965,59 @@
       }
     }
 
+    function displayImageVariations(sceneNumber, variations, status = 'pending_approval') {
+      console.log('Displaying image variations for scene', sceneNumber, 'Variations:', variations.length, 'Status:', status);
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        if (variations && variations.length > 0) {
+          // Filter out null/empty URLs
+          const validVariations = variations.filter(url => url && url.trim() !== '');
+          
+          if (validVariations.length > 0) {
+            let variationsHtml = '';
+            for (let i = 0; i < validVariations.length; i++) {
+              const url = validVariations[i];
+              variationsHtml += `
+                <div class="variation-item" data-variation="${i}" onclick="selectVariation(${sceneNumber}, ${i}, '${url}')">
+                  <img src="${url}" alt="Scene ${sceneNumber} Variation ${i+1}" 
+                       onerror="handleVariationError(this, ${sceneNumber}, ${i})"
+                       onload="handleVariationLoad(this, ${sceneNumber}, ${i})">
+                </div>
+              `;
+            }
+            
+            imageItem.className = `image-item ${status}`;
+            imageItem.innerHTML = `
+              <div class="scene-number">Scene ${sceneNumber} (${validVariations.length} variations)</div>
+              <div class="variations-container">
+                ${variationsHtml}
+              </div>
+              <div class="approval-buttons">
+                <button class="approve-btn" id="approve-btn-${sceneNumber}" onclick="approveSelectedVariation(${sceneNumber})" disabled>
+                  Approve Selected
+                </button>
+                <button class="reject-btn" onclick="rejectAllVariations(${sceneNumber})">
+                  Reject All & Regenerate
+                </button>
+              </div>
+            `;
+          } else {
+            imageItem.className = 'image-item error';
+            imageItem.innerHTML = `
+              <div class="scene-number">Scene ${sceneNumber}</div>
+              <div class="error-message">No valid variations generated</div>
+            `;
+          }
+        } else {
+          imageItem.className = 'image-item error';
+          imageItem.innerHTML = `
+            <div class="scene-number">Scene ${sceneNumber}</div>
+            <div class="error-message">No variations available</div>
+          `;
+        }
+      }
+    }
+
     function handleImageError(img, sceneNumber) {
       console.error(`Failed to load image for scene ${sceneNumber}:`, img.src);
       const imageItem = document.getElementById(`image-${sceneNumber}`);
@@ -953,6 +1050,120 @@
         .catch(error => {
           console.error(`Failed to retry image load for scene ${sceneNumber}:`, error);
         });
+    }
+
+    function selectVariation(sceneNumber, variationIndex, imageUrl) {
+      console.log(`Selected variation ${variationIndex} for scene ${sceneNumber}:`, imageUrl);
+      
+      // Remove selection from all variations in this scene
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        const variations = imageItem.querySelectorAll('.variation-item');
+        variations.forEach(v => v.classList.remove('selected'));
+        
+        // Add selection to clicked variation
+        const selectedVariation = imageItem.querySelector(`[data-variation="${variationIndex}"]`);
+        if (selectedVariation) {
+          selectedVariation.classList.add('selected');
+        }
+        
+        // Enable the approve button
+        const approveBtn = document.getElementById(`approve-btn-${sceneNumber}`);
+        if (approveBtn) {
+          approveBtn.disabled = false;
+          approveBtn.setAttribute('data-selected-url', imageUrl);
+        }
+      }
+    }
+
+    function handleVariationError(img, sceneNumber, variationIndex) {
+      console.error(`Failed to load variation ${variationIndex} for scene ${sceneNumber}:`, img.src);
+      img.style.opacity = '0.5';
+      img.alt = `Variation ${variationIndex + 1} failed to load`;
+    }
+
+    function handleVariationLoad(img, sceneNumber, variationIndex) {
+      console.log(`Successfully loaded variation ${variationIndex} for scene ${sceneNumber}`);
+    }
+
+    function approveSelectedVariation(sceneNumber) {
+      const approveBtn = document.getElementById(`approve-btn-${sceneNumber}`);
+      const selectedUrl = approveBtn ? approveBtn.getAttribute('data-selected-url') : null;
+      
+      if (selectedUrl) {
+        console.log(`Approving selected variation for scene ${sceneNumber}:`, selectedUrl);
+        
+        // Call the backend to approve the specific variation
+        fetch(`${BASE_URL}/approve_image/${currentStoryId}/${sceneNumber}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'approve',
+            selected_url: selectedUrl
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Variation approval response:', data);
+          if (data.success) {
+            // Update the display to show approved state
+            displayApprovedVariation(sceneNumber, selectedUrl);
+          }
+        })
+        .catch(error => {
+          console.error('Error approving variation:', error);
+        });
+      } else {
+        alert('Please select a variation first');
+      }
+    }
+
+    function rejectAllVariations(sceneNumber) {
+      console.log(`Rejecting all variations for scene ${sceneNumber}`);
+      
+      fetch(`${BASE_URL}/approve_image/${currentStoryId}/${sceneNumber}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'reject'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Variations rejection response:', data);
+        if (data.success) {
+          // Show regenerating state
+          const imageItem = document.getElementById(`image-${sceneNumber}`);
+          if (imageItem) {
+            imageItem.className = 'image-item loading';
+            imageItem.innerHTML = `
+              <div class="scene-number">Scene ${sceneNumber}</div>
+              <div class="loading-spinner"></div>
+              <div>Regenerating variations...</div>
+            `;
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error rejecting variations:', error);
+      });
+    }
+
+    function displayApprovedVariation(sceneNumber, approvedUrl) {
+      const imageItem = document.getElementById(`image-${sceneNumber}`);
+      if (imageItem) {
+        imageItem.className = 'image-item approved';
+        imageItem.innerHTML = `
+          <div class="scene-number">Scene ${sceneNumber}</div>
+          <img src="${approvedUrl}" alt="Scene ${sceneNumber}" onclick="enlargeImage('${approvedUrl}')"
+               style="max-height: 150px; object-fit: cover;">
+          <div class="approval-status approved">✓ Approved</div>
+        `;
+      }
     }
 
     function updateProgress(completed, total) {

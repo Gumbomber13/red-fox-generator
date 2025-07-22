@@ -235,6 +235,78 @@ def emit_image_event(story_id, scene_number, image_url, status="completed"):
         logger.warning(f"[REDIS] Available stories: {all_story_ids}")
         logger.warning(f"[REDIS] This means images are generating but story was not created properly")
 
+def emit_image_variations_event(story_id, scene_number, variation_urls, status="pending_approval"):
+    """Emit image variations event via SSE with all 4 variations"""
+    logger.info(f"[SSE-FIX] emit_image_variations_event called: story={story_id}, scene={scene_number}, status={status}")
+    logger.info(f"[VARIATIONS] Got {len(variation_urls)} variations for scene {scene_number}")
+    
+    # Get story data using Redis-backed storage
+    story_data = get_story_data(story_id)
+    all_story_ids = get_all_story_ids()
+    
+    logger.info(f"[REDIS] Total active stories: {len(all_story_ids)}")
+    logger.info(f"[REDIS] Story {story_id} exists in storage: {story_data is not None}")
+    
+    if story_data:
+        # Update image data with variations
+        if 'images' not in story_data:
+            story_data['images'] = {}
+        story_data['images'][scene_number] = {
+            'variations': variation_urls,  # Array of 4 URLs
+            'status': status,
+            'selected_variation': None  # Will be set when user approves a variation
+        }
+        
+        # Initialize approval status for pending_approval images
+        if status == "pending_approval":
+            if 'image_approvals' not in story_data:
+                story_data['image_approvals'] = {}
+            story_data['image_approvals'][scene_number] = 'pending'
+            story_data['completed_scenes'] += 1  # Count pending_approval as completed for progress tracking
+            logger.info(f"[APPROVAL] Image {scene_number} variations set to pending approval")
+        elif status == "completed":
+            story_data['completed_scenes'] += 1
+        
+        # Save updated story data back to Redis
+        set_story_data(story_id, story_data)
+        
+        # Debug logging
+        successful_variations = len([url for url in variation_urls if url])
+        logger.info(f"[DEBUG-DATA] Story {story_id} scene {scene_number}: {successful_variations}/4 variations uploaded")
+        
+        # Emit the event to connected clients with variations
+        max_retries = 3
+        retry_delay = 1
+        
+        for attempt in range(max_retries):
+            try:
+                with app.app_context():
+                    logger.debug(f"[SSE-CONTEXT] Inside Flask app context for variations SSE emission (attempt {attempt + 1})")
+                    
+                    sse_data = {
+                        "scene_number": scene_number,
+                        "variations": variation_urls,  # Send all 4 variations
+                        "status": status,
+                        "completed_scenes": story_data['completed_scenes'],
+                        "total_scenes": story_data['total_scenes']
+                    }
+                    logger.debug(f"[SSE-DETAILED] Publishing variations SSE data: scene={scene_number}, variations={len(variation_urls)}")
+                    
+                    sse.publish(sse_data, type='image_variations_ready', channel=story_id)
+                    logger.info(f"[SSE-CONTEXT] SSE variations emit success for scene {scene_number} (attempt {attempt + 1})")
+                    return  # Success, exit function
+                    
+            except Exception as e:
+                logger.warning(f"[SSE-RETRY] Variations attempt {attempt + 1}/{max_retries} failed: {type(e).__name__}: {str(e)}")
+                if attempt < max_retries - 1:
+                    logger.info(f"[SSE-RETRY] Retrying variations in {retry_delay}s...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+                else:
+                    logger.error(f"[SSE-RETRY] All {max_retries} attempts failed for variations scene {scene_number}")
+    else:
+        logger.warning(f"[REDIS] Story {story_id} NOT found in Redis storage - cannot update variations data")
+
 def send_heartbeat(story_id):
     """Send periodic heartbeat/ping events to keep SSE connection alive"""
     def heartbeat_loop():
@@ -514,12 +586,15 @@ def debug_story_full(story_id):
 
 @app.route('/approve_image/<story_id>/<int:scene_number>', methods=['POST'])
 def approve_image(story_id, scene_number):
-    """Handle image approval/rejection"""
+    """Handle image variation approval/rejection"""
     try:
         data = request.get_json()
         action = data.get('action')  # 'approve' or 'reject'
+        selected_url = data.get('selected_url')  # URL of selected variation (for approve)
         
-        if story_id not in active_stories:
+        # Get story data using Redis-backed storage
+        story_data = get_story_data(story_id)
+        if not story_data:
             logger.warning(f"Story not found for approval: {story_id}")
             return jsonify({'error': 'Story not found'}), 404
         
@@ -527,20 +602,44 @@ def approve_image(story_id, scene_number):
             logger.warning(f"Invalid action: {action}")
             return jsonify({'error': 'Invalid action'}), 400
         
-        # Update approval status
-        active_stories[story_id]['image_approvals'][scene_number] = action + 'd'  # 'approved' or 'rejected'
-        logger.info(f"[APPROVAL] Image {scene_number} {action}d for story {story_id}")
+        # Handle approval - save selected variation
+        if action == 'approve':
+            if not selected_url:
+                logger.warning(f"No selected URL provided for approval: {scene_number}")
+                return jsonify({'error': 'No variation selected'}), 400
+                
+            # Update image data with selected variation
+            if 'images' not in story_data:
+                story_data['images'] = {}
+            
+            story_data['images'][scene_number]['selected_variation'] = selected_url
+            story_data['images'][scene_number]['status'] = 'approved'
+            
+            # Update approval status
+            if 'image_approvals' not in story_data:
+                story_data['image_approvals'] = {}
+            story_data['image_approvals'][scene_number] = 'approved'
+            
+            logger.info(f"[APPROVAL] Variation approved for image {scene_number} in story {story_id}")
+            logger.info(f"[APPROVAL] Selected URL: {selected_url[:50]}...")
         
         # Handle rejection - trigger regeneration
-        if action == 'reject':
-            logger.info(f"[APPROVAL] Triggering regeneration for rejected image {scene_number}")
+        elif action == 'reject':
+            logger.info(f"[APPROVAL] Triggering regeneration for rejected variations {scene_number}")
+            
+            # Update approval status to rejected
+            if 'image_approvals' not in story_data:
+                story_data['image_approvals'] = {}
+            story_data['image_approvals'][scene_number] = 'rejected'
+            
             # Get the current prompt for regeneration
             try:
                 # Import here to avoid circular imports
-                from Animalchannel import process_image
+                from Animalchannel import process_image_async
+                import asyncio
                 
                 # Get scene text and regenerate
-                scenes = active_stories[story_id]['scenes']
+                scenes = story_data['scenes']
                 scene_key = f'Scene{scene_number}'
                 
                 if scene_key in scenes:
@@ -549,31 +648,48 @@ def approve_image(story_id, scene_number):
                     # Create a simple prompt from scene text for regeneration
                     regeneration_prompt = f"Digital art of: {scene_text}"
                     
-                    # Start regeneration in background thread
-                    def regenerate_image():
+                    # Start regeneration in background thread with async support
+                    def regenerate_variations():
                         try:
-                            new_url = process_image(str(scene_number), regeneration_prompt, 
-                                                 f"Regen_{story_id}", story_id)
-                            if new_url:
-                                logger.info(f"[APPROVAL] Successfully regenerated image {scene_number}")
+                            import asyncio
+                            # Create new event loop for this thread
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            
+                            # Create semaphore for single regeneration
+                            semaphore = asyncio.Semaphore(1)
+                            
+                            # Run the async regeneration
+                            result = loop.run_until_complete(
+                                process_image_async(semaphore, str(scene_number), 
+                                                  regeneration_prompt, f"Regen_{story_id}", story_id)
+                            )
+                            
+                            if result and result[1]:  # result = (classifier, variation_urls)
+                                logger.info(f"[APPROVAL] Successfully regenerated variations for {scene_number}")
                             else:
-                                logger.error(f"[APPROVAL] Failed to regenerate image {scene_number}")
+                                logger.error(f"[APPROVAL] Failed to regenerate variations for {scene_number}")
                         except Exception as e:
-                            logger.error(f"[APPROVAL] Regeneration error for image {scene_number}: {e}")
+                            logger.error(f"[APPROVAL] Regeneration error for variations {scene_number}: {e}")
+                        finally:
+                            loop.close()
                     
                     # Start regeneration in background
-                    thread = threading.Thread(target=regenerate_image)
+                    thread = threading.Thread(target=regenerate_variations)
                     thread.daemon = True
                     thread.start()
                 else:
                     logger.warning(f"[APPROVAL] Scene text not found for regeneration: {scene_key}")
                     
             except Exception as e:
-                logger.error(f"[APPROVAL] Error setting up regeneration: {e}")
+                logger.error(f"[APPROVAL] Error setting up variations regeneration: {e}")
+        
+        # Save updated story data back to Redis
+        set_story_data(story_id, story_data)
         
         # Check if all images are approved
-        approvals = active_stories[story_id]['image_approvals']
-        total_images = active_stories[story_id]['total_scenes']
+        approvals = story_data.get('image_approvals', {})
+        total_images = story_data['total_scenes']
         approved_count = sum(1 for status in approvals.values() if status == 'approved')
         
         logger.info(f"[APPROVAL] Status: {approved_count}/{total_images} images approved")
@@ -599,7 +715,8 @@ def approve_image(story_id, scene_number):
             'action': action,
             'scene_number': scene_number,
             'approved_count': approved_count,
-            'total_images': total_images
+            'total_images': total_images,
+            'selected_url': selected_url if action == 'approve' else None
         })
         
     except Exception as e:

@@ -417,7 +417,7 @@ async def generate_async(prompt):
             model="gpt-image-1", 
             prompt=prompt, 
             size="1024x1024", 
-            n=1,
+            n=4,
             timeout=180.0
         ))
         logger.debug(f"[STOPPAGE-DEBUG] GPT-Image-1 API call completed at {time.time()}")
@@ -428,32 +428,39 @@ async def generate_async(prompt):
             logger.error(f"[ASYNC-DEBUG] Invalid API response: {response}")
             raise ValueError("OpenAI API returned invalid response structure")
         
-        # GPT-Image-1 returns base64 data instead of URL
-        if hasattr(response.data[0], 'b64_json') and response.data[0].b64_json:
-            logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 returned base64 data, converting to bytes")
-            import base64
-            img_data = base64.b64decode(response.data[0].b64_json)
-            logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 API completed in {gpt_image_elapsed:.2f}s, got {len(img_data)} bytes of image data")
-            await client.aclose()
-            return img_data
-        elif hasattr(response.data[0], 'url') and response.data[0].url:
-            img_url = response.data[0].url
-            logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 API completed in {gpt_image_elapsed:.2f}s, got URL: {img_url[:50]}...")
-        else:
-            logger.error(f"[ASYNC-DEBUG] Invalid API response - no URL or b64_json: {response}")
-            raise ValueError("OpenAI API returned neither URL nor base64 data")
+        # Process all 4 variations from GPT-Image-1 response
+        logger.debug(f"[ASYNC-DEBUG] GPT-Image-1 returned {len(response.data)} variations")
+        variations = []
         
-        # Use httpx to download the image asynchronously (inherits client timeout)
-        download_start = time.time()
-        logger.debug(f"[ASYNC-DEBUG] Starting image download from: {img_url}")
-        img_response = await client.get(img_url)
-        download_elapsed = time.time() - download_start
-        img_data = img_response.content
+        for i, image_data in enumerate(response.data):
+            logger.debug(f"[ASYNC-DEBUG] Processing variation {i+1}/4")
+            
+            if hasattr(image_data, 'b64_json') and image_data.b64_json:
+                logger.debug(f"[ASYNC-DEBUG] Variation {i+1} returned base64 data, converting to bytes")
+                import base64
+                img_data = base64.b64decode(image_data.b64_json)
+                logger.debug(f"[ASYNC-DEBUG] Variation {i+1} got {len(img_data)} bytes of image data")
+                variations.append(img_data)
+            elif hasattr(image_data, 'url') and image_data.url:
+                img_url = image_data.url
+                logger.debug(f"[ASYNC-DEBUG] Variation {i+1} got URL: {img_url[:50]}...")
+                
+                # Download the image asynchronously
+                download_start = time.time()
+                logger.debug(f"[ASYNC-DEBUG] Starting download for variation {i+1}")
+                img_response = await client.get(img_url)
+                download_elapsed = time.time() - download_start
+                img_data = img_response.content
+                logger.debug(f"[ASYNC-DEBUG] Variation {i+1} download completed in {download_elapsed:.2f}s, size: {len(img_data)} bytes")
+                variations.append(img_data)
+            else:
+                logger.error(f"[ASYNC-DEBUG] Invalid variation {i+1} - no URL or b64_json: {image_data}")
+                raise ValueError(f"OpenAI API variation {i+1} returned neither URL nor base64 data")
+        
         total_elapsed = time.time() - start_time
-        logger.debug(f"[ASYNC-DEBUG] Image download completed in {download_elapsed:.2f}s, data size: {len(img_data)} bytes")
-        logger.debug(f"[ASYNC-DEBUG] Total generate_async time: {total_elapsed:.2f}s (GPT-Image-1: {gpt_image_elapsed:.2f}s, Download: {download_elapsed:.2f}s)")
+        logger.debug(f"[ASYNC-DEBUG] All {len(variations)} variations processed in {total_elapsed:.2f}s (GPT-Image-1: {gpt_image_elapsed:.2f}s)")
         await client.aclose()
-        return img_data
+        return variations
     except Exception as e:
         total_elapsed = time.time() - start_time
         logger.error(f"[ASYNC-DEBUG] generate_async failed after {total_elapsed:.2f}s: {type(e).__name__}: {e}")
@@ -539,50 +546,56 @@ async def process_image_async(semaphore, classifier, prompt, sheet_title, story_
             prompt = sanitize_prompt(prompt)
             logger.debug(f"[ASYNC-ERROR] Image {classifier} sanitized prompt: {prompt[:100]}...")
             
-            # Generate and upload image with retries
+            # Generate 4 variations and upload each with retries
             logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} starting image generation at {time.time()}")
             try:
-                img_data = await generate_image_async_with_retries(prompt)
-                logger.debug(f"[ASYNC-ERROR] Image {classifier} generation completed, data size: {len(img_data) if img_data else 0}")
+                variations_data = await generate_image_async_with_retries(prompt)
+                logger.debug(f"[ASYNC-ERROR] Image {classifier} generation completed, got {len(variations_data)} variations")
                 logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} completed image generation at {time.time()}")
             except Exception as gen_error:
                 logger.error(f"[ASYNC-ERROR] Image {classifier} generation failed: {type(gen_error).__name__}: {gen_error}")
                 logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} generation failed at {time.time()}")
                 raise gen_error
             
-            logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} starting image upload at {time.time()}")
-            try:
-                # CRITICAL FIX: Run blocking upload_image in thread pool to avoid blocking event loop
-                loop = asyncio.get_event_loop()
-                url = await loop.run_in_executor(None, upload_image, img_data)
-                logger.debug(f"[ASYNC-ERROR] Image {classifier} upload completed: {url}")
-                logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} completed image upload at {time.time()}")
-                logger.debug(f"[BLOCKING-FIX] Task {classifier} upload executed in thread pool to prevent event loop blocking")
-            except Exception as upload_error:
-                logger.error(f"[ASYNC-ERROR] Image {classifier} upload failed: {type(upload_error).__name__}: {upload_error}")
-                logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} upload failed at {time.time()}")
-                raise upload_error
+            # Upload all 4 variations
+            logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} starting image uploads at {time.time()}")
+            variation_urls = []
+            for i, img_data in enumerate(variations_data):
+                try:
+                    # CRITICAL FIX: Run blocking upload_image in thread pool to avoid blocking event loop
+                    loop = asyncio.get_event_loop()
+                    url = await loop.run_in_executor(None, upload_image, img_data)
+                    variation_urls.append(url)
+                    logger.debug(f"[ASYNC-ERROR] Image {classifier} variation {i+1} upload completed: {url}")
+                    logger.debug(f"[BLOCKING-FIX] Task {classifier} variation {i+1} upload executed in thread pool")
+                except Exception as upload_error:
+                    logger.error(f"[ASYNC-ERROR] Image {classifier} variation {i+1} upload failed: {type(upload_error).__name__}: {upload_error}")
+                    variation_urls.append(None)  # Keep position but mark as failed
             
+            logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} completed all uploads at {time.time()}")
             elapsed = time.time() - start_time
-            logger.info(f"[ASYNC] Successfully completed image {classifier} in {elapsed:.2f}s: {url}")
+            successful_uploads = len([url for url in variation_urls if url])
+            logger.info(f"[ASYNC] Successfully completed image {classifier} in {elapsed:.2f}s: {successful_uploads}/4 variations uploaded")
             logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} starting sheet update at {time.time()}")
             
-            # Update sheet if available
-            try:
-                update_sheet(sheet_title, classifier, 'Picture Generation', url)
-                logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} completed sheet update at {time.time()}")
-            except Exception as e:
-                logger.warning(f"[ASYNC-ERROR] Sheet update failed for {classifier}: {type(e).__name__}: {e}")
-                logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} sheet update failed at {time.time()}")
+            # Update sheet with first successful variation if available
+            if variation_urls and any(variation_urls):
+                first_url = next(url for url in variation_urls if url)
+                try:
+                    update_sheet(sheet_title, classifier, 'Picture Generation', first_url)
+                    logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} completed sheet update at {time.time()}")
+                except Exception as e:
+                    logger.warning(f"[ASYNC-ERROR] Sheet update failed for {classifier}: {type(e).__name__}: {e}")
+                    logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} sheet update failed at {time.time()}")
             
-            # Emit image event if story_id is provided
+            # Emit image event with all variations if story_id is provided
             logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} checking SSE emit at {time.time()}")
             if story_id:
                 logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} starting SSE emit at {time.time()}")
                 try:
-                    from flask_server import emit_image_event
-                    emit_image_event(story_id, int(classifier), url, "pending_approval")
-                    logger.info(f"[APPROVAL] Emitted pending_approval for image {classifier}")
+                    from flask_server import emit_image_variations_event
+                    emit_image_variations_event(story_id, int(classifier), variation_urls, "pending_approval")
+                    logger.info(f"[APPROVAL] Emitted pending_approval for image {classifier} with {len(variation_urls)} variations")
                     logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} completed SSE emit at {time.time()}")
                 except ImportError:
                     logger.warning(f"[ASYNC-ERROR] Could not emit image event for story {story_id}: ImportError")
@@ -592,7 +605,7 @@ async def process_image_async(semaphore, classifier, prompt, sheet_title, story_
                     logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} SSE emit failed at {time.time()}")
             
             logger.debug(f"[STOPPAGE-DEBUG] Task {classifier} about to return result at {time.time()}")
-            return classifier, url
+            return classifier, variation_urls
             
         except Exception as e:
             elapsed = time.time() - start_time
