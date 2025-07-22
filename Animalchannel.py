@@ -551,7 +551,7 @@ async def generate_async(prompt):
         response = await loop.run_in_executor(None, lambda: openai_client.images.generate(
             model="gpt-image-1", 
             prompt=prompt, 
-            size="1024x1024", 
+            size="1024x1536", 
             n=4,
             timeout=180.0
         ))

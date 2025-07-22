@@ -7,7 +7,7 @@ This document outlines the quality validation process for GPT-Image-1 generated 
 ## Expected Quality Improvements
 
 ### Visual Fidelity
-- [ ] **Higher Resolution Output**: Images should maintain crispness at 1024x1024
+- [ ] **Higher Resolution Output**: Images should maintain crispness at 1024x1536
 - [ ] **Enhanced Detail**: Fur textures, environmental details, and lighting should be more realistic
 - [ ] **Better Composition**: Scenes should have improved visual balance and focal points
 - [ ] **Color Accuracy**: More natural and vibrant color palettes
@@ -57,7 +57,7 @@ This document outlines the quality validation process for GPT-Image-1 generated 
 - [ ] **File Size Validation**: Ensure images are generated with expected data size
 - [ ] **URL Accessibility**: Verify all generated image URLs are accessible
 - [ ] **Format Compliance**: Confirm images are in expected format (PNG/JPEG)
-- [ ] **Resolution Verification**: Check all images are 1024x1024
+- [ ] **Resolution Verification**: Check all images are 1024x1536
 
 #### Manual Review Process
 - [ ] **Story Scene Accuracy**: Review random samples for prompt adherence

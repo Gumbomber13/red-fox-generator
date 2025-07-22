@@ -57,7 +57,7 @@ def test_gpt_image_1_model_call():
         response = client.images.generate(
             model="gpt-image-1",
             prompt=test_prompt,
-            size="1024x1024",
+            size="1024x1536",
             n=1,
             timeout=180.0
         )

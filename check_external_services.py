@@ -107,7 +107,7 @@ def check_gpt_image_1_access():
         data = {
             'model': 'gpt-image-1',
             'prompt': 'A simple test image',
-            'size': '1024x1024',
+            'size': '1024x1536',
             'n': 1
         }
         
