@@ -533,12 +533,32 @@ def get_story_status(story_id):
         logger.debug(f"[STORY-STATUS] Story {story_id} status: {story_data['status']}, completed: {story_data['completed_scenes']}/{story_data['total_scenes']}")
         logger.debug(f"[STORY-STATUS] Story {story_id} images: {len(story_data['images'])} images available")
         
+        # Debug log the images data structure to identify serialization issues
+        images_data = story_data.get('images', {})
+        for scene_num, scene_data in images_data.items():
+            logger.debug(f"[STORY-STATUS] Scene {scene_num} data: {type(scene_data)} - {list(scene_data.keys()) if isinstance(scene_data, dict) else 'Not dict'}")
+        
+        # Clean images data to ensure JSON serialization works
+        clean_images = {}
+        for scene_num, scene_data in images_data.items():
+            if isinstance(scene_data, dict):
+                # Only include JSON-serializable data
+                clean_scene_data = {}
+                for key, value in scene_data.items():
+                    if isinstance(value, (str, int, float, bool, list, dict, type(None))):
+                        clean_scene_data[key] = value
+                    else:
+                        logger.debug(f"[STORY-STATUS] Skipping non-serializable data in scene {scene_num}, key {key}: {type(value)}")
+                clean_images[scene_num] = clean_scene_data
+            else:
+                logger.debug(f"[STORY-STATUS] Skipping non-dict scene data for {scene_num}: {type(scene_data)}")
+        
         # Ensure all required fields exist with defaults
         response_data = {
             'status': story_data.get('status', 'unknown'),
             'completed_scenes': story_data.get('completed_scenes', 0),
             'total_scenes': story_data.get('total_scenes', 20),
-            'images': story_data.get('images', {})
+            'images': clean_images
         }
         
         logger.debug(f"[STORY-STATUS] Returning response for {story_id}: {len(response_data['images'])} images")
