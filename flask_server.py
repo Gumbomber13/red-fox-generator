@@ -724,6 +724,126 @@ def approve_image(story_id, scene_number):
         logger.exception("Approve image error")
         return jsonify({'error': 'Internal server error'}), 500
 
+@app.route('/edit_image/<story_id>', methods=['POST'])
+def edit_image(story_id):
+    """Handle image edit and regeneration requests"""
+    try:
+        logger.info(f"[EDIT] Edit image request for story {story_id}")
+        
+        # Get request data
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        # Validate required fields
+        required_fields = ['scene_number', 'user_input', 'edit_mode']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+                
+        scene_number = data['scene_number']
+        user_input = data['user_input'].strip()
+        edit_mode = data['edit_mode']  # 'edit' or 'newimage'
+        
+        if not user_input:
+            return jsonify({'error': 'User input cannot be empty'}), 400
+            
+        # Validate edit mode
+        if edit_mode not in ['edit', 'newimage']:
+            return jsonify({'error': 'Invalid edit mode. Must be "edit" or "newimage"'}), 400
+            
+        # Get story data
+        story_data = get_story_data(story_id)
+        if not story_data:
+            return jsonify({'error': 'Story not found'}), 404
+            
+        logger.info(f"[EDIT] Scene {scene_number}, Mode: {edit_mode}, Input: {user_input[:50]}...")
+        
+        # Start background thread for image editing/regeneration
+        def edit_process():
+            try:
+                with app.app_context():
+                    if edit_mode == 'edit':
+                        # Edit existing variation
+                        base_image_url = data.get('base_image_url', '')
+                        logger.info(f"[EDIT] Editing existing image for scene {scene_number}")
+                        
+                        # Create edit prompt by combining base prompt with user edits
+                        # Get original scene text from story data
+                        original_scene = story_data.get('scenes', {}).get(f'Scene{scene_number}', '')
+                        
+                        # Build edit prompt
+                        edit_prompt = f"{original_scene}. USER REQUESTED EDITS: {user_input}"
+                        
+                    else:  # newimage mode
+                        logger.info(f"[EDIT] Creating new image from custom prompt for scene {scene_number}")
+                        
+                        # Use user input as the new prompt, but still process through standardization
+                        edit_prompt = user_input
+                    
+                    # Import here to avoid circular imports
+                    from Animalchannel import create_prompts, standardize_prompts, generate_images_concurrently
+                    
+                    logger.info(f"[EDIT] Processing prompt through standardization pipeline")
+                    
+                    # Process through existing prompt pipeline
+                    # Create visual prompt from the edit prompt
+                    visual_prompts = create_prompts([edit_prompt])
+                    if not visual_prompts:
+                        logger.error(f"[EDIT] Failed to create visual prompt")
+                        return
+                        
+                    # Standardize the prompt
+                    standardized_prompts = standardize_prompts(visual_prompts)
+                    if not standardized_prompts:
+                        logger.error(f"[EDIT] Failed to standardize prompt")
+                        return
+                        
+                    final_prompt = standardized_prompts[0]
+                    logger.info(f"[EDIT] Final prompt: {final_prompt[:100]}...")
+                    
+                    # Generate new variations using existing concurrent generation
+                    # Create temporary scenes dict for the generation function
+                    temp_scenes = {f'Scene{scene_number}': final_prompt}
+                    
+                    # Generate 4 new variations
+                    import asyncio
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    
+                    try:
+                        loop.run_until_complete(generate_images_concurrently(story_id, temp_scenes))
+                        logger.info(f"[EDIT] Successfully generated new variations for scene {scene_number}")
+                    finally:
+                        loop.close()
+                        
+            except Exception as e:
+                logger.error(f"[EDIT] Error in edit process: {e}")
+                logger.exception("Edit process error")
+                
+                # Emit error event
+                try:
+                    with app.app_context():
+                        sse.publish({"error": f"Failed to process edit: {str(e)}"}, channel=story_id)
+                except Exception as emit_error:
+                    logger.error(f"[EDIT] Failed to emit error: {emit_error}")
+        
+        # Start background thread
+        edit_thread = threading.Thread(target=edit_process, daemon=True)
+        edit_thread.start()
+        
+        return jsonify({
+            'message': 'Edit request received, generating new variations',
+            'story_id': story_id,
+            'scene_number': scene_number,
+            'edit_mode': edit_mode
+        })
+        
+    except Exception as e:
+        logger.error(f"[EDIT] Error in edit_image endpoint: {e}")
+        logger.exception("Edit image error")
+        return jsonify({'error': 'Internal server error'}), 500
+
 @app.route('/test_emit/<story_id>', methods=['GET'])
 def test_emit(story_id):
     """Test endpoint for SSE emission"""

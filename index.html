@@ -491,6 +491,94 @@
         gap: 8px;
       }
     }
+
+    /* Edit & Regenerate Feature Styles */
+    .edit-regenerate-btn {
+      background: #ff9800;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .edit-regenerate-btn:hover {
+      background: #f57c00;
+    }
+
+    .popup-edit-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .edit-btn, .new-image-btn {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .edit-btn:hover, .new-image-btn:hover {
+      background: #45a049;
+    }
+
+    .cancel-btn {
+      background: #757575;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .cancel-btn:hover {
+      background: #616161;
+    }
+
+    .popup-input-section {
+      margin-top: 15px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 4px;
+    }
+
+    .popup-input-section textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .input-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .submit-btn {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .submit-btn:hover {
+      background: #1976d2;
+    }
   </style>
 </head>
 <body>
@@ -1524,6 +1612,14 @@
     function closeImagePopup() {
       document.getElementById('image-popup').style.display = 'none';
       document.removeEventListener('keydown', handlePopupKeydown);
+      
+      // Reset edit state
+      document.getElementById('popup-edit-buttons').style.display = 'none';
+      document.getElementById('popup-input-section').style.display = 'none';
+      document.getElementById('popup-main-buttons').style.display = 'flex';
+      document.getElementById('popup-edit-input').value = '';
+      currentEditMode = null;
+      
       currentPopupSceneNumber = null;
       currentPopupVariations = [];
       currentSelectedVariationIndex = 0;
@@ -1542,6 +1638,98 @@
         // Use existing rejection logic
         rejectAllVariations(currentPopupSceneNumber);
         closeImagePopup();
+      }
+    }
+
+    // Edit & Regenerate Feature Functions
+    let currentEditMode = null; // 'edit' or 'newimage'
+
+    function showEditOptions() {
+      document.getElementById('popup-main-buttons').style.display = 'none';
+      document.getElementById('popup-edit-buttons').style.display = 'flex';
+    }
+
+    function showEditInput() {
+      currentEditMode = 'edit';
+      document.getElementById('popup-edit-buttons').style.display = 'none';
+      document.getElementById('popup-input-section').style.display = 'block';
+      document.getElementById('popup-edit-input').placeholder = 'Describe edits to the current image (e.g., "make the fox more happy", "change the background to forest")...';
+      document.getElementById('popup-edit-input').focus();
+    }
+
+    function showNewImageInput() {
+      currentEditMode = 'newimage';
+      document.getElementById('popup-edit-buttons').style.display = 'none';
+      document.getElementById('popup-input-section').style.display = 'block';
+      document.getElementById('popup-edit-input').placeholder = 'Enter a custom prompt for new image generation...';
+      document.getElementById('popup-edit-input').focus();
+    }
+
+    function cancelEdit() {
+      document.getElementById('popup-edit-buttons').style.display = 'none';
+      document.getElementById('popup-input-section').style.display = 'none';
+      document.getElementById('popup-main-buttons').style.display = 'flex';
+      document.getElementById('popup-edit-input').value = '';
+      currentEditMode = null;
+    }
+
+    async function submitEdit() {
+      const userInput = document.getElementById('popup-edit-input').value.trim();
+      
+      if (!userInput) {
+        alert('Please enter your edits or custom prompt.');
+        return;
+      }
+
+      if (!currentPopupSceneNumber || !currentEditMode) {
+        alert('Error: Missing scene or edit mode information.');
+        return;
+      }
+
+      try {
+        // Show loading state
+        const submitBtn = document.querySelector('.submit-btn');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Generating...';
+
+        // Determine the request type and data
+        let requestData = {
+          scene_number: currentPopupSceneNumber,
+          user_input: userInput,
+          edit_mode: currentEditMode
+        };
+
+        if (currentEditMode === 'edit') {
+          // For edit mode, include the current selected variation URL
+          requestData.base_image_url = currentPopupVariations[currentSelectedVariationIndex];
+        }
+
+        // Send request to backend
+        const response = await fetch(`${BASE_URL}/edit_image/${currentStoryId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestData)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          alert('New variations are being generated! Please wait...');
+          closeImagePopup();
+          // The new variations will appear via SSE events
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.error || 'Failed to process edit request'}`);
+        }
+
+      } catch (error) {
+        console.error('Error submitting edit:', error);
+        alert('Failed to submit edit request. Please try again.');
+      } finally {
+        // Reset button state
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Generate New Variations';
       }
     }
 
@@ -1663,9 +1851,21 @@
         <div class="thumbnails-container" id="popup-thumbnails">
           <!-- Thumbnails will be populated dynamically -->
         </div>
-        <div class="popup-buttons">
+        <div class="popup-buttons" id="popup-main-buttons">
           <button class="approve-btn" onclick="approveFromPopup()">Approve</button>
-          <button class="reject-btn" onclick="rejectFromPopup()">Reject</button>
+          <button class="edit-regenerate-btn" onclick="showEditOptions()">Edit & Regenerate</button>
+        </div>
+        <div class="popup-edit-buttons" id="popup-edit-buttons" style="display: none;">
+          <button class="edit-btn" onclick="showEditInput()">Edit</button>
+          <button class="new-image-btn" onclick="showNewImageInput()">New Image</button>
+          <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+        </div>
+        <div class="popup-input-section" id="popup-input-section" style="display: none;">
+          <textarea id="popup-edit-input" placeholder="Enter your edits or custom prompt..." rows="3"></textarea>
+          <div class="input-buttons">
+            <button class="submit-btn" onclick="submitEdit()">Generate New Variations</button>
+            <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+          </div>
         </div>
       </div>
     </div>

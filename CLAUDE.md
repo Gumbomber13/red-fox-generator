@@ -285,3 +285,86 @@ Enhance the frontend (index.html) to allow users to select an image variation an
 6. All actions integrate seamlessly with existing approval workflow and scene management
 
 **Status**: ✅ **PRODUCTION READY** - Complete image variation popup system implemented with enhanced user experience for detailed image review and selection."
+
+## Image Variation Edit & Regenerate Feature - COMPLETED ✅ (2025-07-22)
+
+### Objective
+Enhance the image variation popup to allow users to edit and regenerate images. Users can click 'Edit & Regenerate' to replace the reject button, then choose to edit an existing variation or create a new image with a custom prompt. This integrates with the backend to generate new variations based on user input.
+
+### ✅ All 7 Goals Successfully Completed
+
+**Phase 1: UI and Button Setup**
+1. **✅ Goal 1**: Change the 'Reject' button to 'Edit & Regenerate' in the popup. When clicked, replace approve/reject buttons with 'Edit' and 'New Image' buttons.
+2. **✅ Goal 2**: Implement 'Edit' button functionality to show a text box for user input on desired edits to the selected variation.
+3. **✅ Goal 3**: Implement 'New Image' button functionality to show a text box for user input on a new custom prompt.
+
+**Phase 2: Backend Integration and Logic**
+4. **✅ Goal 4**: Integrate with the backend to send edit requests and generate 4 new variations based on user edits.
+5. **✅ Goal 5**: Integrate with the backend to process new custom prompts through existing prompt agents, standardization, and sanitization, then generate 4 new variations.
+
+**Phase 3: Testing and Documentation**
+6. **✅ Goal 6**: Test the full flow: Edit a variation, submit a new prompt, verify new variations are generated and displayed correctly.
+7. **✅ Goal 7**: Update CLAUDE.md with completion status, technical summary, files modified, and expected results once all goals are done.
+
+### Technical Implementation Summary
+
+**Frontend Components Enhanced**:
+- **UI Transformation**: Replaced "Reject" button with orange "Edit & Regenerate" button in image variation popup
+- **Multi-Stage Interface**: Dynamic button transitions from Approve/Edit&Regenerate → Edit/New Image/Cancel → Input textarea with Submit/Cancel
+- **Input Validation**: Client-side validation for empty inputs and proper error handling
+- **User Experience**: Clear placeholders and focused text areas for optimal user interaction
+
+**Backend Integration Implemented**:
+- **New Endpoint**: `/edit_image/<story_id>` POST endpoint for handling edit requests
+- **Dual Mode Support**: 
+  - **Edit Mode**: Combines original scene text with user edit instructions
+  - **New Image Mode**: Uses custom user prompt as base for generation
+- **Pipeline Integration**: Routes requests through existing prompt agents, standardization, and sanitization
+- **Concurrent Generation**: Generates 4 new variations using existing async image generation system
+
+**JavaScript Functions Added**:
+- `showEditOptions()`: Transitions from main buttons to edit/new image options
+- `showEditInput()`: Displays text input for editing existing variation
+- `showNewImageInput()`: Displays text input for custom prompt creation
+- `cancelEdit()`: Resets popup state to main button view
+- `submitEdit()`: Validates input and sends request to backend with loading states
+- Enhanced `closeImagePopup()`: Resets edit state when popup closes
+
+**CSS Styling Added**:
+- `.edit-regenerate-btn`: Orange button styling for main edit trigger
+- `.popup-edit-buttons`: Flex layout for Edit/New Image/Cancel button group
+- `.popup-input-section`: Input area with background styling and proper spacing
+- `.submit-btn`: Primary blue button for generation trigger
+- Responsive design maintains mobile compatibility
+
+**Backend Processing Flow**:
+1. **Request Validation**: Validates scene_number, user_input, edit_mode, and story existence
+2. **Mode Processing**: 
+   - Edit mode: Appends "USER REQUESTED EDITS: {input}" to original scene
+   - New image mode: Uses user input directly as prompt
+3. **Pipeline Processing**: Runs through create_prompts() → standardize_prompts() → sanitization
+4. **Image Generation**: Uses generate_images_concurrently() to create 4 new variations
+5. **SSE Emission**: New variations appear in real-time via existing SSE system
+
+### Files Modified
+- `index.html`: Added edit UI components, CSS styles, and JavaScript functionality (300+ lines added)
+- `flask_server.py`: Added `/edit_image/<story_id>` endpoint with comprehensive processing (120+ lines added)
+- `CLAUDE.md`: Updated with completion status and technical documentation
+
+### Expected User Experience
+1. **Trigger Edit**: User clicks "Edit & Regenerate" in image variation popup
+2. **Choose Mode**: User selects "Edit" (modify existing) or "New Image" (custom prompt)
+3. **Input Content**: User enters edit instructions or custom prompt in focused textarea
+4. **Submit Request**: User clicks "Generate New Variations" with loading feedback
+5. **Receive Results**: 4 new variations appear via SSE events, replacing previous variations
+6. **Continue Workflow**: User can approve new variations or repeat edit process
+
+### Key Features
+- **Seamless Integration**: Works with existing approval workflow and SSE system
+- **Input Validation**: Comprehensive client and server-side validation
+- **Error Handling**: Graceful error messages and recovery mechanisms  
+- **Loading States**: Visual feedback during generation process
+- **Mobile Support**: Responsive design maintains functionality on all devices
+- **Pipeline Consistency**: Uses existing prompt processing for quality and safety
+
+**Status**: ✅ **PRODUCTION READY** - Complete edit and regenerate system implemented with seamless integration to existing image variation workflow."
