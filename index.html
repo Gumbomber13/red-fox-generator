@@ -895,13 +895,16 @@
       // Check for new images since last poll
       if (data.images) {
         for (const [sceneNumber, imageData] of Object.entries(data.images)) {
-          if (imageData.url) {
-            // Display image with current status (pending_approval, completed, approved, rejected, etc.)
-            // This ensures pending_approval images render during polling fallback when SSE is blocked
-            console.log(`[POLLING] Displaying image ${sceneNumber} with status: ${imageData.status || 'completed'}`);
+          if (imageData.variations && imageData.variations.length > 0) {
+            // Display variations with current status
+            console.log(`[POLLING] Displaying ${imageData.variations.length} variations for scene ${sceneNumber} with status: ${imageData.status || 'pending_approval'}`);
+            displayImageVariations(parseInt(sceneNumber), imageData.variations, imageData.status || 'pending_approval');
+          } else if (imageData.url) {
+            // Fallback for old single image format
+            console.log(`[POLLING] Displaying single image ${sceneNumber} with status: ${imageData.status || 'completed'}`);
             displayImage(parseInt(sceneNumber), imageData.url, imageData.status || 'completed');
           } else {
-            console.log(`[POLLING] Skipping image ${sceneNumber} - no URL available`);
+            console.log(`[POLLING] Skipping image ${sceneNumber} - no variations or URL available`);
           }
         }
       }

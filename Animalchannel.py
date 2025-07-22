@@ -779,10 +779,12 @@ def process_image(classifier, prompt, sheet_title, story_id=None):
         # Emit image event if story_id is provided
         if story_id:
             try:
-                from flask_server import emit_image_event
-                emit_image_event(story_id, int(classifier), url, "completed")
+                from flask_server import emit_image_variations_event
+                # Create 4 variations with the same URL for consistency (fallback behavior)
+                variation_urls = [url, url, url, url]
+                emit_image_variations_event(story_id, int(classifier), variation_urls, "pending_approval")
             except ImportError:
-                logger.warning(f"Could not emit image event for story {story_id}")
+                logger.warning(f"Could not emit image variations event for story {story_id}")
         
         logger.info(f"Image {classifier} completed without approval")
         return url
