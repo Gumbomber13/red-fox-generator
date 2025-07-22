@@ -520,24 +520,34 @@ def approve_scenes():
 @app.route('/story/<story_id>', methods=['GET'])
 def get_story_status(story_id):
     """Get current status of a story generation"""
-    logger.info(f"Getting story status for ID: {story_id}")
-    
-    # Get story data using Redis-backed storage
-    story_data = get_story_data(story_id)
-    if not story_data:
-        logger.warning(f"Story not found: {story_id}")
-        return jsonify({'error': 'Story not found'}), 404
-    
-    # Log the current state for debugging
-    logger.debug(f"Story {story_id} status: {story_data['status']}, completed: {story_data['completed_scenes']}/{story_data['total_scenes']}")
-    logger.debug(f"Story {story_id} images: {len(story_data['images'])} images available")
-    
-    return jsonify({
-        'status': story_data['status'],
-        'completed_scenes': story_data['completed_scenes'],
-        'total_scenes': story_data['total_scenes'],
-        'images': story_data['images']
-    })
+    try:
+        logger.info(f"[STORY-STATUS] Getting story status for ID: {story_id}")
+        
+        # Get story data using Redis-backed storage
+        story_data = get_story_data(story_id)
+        if not story_data:
+            logger.warning(f"[STORY-STATUS] Story not found: {story_id}")
+            return jsonify({'error': 'Story not found'}), 404
+        
+        # Log the current state for debugging
+        logger.debug(f"[STORY-STATUS] Story {story_id} status: {story_data['status']}, completed: {story_data['completed_scenes']}/{story_data['total_scenes']}")
+        logger.debug(f"[STORY-STATUS] Story {story_id} images: {len(story_data['images'])} images available")
+        
+        # Ensure all required fields exist with defaults
+        response_data = {
+            'status': story_data.get('status', 'unknown'),
+            'completed_scenes': story_data.get('completed_scenes', 0),
+            'total_scenes': story_data.get('total_scenes', 20),
+            'images': story_data.get('images', {})
+        }
+        
+        logger.debug(f"[STORY-STATUS] Returning response for {story_id}: {len(response_data['images'])} images")
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"[STORY-STATUS] Error getting story status for {story_id}: {e}")
+        logger.exception("Full traceback for story status error:")
+        return jsonify({'error': 'Internal server error retrieving story status'}), 500
 
 @app.route('/debug_story/<story_id>', methods=['GET'])
 def debug_story_full(story_id):
