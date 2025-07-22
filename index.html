@@ -1277,8 +1277,11 @@
                 <button class="approve-btn" id="approve-btn-${sceneNumber}" onclick="approveSelectedVariation(${sceneNumber})" disabled>
                   Approve Selected
                 </button>
-                <button class="edit-regenerate-btn" onclick="showEditOptions(${sceneNumber})">
+                <button class="edit-regenerate-btn" id="edit-btn-${sceneNumber}" onclick="showEditOptions(${sceneNumber})" disabled>
                   Edit & Regenerate
+                </button>
+                <button class="fullscreen-btn" id="fullscreen-btn-${sceneNumber}" onclick="openImagePopup(${sceneNumber})" disabled>
+                  Full Screen
                 </button>
               </div>
             `;
@@ -1302,6 +1305,14 @@
     function showEditOptions(sceneNumber) {
       const imageItem = document.getElementById(`image-${sceneNumber}`);
       if (imageItem) {
+        // Store current variations for cancel functionality
+        const variationsContainer = imageItem.querySelector('.variations-container');
+        if (variationsContainer) {
+          const variationItems = variationsContainer.querySelectorAll('.variation-item img');
+          const currentVariations = Array.from(variationItems).map(img => img.src);
+          imageItem.setAttribute('data-current-variations', JSON.stringify(currentVariations));
+        }
+        
         imageItem.innerHTML += `
           <div class="popup-edit-buttons">
             <button class="edit-btn" onclick="showEditInput(${sceneNumber})">Edit</button>
@@ -1341,7 +1352,12 @@
     function cancelEdit(sceneNumber) {
       const imageItem = document.getElementById(`image-${sceneNumber}`);
       if (imageItem) {
-        displayImageVariations(sceneNumber, currentPopupVariations, 'pending_approval');
+        const storedVariations = imageItem.getAttribute('data-current-variations');
+        if (storedVariations) {
+          const variations = JSON.parse(storedVariations);
+          displayImageVariations(sceneNumber, variations, 'pending_approval');
+          imageItem.removeAttribute('data-current-variations');
+        }
       }
     }
 
@@ -1355,7 +1371,22 @@
         return;
       }
       
-      console.log(`Submitting ${mode} for scene ${sceneNumber}:`, userInput);
+      // Get selected variation URL if in edit mode
+      let requestData = {
+        scene_number: sceneNumber,
+        user_input: userInput,
+        edit_mode: mode
+      };
+      
+      if (mode === 'edit') {
+        const editBtn = document.getElementById(`edit-btn-${sceneNumber}`);
+        const selectedUrl = editBtn ? editBtn.getAttribute('data-selected-url') : '';
+        if (selectedUrl) {
+          requestData.base_image_url = selectedUrl;
+        }
+      }
+      
+      console.log(`Submitting ${mode} for scene ${sceneNumber}:`, userInput, requestData);
       
       // Call backend to process edit or new image
       fetch(`${BASE_URL}/edit_image/${currentStoryId}`, {
@@ -1363,11 +1394,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          scene_number: sceneNumber,
-          user_input: userInput,
-          edit_mode: mode
-        })
+        body: JSON.stringify(requestData)
       })
       .then(response => response.json())
       .then(data => {
@@ -1554,6 +1581,20 @@
         if (approveBtn) {
           approveBtn.disabled = false;
           approveBtn.setAttribute('data-selected-url', imageUrl);
+        }
+        
+        // Enable the edit & regenerate button
+        const editBtn = document.getElementById(`edit-btn-${sceneNumber}`);
+        if (editBtn) {
+          editBtn.disabled = false;
+          editBtn.setAttribute('data-selected-variation', variationIndex);
+          editBtn.setAttribute('data-selected-url', imageUrl);
+        }
+        
+        // Enable the fullscreen button
+        const fullscreenBtn = document.getElementById(`fullscreen-btn-${sceneNumber}`);
+        if (fullscreenBtn) {
+          fullscreenBtn.disabled = false;
         }
       }
     }
