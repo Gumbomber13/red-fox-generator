@@ -121,10 +121,11 @@
       color: #333;
     }
     #imageGrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 0.8em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
       margin-top: 2em;
+      align-items: center;
     }
     .image-item {
       border: 1px solid #ddd;
@@ -133,7 +134,8 @@
       padding: 0.5em;
       text-align: center;
       position: relative;
-      max-width: 150px;
+      width: 150px;
+      flex-shrink: 0;
     }
     .image-item.loading {
       background: #f0f0f0;
