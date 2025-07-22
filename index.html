@@ -1303,14 +1303,17 @@
     }
 
     function showEditOptions(sceneNumber) {
+      console.log(`[DEBUG] showEditOptions called for scene ${sceneNumber}`);
       const imageItem = document.getElementById(`image-${sceneNumber}`);
       if (imageItem) {
+        console.log(`[DEBUG] Found image item for scene ${sceneNumber}`);
         // Store current variations for cancel functionality
         const variationsContainer = imageItem.querySelector('.variations-container');
         if (variationsContainer) {
           const variationItems = variationsContainer.querySelectorAll('.variation-item img');
           const currentVariations = Array.from(variationItems).map(img => img.src);
           imageItem.setAttribute('data-current-variations', JSON.stringify(currentVariations));
+          console.log(`[DEBUG] Stored ${currentVariations.length} variations for cancel`);
         }
         
         imageItem.innerHTML += `
@@ -1320,6 +1323,9 @@
             <button class="cancel-btn" onclick="cancelEdit(${sceneNumber})">Cancel</button>
           </div>
         `;
+        console.log(`[DEBUG] Added edit options buttons for scene ${sceneNumber}`);
+      } else {
+        console.error(`[DEBUG] No image item found for scene ${sceneNumber}`);
       }
     }
 
@@ -1589,12 +1595,18 @@
           editBtn.disabled = false;
           editBtn.setAttribute('data-selected-variation', variationIndex);
           editBtn.setAttribute('data-selected-url', imageUrl);
+          console.log(`[DEBUG] Enabled Edit & Regenerate button for scene ${sceneNumber}, variation ${variationIndex}`);
+        } else {
+          console.error(`[DEBUG] Edit button not found for scene ${sceneNumber}`);
         }
         
         // Enable the fullscreen button
         const fullscreenBtn = document.getElementById(`fullscreen-btn-${sceneNumber}`);
         if (fullscreenBtn) {
           fullscreenBtn.disabled = false;
+          console.log(`[DEBUG] Enabled Full Screen button for scene ${sceneNumber}`);
+        } else {
+          console.error(`[DEBUG] Fullscreen button not found for scene ${sceneNumber}`);
         }
       }
     }
@@ -1823,7 +1835,7 @@
     let currentSelectedVariationIndex = 0;
 
     function openImagePopup(sceneNumber) {
-      console.log(`Opening popup for scene ${sceneNumber}`);
+      console.log(`[DEBUG] openImagePopup called for scene ${sceneNumber}`);
       
       // Get variations for this scene from global state
       const sceneElement = document.querySelector(`#imageGrid .image-item:nth-child(${sceneNumber})`);
