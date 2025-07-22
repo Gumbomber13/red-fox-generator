@@ -19,6 +19,9 @@ MAX_CONCURRENT = 10  # Semaphore limit for concurrent requests
 MAX_IMAGES_PER_MIN = 15  # OpenAI GPT-Image-1 rate limit
 BATCH_SIZE = 5  # Process images in smaller batches for Render memory constraints
 
+# Dynamic rate limiting adjustment
+RATE_LIMIT_DETECTED = False  # Global flag to reduce concurrency when rate limited
+
 # Configure logging with proper formatting and levels
 logging.basicConfig(
     level=logging.DEBUG,
@@ -641,12 +644,34 @@ def generate_image(prompt):
             return asyncio.run(generate_async(current_prompt))
         except Exception as e:
             logger.error(f"GPT-Image-1 error details: {e.response.json() if hasattr(e, 'response') else str(e)}")
+            
+            # Check for rate limiting (429 errors) and handle with longer delays
+            is_rate_limit = False
+            global RATE_LIMIT_DETECTED
+            if hasattr(e, 'response') and hasattr(e.response, 'status_code') and e.response.status_code == 429:
+                is_rate_limit = True
+                RATE_LIMIT_DETECTED = True
+                logger.warning(f"[RATE-LIMIT] OpenAI API rate limit hit on retry {retry + 1}, setting global rate limit flag")
+            elif "429" in str(e) or "Too Many Requests" in str(e):
+                is_rate_limit = True
+                RATE_LIMIT_DETECTED = True
+                logger.warning(f"[RATE-LIMIT] Rate limit detected in error message: {e}, setting global rate limit flag")
+            
             if retry < max_retries - 1:
-                wait_time = 5 * (retry + 1)  # 5, 10, 15 seconds
-                logger.warning(f"Retry {retry + 1} for generate: {e}")
+                if is_rate_limit:
+                    # Longer delays for rate limits: 30, 60, 90 seconds
+                    wait_time = 30 * (retry + 1)
+                    logger.warning(f"[RATE-LIMIT] Waiting {wait_time}s for rate limit recovery before retry {retry + 2}")
+                else:
+                    # Normal retry delays: 5, 10, 15 seconds
+                    wait_time = 5 * (retry + 1)
+                    logger.warning(f"Retry {retry + 1} for generate: {e}")
                 time.sleep(wait_time)
             else:
-                logger.error(f"Generate failed after {max_retries} attempts: {e}")
+                if is_rate_limit:
+                    logger.error(f"[RATE-LIMIT] Generate failed after {max_retries} attempts due to persistent rate limiting: {e}")
+                else:
+                    logger.error(f"Generate failed after {max_retries} attempts: {e}")
                 raise
 
 def upload_image(img_data):
@@ -780,13 +805,34 @@ async def generate_image_async_with_retries(prompt):
             retry_elapsed = time.time() - retry_start
             logger.error(f"[ASYNC-DEBUG] Retry {retry + 1} failed after {retry_elapsed:.2f}s: {type(e).__name__}: {e}")
             
+            # Check for rate limiting (429 errors) and handle with longer delays
+            is_rate_limit = False
+            global RATE_LIMIT_DETECTED
+            if hasattr(e, 'response') and hasattr(e.response, 'status_code') and e.response.status_code == 429:
+                is_rate_limit = True
+                RATE_LIMIT_DETECTED = True
+                logger.warning(f"[RATE-LIMIT] OpenAI API rate limit hit on retry {retry + 1}, setting global rate limit flag")
+            elif "429" in str(e) or "Too Many Requests" in str(e):
+                is_rate_limit = True
+                RATE_LIMIT_DETECTED = True
+                logger.warning(f"[RATE-LIMIT] Rate limit detected in error message: {e}, setting global rate limit flag")
+            
             if retry < max_retries - 1:
-                wait_time = 5 * (retry + 1)  # 5, 10, 15 seconds
-                logger.debug(f"[ASYNC-DEBUG] Waiting {wait_time}s before retry {retry + 2}")
+                if is_rate_limit:
+                    # Longer delays for rate limits: 30, 60, 90 seconds
+                    wait_time = 30 * (retry + 1)
+                    logger.warning(f"[RATE-LIMIT] Waiting {wait_time}s for rate limit recovery before retry {retry + 2}")
+                else:
+                    # Normal retry delays: 5, 10, 15 seconds
+                    wait_time = 5 * (retry + 1)
+                    logger.debug(f"[ASYNC-DEBUG] Waiting {wait_time}s before retry {retry + 2}")
                 await asyncio.sleep(wait_time)
             else:
                 total_elapsed = time.time() - start_time
-                logger.error(f"[ASYNC-DEBUG] All retries exhausted after {total_elapsed:.2f}s, final error: {e}")
+                if is_rate_limit:
+                    logger.error(f"[RATE-LIMIT] All retries exhausted due to persistent rate limiting after {total_elapsed:.2f}s")
+                else:
+                    logger.error(f"[ASYNC-DEBUG] All retries exhausted after {total_elapsed:.2f}s, final error: {e}")
                 raise
 
 async def generate_images_concurrently(prompts_with_metadata, story_id=None):
@@ -804,9 +850,11 @@ async def generate_images_concurrently(prompts_with_metadata, story_id=None):
     logger.info(f"[ASYNC-DEBUG] generate_images_concurrently started with {len(prompts_with_metadata)} images")
     logger.debug(f"[ASYNC-DEBUG] Concurrent limits: MAX_CONCURRENT={MAX_CONCURRENT}, BATCH_SIZE={BATCH_SIZE}, MAX_IMAGES_PER_MIN={MAX_IMAGES_PER_MIN}")
     
-    # Create semaphore to limit concurrent requests
-    semaphore = asyncio.Semaphore(MAX_CONCURRENT)
-    logger.debug(f"[ASYNC-DEBUG] Semaphore created with limit {MAX_CONCURRENT}")
+    # Create semaphore to limit concurrent requests (reduce concurrency if rate limited)
+    global RATE_LIMIT_DETECTED
+    concurrent_limit = MAX_CONCURRENT // 2 if RATE_LIMIT_DETECTED else MAX_CONCURRENT
+    semaphore = asyncio.Semaphore(concurrent_limit)
+    logger.debug(f"[ASYNC-DEBUG] Semaphore created with limit {concurrent_limit} (rate limited: {RATE_LIMIT_DETECTED})")
     logger.debug(f"[DEADLOCK-DEBUG] Initial semaphore value: {semaphore._value}")
     
     # Split into batches to respect rate limits
