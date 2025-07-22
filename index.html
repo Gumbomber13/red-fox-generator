@@ -349,6 +349,148 @@
         margin: 1em 0;
       }
     }
+
+    /* Image Popup Styles */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .popup-content {
+      background: white;
+      border-radius: 8px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow: auto;
+      position: relative;
+    }
+
+    .popup-header {
+      padding: 10px 15px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .popup-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .popup-close:hover {
+      background: #f0f0f0;
+      border-radius: 50%;
+    }
+
+    .popup-body {
+      padding: 20px;
+      text-align: center;
+    }
+
+    .enlarged-image-container {
+      margin-bottom: 20px;
+    }
+
+    .enlarged-image-container img {
+      max-width: 100%;
+      max-height: 60vh;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .thumbnails-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .popup-thumbnail {
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 4px;
+      transition: border-color 0.2s;
+    }
+
+    .popup-thumbnail:hover {
+      border-color: #4a90e2;
+    }
+
+    .popup-thumbnail.selected {
+      border-color: #4a90e2;
+      background: #f0f8ff;
+    }
+
+    .popup-thumbnail img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 2px;
+    }
+
+    .popup-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .fullscreen-btn {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .fullscreen-btn:hover {
+      background: #1976d2;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 600px) {
+      .popup-content {
+        max-width: 95vw;
+        max-height: 95vh;
+      }
+      
+      .popup-body {
+        padding: 15px;
+      }
+      
+      .enlarged-image-container img {
+        max-height: 50vh;
+      }
+      
+      .popup-thumbnail img {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .popup-buttons {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1002,6 +1144,9 @@
                 <button class="reject-btn" onclick="rejectAllVariations(${sceneNumber})">
                   Reject All & Regenerate
                 </button>
+                <button class="fullscreen-btn" onclick="openImagePopup(${sceneNumber})">
+                  Full Screen
+                </button>
               </div>
             `;
           } else {
@@ -1297,6 +1442,109 @@
       }
     }
 
+    // Image Popup Functions
+    let currentPopupSceneNumber = null;
+    let currentPopupVariations = [];
+    let currentSelectedVariationIndex = 0;
+
+    function openImagePopup(sceneNumber) {
+      console.log(`Opening popup for scene ${sceneNumber}`);
+      
+      // Get variations for this scene from global state
+      const sceneElement = document.querySelector(`#image-grid .image-item:nth-child(${sceneNumber})`);
+      if (!sceneElement) {
+        console.error(`No scene element found for scene ${sceneNumber}`);
+        return;
+      }
+      
+      // Extract variation URLs from the scene element
+      const variationElements = sceneElement.querySelectorAll('.variation-item img');
+      const variations = Array.from(variationElements).map(img => img.src).filter(src => src && src !== '');
+      
+      if (variations.length === 0) {
+        alert('No variations available for this scene');
+        return;
+      }
+      
+      // Store popup state
+      currentPopupSceneNumber = sceneNumber;
+      currentPopupVariations = variations;
+      currentSelectedVariationIndex = 0;
+      
+      // Populate popup
+      populatePopup();
+      
+      // Show popup
+      const popup = document.getElementById('image-popup');
+      popup.style.display = 'flex';
+      
+      // Add click-outside-to-close functionality
+      popup.onclick = function(event) {
+        if (event.target === popup) {
+          closeImagePopup();
+        }
+      };
+      
+      // Add ESC key support
+      document.addEventListener('keydown', handlePopupKeydown);
+    }
+
+    function populatePopup() {
+      if (currentPopupVariations.length === 0) return;
+      
+      // Set enlarged image
+      const enlargedImg = document.getElementById('popup-enlarged-image');
+      enlargedImg.src = currentPopupVariations[currentSelectedVariationIndex];
+      
+      // Populate thumbnails
+      const thumbnailsContainer = document.getElementById('popup-thumbnails');
+      thumbnailsContainer.innerHTML = '';
+      
+      currentPopupVariations.forEach((variation, index) => {
+        const thumbnail = document.createElement('div');
+        thumbnail.className = `popup-thumbnail ${index === currentSelectedVariationIndex ? 'selected' : ''}`;
+        thumbnail.innerHTML = `<img src="${variation}" alt="Variation ${index + 1}" onclick="selectPopupVariation(${index})">`;
+        thumbnailsContainer.appendChild(thumbnail);
+      });
+    }
+
+    function selectPopupVariation(index) {
+      if (index >= 0 && index < currentPopupVariations.length) {
+        currentSelectedVariationIndex = index;
+        populatePopup();
+      }
+    }
+
+    function handlePopupKeydown(event) {
+      if (event.key === 'Escape') {
+        closeImagePopup();
+      }
+    }
+
+    function closeImagePopup() {
+      document.getElementById('image-popup').style.display = 'none';
+      document.removeEventListener('keydown', handlePopupKeydown);
+      currentPopupSceneNumber = null;
+      currentPopupVariations = [];
+      currentSelectedVariationIndex = 0;
+    }
+
+    function approveFromPopup() {
+      if (currentPopupSceneNumber && currentPopupVariations.length > 0) {
+        // Use existing approval logic with selected variation
+        approveSelectedVariation(currentPopupSceneNumber);
+        closeImagePopup();
+      }
+    }
+
+    function rejectFromPopup() {
+      if (currentPopupSceneNumber) {
+        // Use existing rejection logic
+        rejectAllVariations(currentPopupSceneNumber);
+        closeImagePopup();
+      }
+    }
+
     document.getElementById('quizForm').addEventListener('submit', async function (e) {
       e.preventDefault();
 
@@ -1401,5 +1649,27 @@
       }
     });
   </script>
+
+  <!-- Image Variation Popup -->
+  <div id="image-popup" class="popup-overlay" style="display: none;">
+    <div class="popup-content">
+      <div class="popup-header">
+        <button class="popup-close" onclick="closeImagePopup()">&times;</button>
+      </div>
+      <div class="popup-body">
+        <div class="enlarged-image-container">
+          <img id="popup-enlarged-image" src="" alt="Enlarged variation">
+        </div>
+        <div class="thumbnails-container" id="popup-thumbnails">
+          <!-- Thumbnails will be populated dynamically -->
+        </div>
+        <div class="popup-buttons">
+          <button class="approve-btn" onclick="approveFromPopup()">Approve</button>
+          <button class="reject-btn" onclick="rejectFromPopup()">Reject</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

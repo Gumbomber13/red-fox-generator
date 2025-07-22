@@ -257,3 +257,878 @@ redis.exceptions.ConnectionError: Error 10061 connecting to localhost:6379. No c
 2025-07-18 03:15:51,862 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
 2025-07-18 03:15:51,862 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
 2025-07-18 03:15:51,862 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-18 03:39:32,346 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 03:39:32] "OPTIONS /submit HTTP/1.1" 200 -
+2025-07-18 03:39:32,614 - werkzeug - INFO - 127.0.0.1 - - [18/Jul/2025 03:39:32] "POST /submit HTTP/1.1" 200 -
+2025-07-20 16:54:07,993 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 16:54:07,993 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-20 16:54:07,993 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-20 16:54:07,993 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-20 16:54:07,993 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-20 16:54:07,993 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 16:54:07,993 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-20 16:54:15,855 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 16:54:15,855 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-20 16:54:15,855 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-20 16:54:15,855 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-20 16:54:15,855 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-20 16:54:15,855 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 16:54:15,855 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-20 16:54:23,274 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 16:54:23,274 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-20 16:54:23,274 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-20 16:54:23,274 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-20 16:54:23,274 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-20 16:54:23,274 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 16:54:23,274 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-20 18:29:54,269 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 18:29:54,269 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-20 18:29:54,269 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-20 18:29:54,269 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-20 18:29:54,269 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-20 18:29:54,269 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 18:29:54,269 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-20 18:29:54,270 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-20 18:29:54,315 - __main__ - INFO - ============================================================
+2025-07-20 18:29:54,315 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:29:54,315 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:29:54,344 - __main__ - INFO - Testing GPT-Image-1 with prompt: A cute red fox sitting in a forest clearing, digital art style
+2025-07-20 18:29:54,596 - openai._base_client - DEBUG - Request options: {'method': 'post', 'url': '/images/generations', 'timeout': 180.0, 'files': None, 'json_data': {'prompt': 'A cute red fox sitting in a forest clearing, digital art style', 'model': 'gpt-image-1', 'n': 1, 'size': '1024x1024'}, 'idempotency_key': 'stainless-python-retry-c8da7287-4d18-4354-8212-488bc3a09fa8'}
+2025-07-20 18:29:54,671 - openai._base_client - DEBUG - Sending HTTP Request: POST https://api.openai.com/v1/images/generations
+2025-07-20 18:29:54,671 - httpcore.connection - DEBUG - connect_tcp.started host='api.openai.com' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 18:29:54,733 - httpcore.connection - DEBUG - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F2B8C383A0>
+2025-07-20 18:29:54,733 - httpcore.connection - DEBUG - start_tls.started ssl_context=<ssl.SSLContext object at 0x000001F2B8723F40> server_hostname='api.openai.com' timeout=180.0
+2025-07-20 18:29:54,752 - httpcore.connection - DEBUG - start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F2B8C38430>
+2025-07-20 18:29:54,752 - httpcore.http11 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2025-07-20 18:29:54,752 - httpcore.http11 - DEBUG - send_request_headers.complete
+2025-07-20 18:29:54,752 - httpcore.http11 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2025-07-20 18:29:54,752 - httpcore.http11 - DEBUG - send_request_body.complete
+2025-07-20 18:29:54,752 - httpcore.http11 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2025-07-20 18:29:54,875 - httpcore.http11 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 401, b'Unauthorized', [(b'Date', b'Sun, 20 Jul 2025 23:29:55 GMT'), (b'Content-Type', b'application/json'), (b'Content-Length', b'253'), (b'Connection', b'keep-alive'), (b'www-authenticate', b'Bearer realm="OpenAI API"'), (b'openai-version', b'2020-10-01'), (b'x-request-id', b'req_bd24d5538828dc8cab4202c50c8b89c2'), (b'openai-processing-ms', b'33'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'cf-cache-status', b'DYNAMIC'), (b'Set-Cookie', b'__cf_bm=Tiphkisf3OrzmV_Y_d9dt6l.z4qTBaeOQ4MGwxBIWZY-1753054195-1.0.1.1-3pTMlsMgZTOQ_I8fKXm7vhavSZIqp_R2DyiS.Ad0yDOoLsvfk20gr6LOV.T8TIECb2iIvG5sR1VKDrZJhtKFdeznK_8WbkD8HTjxoIk5MpU; path=/; expires=Sun, 20-Jul-25 23:59:55 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), (b'X-Content-Type-Options', b'nosniff'), (b'Set-Cookie', b'_cfuvid=E8K4ZRHvOFXGqrxtmW0aS96xIIo1k_A0nBbQ3FlFPa8-1753054195463-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), (b'Server', b'cloudflare'), (b'CF-RAY', b'96263e50ff342c9e-DFW'), (b'alt-svc', b'h3=":443"; ma=86400')])
+2025-07-20 18:29:54,875 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 401 Unauthorized"
+2025-07-20 18:29:54,875 - httpcore.http11 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2025-07-20 18:29:54,875 - httpcore.http11 - DEBUG - receive_response_body.complete
+2025-07-20 18:29:54,875 - httpcore.http11 - DEBUG - response_closed.started
+2025-07-20 18:29:54,875 - httpcore.http11 - DEBUG - response_closed.complete
+2025-07-20 18:29:54,875 - openai._base_client - DEBUG - HTTP Response: POST https://api.openai.com/v1/images/generations "401 Unauthorized" Headers([('date', 'Sun, 20 Jul 2025 23:29:55 GMT'), ('content-type', 'application/json'), ('content-length', '253'), ('connection', 'keep-alive'), ('www-authenticate', 'Bearer realm="OpenAI API"'), ('openai-version', '2020-10-01'), ('x-request-id', 'req_bd24d5538828dc8cab4202c50c8b89c2'), ('openai-processing-ms', '33'), ('strict-transport-security', 'max-age=31536000; includeSubDomains; preload'), ('cf-cache-status', 'DYNAMIC'), ('set-cookie', '__cf_bm=Tiphkisf3OrzmV_Y_d9dt6l.z4qTBaeOQ4MGwxBIWZY-1753054195-1.0.1.1-3pTMlsMgZTOQ_I8fKXm7vhavSZIqp_R2DyiS.Ad0yDOoLsvfk20gr6LOV.T8TIECb2iIvG5sR1VKDrZJhtKFdeznK_8WbkD8HTjxoIk5MpU; path=/; expires=Sun, 20-Jul-25 23:59:55 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('x-content-type-options', 'nosniff'), ('set-cookie', '_cfuvid=E8K4ZRHvOFXGqrxtmW0aS96xIIo1k_A0nBbQ3FlFPa8-1753054195463-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('server', 'cloudflare'), ('cf-ray', '96263e50ff342c9e-DFW'), ('alt-svc', 'h3=":443"; ma=86400')])
+2025-07-20 18:29:54,875 - openai._base_client - DEBUG - request_id: req_bd24d5538828dc8cab4202c50c8b89c2
+2025-07-20 18:29:54,875 - openai._base_client - DEBUG - Encountered httpx.HTTPStatusError
+Traceback (most recent call last):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\openai\_base_client.py", line 1017, in request
+    response.raise_for_status()
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://api.openai.com/v1/images/generations'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+2025-07-20 18:29:54,895 - openai._base_client - DEBUG - Not retrying
+2025-07-20 18:29:54,895 - openai._base_client - DEBUG - Re-raising status error
+2025-07-20 18:29:54,905 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:29:54,905 - __main__ - INFO - Testing async generation with prompt: A majestic red fox with glowing eyes in a moonlit forest
+2025-07-20 18:29:54,905 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 56
+2025-07-20 18:29:54,910 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 18:29:54,910 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:29:54,910 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:29:54,914 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:29:54,915 - __main__ - INFO - Testing sync generation with prompt: A wise red fox reading a book under a tree
+2025-07-20 18:29:54,915 - Animalchannel - INFO - Generating image for prompt: A wise red fox reading a book under a tree...
+2025-07-20 18:29:54,915 - Animalchannel - DEBUG - Retry 1 prompt: A wise red fox reading a book under a tree
+2025-07-20 18:29:54,915 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 42): A wise red fox reading a book under a tree
+2025-07-20 18:29:54,915 - Animalchannel - ERROR - GPT-Image-1 error details: asyncio.run() cannot be called from a running event loop
+2025-07-20 18:29:54,915 - Animalchannel - WARNING - Retry 1 for generate: asyncio.run() cannot be called from a running event loop
+2025-07-20 18:29:59,921 - Animalchannel - DEBUG - Retry 2 prompt: A wise red fox reading a book under a tree
+2025-07-20 18:29:59,921 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 42): A wise red fox reading a book under a tree
+2025-07-20 18:29:59,921 - Animalchannel - ERROR - GPT-Image-1 error details: asyncio.run() cannot be called from a running event loop
+2025-07-20 18:29:59,921 - Animalchannel - WARNING - Retry 2 for generate: asyncio.run() cannot be called from a running event loop
+2025-07-20 18:30:09,925 - Animalchannel - DEBUG - Retry 3 prompt: A wise red fox reading a book under a tree (simpli
+2025-07-20 18:30:09,925 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 55): A wise red fox reading a book under a tree (simplified)
+2025-07-20 18:30:09,925 - Animalchannel - ERROR - GPT-Image-1 error details: asyncio.run() cannot be called from a running event loop
+2025-07-20 18:30:09,925 - Animalchannel - ERROR - Generate failed after 3 attempts: asyncio.run() cannot be called from a running event loop
+2025-07-20 18:30:09,925 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:30:09,927 - __main__ - INFO - Testing concurrent generation with 3 prompts
+2025-07-20 18:30:09,927 - Animalchannel - INFO - [ASYNC-DEBUG] generate_images_concurrently started with 3 images
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Concurrent limits: MAX_CONCURRENT=10, BATCH_SIZE=5, MAX_IMAGES_PER_MIN=15
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Semaphore created with limit 10
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Split into 1 batches of max size 5
+2025-07-20 18:30:09,927 - Animalchannel - INFO - [CONCURRENT] Processing batch 1/1 with 3 images
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating 3 tasks for batch 1
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating task 1 for scene 1, prompt length: 31
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating task 2 for scene 2, prompt length: 35
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating task 3 for scene 3, prompt length: 32
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] All 3 tasks created for batch 1
+2025-07-20 18:30:09,927 - Animalchannel - INFO - [ASYNC] Starting image 1 with prompt: A red fox jumping over a stream...
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 1 sanitized prompt: A red fox jumping over a stream...
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_image_async_with_retries started with 3 max retries
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 1/3
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 1 prompt length: 31, preview: A red fox jumping over a stream...
+2025-07-20 18:30:09,927 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 31
+2025-07-20 18:30:09,932 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.006s with 180s timeout
+2025-07-20 18:30:09,932 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:09,932 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:09,932 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 1 failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:09,932 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 5s before retry 2
+2025-07-20 18:30:09,932 - Animalchannel - INFO - [ASYNC] Starting image 2 with prompt: A red fox sleeping in autumn leaves...
+2025-07-20 18:30:09,932 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 2 sanitized prompt: A red fox sleeping in autumn leaves...
+2025-07-20 18:30:09,932 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_image_async_with_retries started with 3 max retries
+2025-07-20 18:30:09,932 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 1/3
+2025-07-20 18:30:09,932 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 1 prompt length: 35, preview: A red fox sleeping in autumn leaves...
+2025-07-20 18:30:09,933 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 35
+2025-07-20 18:30:09,937 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.004s with 180s timeout
+2025-07-20 18:30:09,937 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:09,937 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:09,937 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 1 failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:09,937 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 5s before retry 2
+2025-07-20 18:30:09,937 - Animalchannel - INFO - [ASYNC] Starting image 3 with prompt: A red fox hunting in winter snow...
+2025-07-20 18:30:09,938 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 3 sanitized prompt: A red fox hunting in winter snow...
+2025-07-20 18:30:09,938 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_image_async_with_retries started with 3 max retries
+2025-07-20 18:30:09,938 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 1/3
+2025-07-20 18:30:09,938 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 1 prompt length: 32, preview: A red fox hunting in winter snow...
+2025-07-20 18:30:09,938 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 32
+2025-07-20 18:30:09,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.004s with 180s timeout
+2025-07-20 18:30:09,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:09,942 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:09,942 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 1 failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:09,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 5s before retry 2
+2025-07-20 18:30:14,930 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 2/3
+2025-07-20 18:30:14,931 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 2
+2025-07-20 18:30:14,931 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 2 prompt length: 31, preview: A red fox jumping over a stream...
+2025-07-20 18:30:14,931 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 31
+2025-07-20 18:30:14,935 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.004s with 180s timeout
+2025-07-20 18:30:14,935 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:14,935 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:14,935 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 2 failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:14,935 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 10s before retry 3
+2025-07-20 18:30:14,937 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 2/3
+2025-07-20 18:30:14,937 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 2
+2025-07-20 18:30:14,937 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 2 prompt length: 35, preview: A red fox sleeping in autumn leaves...
+2025-07-20 18:30:14,937 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 35
+2025-07-20 18:30:14,941 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 18:30:14,941 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:14,941 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:14,941 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 2 failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:14,941 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 10s before retry 3
+2025-07-20 18:30:14,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 2/3
+2025-07-20 18:30:14,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 2
+2025-07-20 18:30:14,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 2 prompt length: 32, preview: A red fox hunting in winter snow...
+2025-07-20 18:30:14,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 32
+2025-07-20 18:30:14,947 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 18:30:14,947 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:14,947 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:14,947 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 2 failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:14,947 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 10s before retry 3
+2025-07-20 18:30:24,947 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 3/3
+2025-07-20 18:30:24,948 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 3
+2025-07-20 18:30:24,948 - Animalchannel - DEBUG - [ASYNC-DEBUG] Prompt shortened from 31 to 44 chars
+2025-07-20 18:30:24,948 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 3 prompt length: 44, preview: A red fox jumping over a stream (simplified)...
+2025-07-20 18:30:24,948 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 44
+2025-07-20 18:30:24,953 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.004s with 180s timeout
+2025-07-20 18:30:24,953 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:24,953 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,953 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 3 failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,953 - Animalchannel - ERROR - [ASYNC-DEBUG] All retries exhausted after 15.03s, final error: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,953 - Animalchannel - ERROR - [ASYNC-ERROR] Image 1 generation failed: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,953 - Animalchannel - ERROR - [ASYNC-ERROR] Failed to generate image 1 after 15.03s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,953 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 1 full exception details:
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 522, in process_image_async
+    raise gen_error
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 518, in process_image_async
+    img_data = await generate_image_async_with_retries(prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 581, in generate_image_async_with_retries
+    result = await generate_async(current_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 411, in generate_async
+    response = openai_client.images.generate(
+AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,954 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 3/3
+2025-07-20 18:30:24,954 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 3
+2025-07-20 18:30:24,954 - Animalchannel - DEBUG - [ASYNC-DEBUG] Prompt shortened from 35 to 48 chars
+2025-07-20 18:30:24,954 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 3 prompt length: 48, preview: A red fox sleeping in autumn leaves (simplified)...
+2025-07-20 18:30:24,954 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 48
+2025-07-20 18:30:24,959 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 18:30:24,959 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:24,959 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,959 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 3 failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,959 - Animalchannel - ERROR - [ASYNC-DEBUG] All retries exhausted after 15.03s, final error: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,959 - Animalchannel - ERROR - [ASYNC-ERROR] Image 2 generation failed: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,959 - Animalchannel - ERROR - [ASYNC-ERROR] Failed to generate image 2 after 15.03s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,959 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 2 full exception details:
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 522, in process_image_async
+    raise gen_error
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 518, in process_image_async
+    img_data = await generate_image_async_with_retries(prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 581, in generate_image_async_with_retries
+    result = await generate_async(current_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 411, in generate_async
+    response = openai_client.images.generate(
+AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,961 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 3/3
+2025-07-20 18:30:24,961 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 3
+2025-07-20 18:30:24,961 - Animalchannel - DEBUG - [ASYNC-DEBUG] Prompt shortened from 32 to 45 chars
+2025-07-20 18:30:24,961 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 3 prompt length: 45, preview: A red fox hunting in winter snow (simplified)...
+2025-07-20 18:30:24,961 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 45
+2025-07-20 18:30:24,966 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 18:30:24,966 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:24,966 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,966 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 3 failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,966 - Animalchannel - ERROR - [ASYNC-DEBUG] All retries exhausted after 15.03s, final error: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,966 - Animalchannel - ERROR - [ASYNC-ERROR] Image 3 generation failed: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,966 - Animalchannel - ERROR - [ASYNC-ERROR] Failed to generate image 3 after 15.03s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,966 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 3 full exception details:
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 522, in process_image_async
+    raise gen_error
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 518, in process_image_async
+    img_data = await generate_image_async_with_retries(prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 581, in generate_image_async_with_retries
+    result = await generate_async(current_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 411, in generate_async
+    response = openai_client.images.generate(
+AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,967 - Animalchannel - INFO - [ASYNC-ERROR] Batch 1 gather completed with 3 results
+2025-07-20 18:30:24,967 - Animalchannel - INFO - [ASYNC-ERROR] Batch 1 results: 3 success, 0 failed
+2025-07-20 18:30:24,967 - Animalchannel - INFO - [CONCURRENT] Batch 1 completed in 15.04s (12.0 images/min)
+2025-07-20 18:30:24,967 - Animalchannel - INFO - [ASYNC-DEBUG] generate_images_concurrently completed in 15.04s
+2025-07-20 18:30:24,967 - Animalchannel - INFO - [ASYNC-DEBUG] Final results: 0 success, 3 failed, 12.0 images/min
+2025-07-20 18:30:24,967 - Animalchannel - INFO - [CONCURRENT] All 3 images processed successfully
+2025-07-20 18:30:24,968 - __main__ - INFO - Success rate: 0/3 images generated
+2025-07-20 18:30:24,968 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:30:24,968 - Animalchannel - INFO - Sanitized prompt (length 28): A fox that overcomes enemies...
+2025-07-20 18:30:24,968 - __main__ - INFO - Original: A fox that beats up enemies
+2025-07-20 18:30:24,968 - __main__ - INFO - Sanitized: A fox that overcomes enemies
+2025-07-20 18:30:24,969 - Animalchannel - INFO - Sanitized prompt (length 41): The hero challenges peacefullys intensely...
+2025-07-20 18:30:24,969 - __main__ - INFO - Original: The hero fights violently
+2025-07-20 18:30:24,969 - __main__ - INFO - Sanitized: The hero challenges peacefullys intensely
+2025-07-20 18:30:24,969 - __main__ - INFO - Original: Normal prompt without issues
+2025-07-20 18:30:24,969 - __main__ - INFO - Sanitized: Normal prompt without issues
+2025-07-20 18:30:24,970 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:30:24,970 - __main__ - INFO - Timeout configuration: {'api_timeout': 180.0, 'client_timeout': 180.0, 'expected_max_time': 120.0}
+2025-07-20 18:30:24,970 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:30:24,971 - __main__ - INFO - Benchmark run 1/1
+2025-07-20 18:30:24,971 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 54
+2025-07-20 18:30:24,975 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.004s with 180s timeout
+2025-07-20 18:30:24,975 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 18:30:24,975 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,975 - __main__ - WARNING - Run 1 failed: 'NoneType' object has no attribute 'images'
+2025-07-20 18:30:24,976 - __main__ - INFO - ============================================================
+2025-07-20 18:30:24,977 - __main__ - INFO - ============================================================
+2025-07-20 18:30:24,980 - __main__ - INFO - ------------------------------------------------------------
+2025-07-20 18:30:24,980 - __main__ - INFO - Total: 3/8 tests passed
+2025-07-20 18:30:25,008 - httpcore.connection - DEBUG - close.started
+2025-07-20 18:30:25,008 - httpcore.connection - DEBUG - close.complete
+2025-07-20 20:05:39,569 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 20:05:39,569 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-20 20:05:39,569 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-20 20:05:39,569 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-20 20:05:39,569 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-20 20:05:39,569 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 20:05:39,569 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-20 20:05:39,576 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-20 20:05:39,577 - Animalchannel - INFO - [ASYNC-DEBUG] generate_images_concurrently started with 5 images
+2025-07-20 20:05:39,577 - Animalchannel - DEBUG - [ASYNC-DEBUG] Concurrent limits: MAX_CONCURRENT=10, BATCH_SIZE=5, MAX_IMAGES_PER_MIN=15
+2025-07-20 20:05:39,577 - Animalchannel - DEBUG - [ASYNC-DEBUG] Semaphore created with limit 10
+2025-07-20 20:05:39,577 - Animalchannel - DEBUG - [DEADLOCK-DEBUG] Initial semaphore value: 10
+2025-07-20 20:05:39,577 - Animalchannel - DEBUG - [ASYNC-DEBUG] Split into 1 batches of max size 5
+2025-07-20 20:05:39,577 - Animalchannel - DEBUG - [DEADLOCK-DEBUG] Deadlock check passed: BATCH_SIZE (5) <= MAX_CONCURRENT (10)
+2025-07-20 20:05:39,577 - Animalchannel - INFO - [CONCURRENT] Processing batch 1/1 with 5 images
+2025-07-20 20:05:39,577 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating 5 tasks for batch 1
+2025-07-20 20:05:39,577 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating task 1 for scene 1, prompt length: 13
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating task 2 for scene 2, prompt length: 13
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating task 3 for scene 3, prompt length: 13
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating task 4 for scene 4, prompt length: 13
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] Creating task 5 for scene 5, prompt length: 13
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] All 5 tasks created for batch 1
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Starting asyncio.gather for batch 1 with 5 tasks at 1753059939.5789664
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [DEADLOCK-DEBUG] Semaphore available permits before gather: 10
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 1 attempting to acquire semaphore
+2025-07-20 20:05:39,578 - Animalchannel - INFO - [ASYNC] Starting image 1 with prompt: Test prompt 1...
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 1 acquired semaphore, starting processing at 1753059939.5789664
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 1 sanitized prompt: Test prompt 1...
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 1 starting image generation at 1753059939.5789664
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_image_async_with_retries started with 3 max retries
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 1/3
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 1 prompt length: 13, preview: Test prompt 1...
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:05:39,578 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059939.5789664
+2025-07-20 20:05:39,611 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.033s with 180s timeout
+2025-07-20 20:05:39,611 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:05:39,611 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059939.6119225
+2025-07-20 20:05:40,115 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059940.1155922
+2025-07-20 20:05:40,115 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.50s, got URL: https://test.jpg...
+2025-07-20 20:05:40,115 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 2 attempting to acquire semaphore
+2025-07-20 20:05:40,119 - Animalchannel - INFO - [ASYNC] Starting image 2 with prompt: Test prompt 2...
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 2 acquired semaphore, starting processing at 1753059940.1191034
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 2 sanitized prompt: Test prompt 2...
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 2 starting image generation at 1753059940.1191034
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_image_async_with_retries started with 3 max retries
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 1/3
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 1 prompt length: 13, preview: Test prompt 2...
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:05:40,119 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059940.1191034
+2025-07-20 20:05:40,124 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 20:05:40,124 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:05:40,124 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059940.1241033
+2025-07-20 20:05:40,636 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059940.6362474
+2025-07-20 20:05:40,636 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:05:40,636 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 3 attempting to acquire semaphore
+2025-07-20 20:05:40,637 - Animalchannel - INFO - [ASYNC] Starting image 3 with prompt: Test prompt 3...
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 3 acquired semaphore, starting processing at 1753059940.6372461
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 3 sanitized prompt: Test prompt 3...
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 3 starting image generation at 1753059940.6372461
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_image_async_with_retries started with 3 max retries
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 1/3
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 1 prompt length: 13, preview: Test prompt 3...
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:05:40,637 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059940.6372461
+2025-07-20 20:05:40,642 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.006s with 180s timeout
+2025-07-20 20:05:40,642 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:05:40,642 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059940.6427512
+2025-07-20 20:05:41,154 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059941.1544645
+2025-07-20 20:05:41,154 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:05:41,154 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 4 attempting to acquire semaphore
+2025-07-20 20:05:41,155 - Animalchannel - INFO - [ASYNC] Starting image 4 with prompt: Test prompt 4...
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 4 acquired semaphore, starting processing at 1753059941.1554646
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 4 sanitized prompt: Test prompt 4...
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 4 starting image generation at 1753059941.1554646
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_image_async_with_retries started with 3 max retries
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 1/3
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 1 prompt length: 13, preview: Test prompt 4...
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:05:41,155 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059941.1554646
+2025-07-20 20:05:41,160 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 20:05:41,160 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:05:41,160 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059941.1604743
+2025-07-20 20:05:41,673 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059941.673182
+2025-07-20 20:05:41,673 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:05:41,673 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:05:41,673 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 5 attempting to acquire semaphore
+2025-07-20 20:05:41,674 - Animalchannel - INFO - [ASYNC] Starting image 5 with prompt: Test prompt 5...
+2025-07-20 20:05:41,674 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 5 acquired semaphore, starting processing at 1753059941.6741824
+2025-07-20 20:05:41,674 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 5 sanitized prompt: Test prompt 5...
+2025-07-20 20:05:41,674 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 5 starting image generation at 1753059941.6741824
+2025-07-20 20:05:41,674 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_image_async_with_retries started with 3 max retries
+2025-07-20 20:05:41,674 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 1/3
+2025-07-20 20:05:41,674 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 1 prompt length: 13, preview: Test prompt 5...
+2025-07-20 20:05:41,674 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:05:41,674 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059941.6741824
+2025-07-20 20:05:41,678 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 20:05:41,678 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:05:41,678 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059941.6786854
+2025-07-20 20:05:42,208 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059942.2082121
+2025-07-20 20:05:42,208 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.53s, got URL: https://test.jpg...
+2025-07-20 20:05:42,208 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:05:42,208 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:05:42,208 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:05:42,209 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:05:42,210 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:05:42,210 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:03,305 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:03,305 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 23.73s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,305 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 1 failed after 23.73s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,305 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 5s before retry 2
+2025-07-20 20:06:03,306 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:03,306 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 22.15s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,306 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 1 failed after 22.15s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,306 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 5s before retry 2
+2025-07-20 20:06:03,306 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:03,306 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 23.19s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,306 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 1 failed after 23.19s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,306 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 5s before retry 2
+2025-07-20 20:06:03,306 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:03,306 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 21.63s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,306 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 1 failed after 21.63s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,306 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 5s before retry 2
+2025-07-20 20:06:03,306 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:03,306 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 22.67s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,306 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 1 failed after 22.67s: ConnectError: All connection attempts failed
+2025-07-20 20:06:03,306 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 5s before retry 2
+2025-07-20 20:06:08,310 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 2/3
+2025-07-20 20:06:08,310 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 2
+2025-07-20 20:06:08,310 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 2 prompt length: 13, preview: Test prompt 1...
+2025-07-20 20:06:08,310 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:06:08,310 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059968.310052
+2025-07-20 20:06:08,315 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.004s with 180s timeout
+2025-07-20 20:06:08,315 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:08,316 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059968.3165593
+2025-07-20 20:06:08,830 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059968.8300521
+2025-07-20 20:06:08,831 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.52s, got URL: https://test.jpg...
+2025-07-20 20:06:08,831 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:08,832 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 2/3
+2025-07-20 20:06:08,832 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 2
+2025-07-20 20:06:08,832 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 2 prompt length: 13, preview: Test prompt 4...
+2025-07-20 20:06:08,832 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:06:08,832 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059968.8320544
+2025-07-20 20:06:08,837 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.006s with 180s timeout
+2025-07-20 20:06:08,837 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:08,837 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059968.8375547
+2025-07-20 20:06:09,349 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059969.3498306
+2025-07-20 20:06:09,349 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:06:09,349 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:09,350 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 2/3
+2025-07-20 20:06:09,350 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 2
+2025-07-20 20:06:09,350 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 2 prompt length: 13, preview: Test prompt 2...
+2025-07-20 20:06:09,350 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:06:09,350 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059969.3508465
+2025-07-20 20:06:09,355 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 20:06:09,355 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:09,355 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059969.355832
+2025-07-20 20:06:09,870 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059969.8708115
+2025-07-20 20:06:09,870 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:06:09,870 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:09,871 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 2/3
+2025-07-20 20:06:09,871 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 2
+2025-07-20 20:06:09,871 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 2 prompt length: 13, preview: Test prompt 3...
+2025-07-20 20:06:09,871 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:06:09,872 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059969.872812
+2025-07-20 20:06:09,876 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.004s with 180s timeout
+2025-07-20 20:06:09,876 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:09,876 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059969.8768113
+2025-07-20 20:06:10,390 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059970.3908265
+2025-07-20 20:06:10,390 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:06:10,391 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:10,391 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 2/3
+2025-07-20 20:06:10,391 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 2
+2025-07-20 20:06:10,391 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 2 prompt length: 13, preview: Test prompt 5...
+2025-07-20 20:06:10,391 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 13
+2025-07-20 20:06:10,391 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753059970.3915744
+2025-07-20 20:06:10,397 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.006s with 180s timeout
+2025-07-20 20:06:10,397 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:10,397 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753059970.3978996
+2025-07-20 20:06:10,907 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753059970.9077563
+2025-07-20 20:06:10,907 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:06:10,907 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:10,908 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:10,908 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:10,908 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:10,908 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:10,908 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:32,006 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:32,006 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 21.61s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,007 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 2 failed after 21.62s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,007 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 10s before retry 3
+2025-07-20 20:06:32,007 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:32,007 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 22.14s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,007 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 2 failed after 22.14s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,007 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 10s before retry 3
+2025-07-20 20:06:32,007 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:32,007 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 23.18s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,007 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 2 failed after 23.18s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,007 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 10s before retry 3
+2025-07-20 20:06:32,007 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:32,007 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 23.70s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,008 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 2 failed after 23.70s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,008 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 10s before retry 3
+2025-07-20 20:06:32,008 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:06:32,008 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 22.66s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,008 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 2 failed after 22.66s: ConnectError: All connection attempts failed
+2025-07-20 20:06:32,008 - Animalchannel - DEBUG - [ASYNC-DEBUG] Waiting 10s before retry 3
+2025-07-20 20:06:42,014 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 3/3
+2025-07-20 20:06:42,014 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 3
+2025-07-20 20:06:42,014 - Animalchannel - DEBUG - [ASYNC-DEBUG] Prompt shortened from 13 to 26 chars
+2025-07-20 20:06:42,014 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 3 prompt length: 26, preview: Test prompt 5 (simplified)...
+2025-07-20 20:06:42,014 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 26
+2025-07-20 20:06:42,014 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753060002.0143626
+2025-07-20 20:06:42,018 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.004s with 180s timeout
+2025-07-20 20:06:42,018 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:42,018 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753060002.0183623
+2025-07-20 20:06:42,520 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753060002.5208535
+2025-07-20 20:06:42,520 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.50s, got URL: https://test.jpg...
+2025-07-20 20:06:42,520 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:42,521 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 3/3
+2025-07-20 20:06:42,521 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 3
+2025-07-20 20:06:42,521 - Animalchannel - DEBUG - [ASYNC-DEBUG] Prompt shortened from 13 to 26 chars
+2025-07-20 20:06:42,521 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 3 prompt length: 26, preview: Test prompt 3 (simplified)...
+2025-07-20 20:06:42,522 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 26
+2025-07-20 20:06:42,522 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753060002.5228531
+2025-07-20 20:06:42,527 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 20:06:42,527 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:42,527 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753060002.527357
+2025-07-20 20:06:43,041 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753060003.0419066
+2025-07-20 20:06:43,041 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:06:43,041 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:43,043 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 3/3
+2025-07-20 20:06:43,043 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 3
+2025-07-20 20:06:43,043 - Animalchannel - DEBUG - [ASYNC-DEBUG] Prompt shortened from 13 to 26 chars
+2025-07-20 20:06:43,043 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 3 prompt length: 26, preview: Test prompt 4 (simplified)...
+2025-07-20 20:06:43,043 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 26
+2025-07-20 20:06:43,043 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753060003.043907
+2025-07-20 20:06:43,050 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.007s with 180s timeout
+2025-07-20 20:06:43,050 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:43,050 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753060003.0509546
+2025-07-20 20:06:43,566 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753060003.5663977
+2025-07-20 20:06:43,566 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.52s, got URL: https://test.jpg...
+2025-07-20 20:06:43,566 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:43,568 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 3/3
+2025-07-20 20:06:43,568 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 3
+2025-07-20 20:06:43,568 - Animalchannel - DEBUG - [ASYNC-DEBUG] Prompt shortened from 13 to 26 chars
+2025-07-20 20:06:43,568 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 3 prompt length: 26, preview: Test prompt 2 (simplified)...
+2025-07-20 20:06:43,568 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 26
+2025-07-20 20:06:43,568 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753060003.5683944
+2025-07-20 20:06:43,572 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 20:06:43,572 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:43,572 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753060003.572903
+2025-07-20 20:06:44,085 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753060004.0854425
+2025-07-20 20:06:44,085 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:06:44,085 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:44,086 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting retry 3/3
+2025-07-20 20:06:44,086 - Animalchannel - DEBUG - [ASYNC-DEBUG] Applying sanitization for retry 3
+2025-07-20 20:06:44,086 - Animalchannel - DEBUG - [ASYNC-DEBUG] Prompt shortened from 13 to 26 chars
+2025-07-20 20:06:44,086 - Animalchannel - DEBUG - [ASYNC-DEBUG] Retry 3 prompt length: 26, preview: Test prompt 1 (simplified)...
+2025-07-20 20:06:44,086 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 26
+2025-07-20 20:06:44,086 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753060004.0864437
+2025-07-20 20:06:44,091 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-20 20:06:44,091 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-20 20:06:44,091 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753060004.0919511
+2025-07-20 20:06:44,606 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call completed at 1753060004.6060176
+2025-07-20 20:06:44,606 - Animalchannel - DEBUG - [ASYNC-DEBUG] GPT-Image-1 API completed in 0.51s, got URL: https://test.jpg...
+2025-07-20 20:06:44,606 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting image download from: https://test.jpg
+2025-07-20 20:06:44,607 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:44,607 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:44,607 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:44,607 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:06:44,607 - httpcore.connection - DEBUG - connect_tcp.started host='test.jpg' port=443 local_address=None timeout=180.0 socket_options=None
+2025-07-20 20:07:05,686 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:07:05,686 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 21.60s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,686 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 3 failed after 21.60s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,686 - Animalchannel - ERROR - [ASYNC-DEBUG] All retries exhausted after 86.11s, final error: All connection attempts failed
+2025-07-20 20:07:05,686 - Animalchannel - ERROR - [ASYNC-ERROR] Image 1 generation failed: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,687 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 1 generation failed at 1753060025.6866734
+2025-07-20 20:07:05,687 - Animalchannel - ERROR - [ASYNC-ERROR] Failed to generate image 1 after 86.11s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,687 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 1 full exception details:
+Traceback (most recent call last):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 530, in process_image_async
+    raise gen_error
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 524, in process_image_async
+    img_data = await generate_image_async_with_retries(prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 604, in generate_image_async_with_retries
+    result = await generate_async(current_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 428, in generate_async
+    img_response = await client.get(img_url)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1768, in get
+    return await self.request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2025-07-20 20:07:05,751 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:07:05,751 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 22.71s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,751 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 3 failed after 22.71s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,751 - Animalchannel - ERROR - [ASYNC-DEBUG] All retries exhausted after 84.60s, final error: All connection attempts failed
+2025-07-20 20:07:05,751 - Animalchannel - ERROR - [ASYNC-ERROR] Image 4 generation failed: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,751 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 4 generation failed at 1753060025.7513247
+2025-07-20 20:07:05,751 - Animalchannel - ERROR - [ASYNC-ERROR] Failed to generate image 4 after 84.60s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,751 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 4 full exception details:
+Traceback (most recent call last):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 530, in process_image_async
+    raise gen_error
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 524, in process_image_async
+    img_data = await generate_image_async_with_retries(prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 604, in generate_image_async_with_retries
+    result = await generate_async(current_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 428, in generate_async
+    img_response = await client.get(img_url)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1768, in get
+    return await self.request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2025-07-20 20:07:05,752 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:07:05,753 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 23.74s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,753 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 3 failed after 23.74s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,753 - Animalchannel - ERROR - [ASYNC-DEBUG] All retries exhausted after 84.08s, final error: All connection attempts failed
+2025-07-20 20:07:05,753 - Animalchannel - ERROR - [ASYNC-ERROR] Image 5 generation failed: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,753 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 5 generation failed at 1753060025.753321
+2025-07-20 20:07:05,753 - Animalchannel - ERROR - [ASYNC-ERROR] Failed to generate image 5 after 84.08s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,753 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 5 full exception details:
+Traceback (most recent call last):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 530, in process_image_async
+    raise gen_error
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 524, in process_image_async
+    img_data = await generate_image_async_with_retries(prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 604, in generate_image_async_with_retries
+    result = await generate_async(current_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 428, in generate_async
+    img_response = await client.get(img_url)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1768, in get
+    return await self.request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2025-07-20 20:07:05,754 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:07:05,754 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 23.23s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,754 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 3 failed after 23.23s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,754 - Animalchannel - ERROR - [ASYNC-DEBUG] All retries exhausted after 85.12s, final error: All connection attempts failed
+2025-07-20 20:07:05,754 - Animalchannel - ERROR - [ASYNC-ERROR] Image 3 generation failed: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,754 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 3 generation failed at 1753060025.7543209
+2025-07-20 20:07:05,754 - Animalchannel - ERROR - [ASYNC-ERROR] Failed to generate image 3 after 85.12s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,754 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 3 full exception details:
+Traceback (most recent call last):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 530, in process_image_async
+    raise gen_error
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 524, in process_image_async
+    img_data = await generate_image_async_with_retries(prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 604, in generate_image_async_with_retries
+    result = await generate_async(current_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 428, in generate_async
+    img_response = await client.get(img_url)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1768, in get
+    return await self.request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2025-07-20 20:07:05,755 - httpcore.connection - DEBUG - connect_tcp.failed exception=ConnectError(OSError('All connection attempts failed'))
+2025-07-20 20:07:05,756 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 22.19s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,756 - Animalchannel - ERROR - [ASYNC-DEBUG] Retry 3 failed after 22.19s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,756 - Animalchannel - ERROR - [ASYNC-DEBUG] All retries exhausted after 85.64s, final error: All connection attempts failed
+2025-07-20 20:07:05,756 - Animalchannel - ERROR - [ASYNC-ERROR] Image 2 generation failed: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,756 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Task 2 generation failed at 1753060025.7563205
+2025-07-20 20:07:05,756 - Animalchannel - ERROR - [ASYNC-ERROR] Failed to generate image 2 after 85.64s: ConnectError: All connection attempts failed
+2025-07-20 20:07:05,756 - Animalchannel - DEBUG - [ASYNC-ERROR] Image 2 full exception details:
+Traceback (most recent call last):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 530, in process_image_async
+    raise gen_error
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 524, in process_image_async
+    img_data = await generate_image_async_with_retries(prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 604, in generate_image_async_with_retries
+    result = await generate_async(current_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 428, in generate_async
+    img_response = await client.get(img_url)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1768, in get
+    return await self.request(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+2025-07-20 20:07:05,757 - Animalchannel - INFO - [ASYNC-ERROR] Batch 1 gather completed with 5 results
+2025-07-20 20:07:05,757 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] Completed asyncio.gather for batch 1 at 1753060025.7573206
+2025-07-20 20:07:05,757 - Animalchannel - DEBUG - [DEADLOCK-DEBUG] Semaphore available permits after gather: 10
+2025-07-20 20:07:05,757 - Animalchannel - INFO - [ASYNC-ERROR] Batch 1 results: 5 success, 0 failed
+2025-07-20 20:07:05,757 - Animalchannel - INFO - [CONCURRENT] Batch 1 completed in 86.18s (3.5 images/min)
+2025-07-20 20:07:05,757 - Animalchannel - INFO - [ASYNC-DEBUG] generate_images_concurrently completed in 86.18s
+2025-07-20 20:07:05,758 - Animalchannel - INFO - [ASYNC-DEBUG] Final results: 0 success, 5 failed, 3.5 images/min
+2025-07-20 20:07:05,758 - Animalchannel - INFO - [CONCURRENT] All 5 images processed successfully
+2025-07-20 21:18:06,382 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 21:18:06,382 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-20 21:18:06,383 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-20 21:18:06,383 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-20 21:18:06,383 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-20 21:18:06,383 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-20 21:18:06,383 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-21 21:40:59,864 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-21 21:40:59,864 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-21 21:40:59,864 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-21 21:40:59,864 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-21 21:40:59,864 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-21 21:40:59,864 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-21 21:40:59,864 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-21 21:41:03,905 - __main__ - ERROR - [REDIS] Redis connection failed: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2025-07-21 21:41:03,906 - __main__ - INFO - [KEEP-ALIVE] Skipping keep-alive thread (not on Render)
+2025-07-21 21:41:03,930 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.199:5000
+2025-07-21 21:41:03,930 - werkzeug - INFO - [33mPress CTRL+C to quit[0m

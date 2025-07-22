@@ -9,7 +9,7 @@ import time
 import os
 import logging
 # import multiprocessing  # Replaced with threading for SSE memory sharing
-from Animalchannel import process_story_generation, process_story_generation_with_scenes
+from Animalchannel import process_story_generation, process_story_generation_with_scenes, process_video
 
 # Configure logging with proper formatting
 logging.basicConfig(
@@ -747,6 +747,154 @@ def test_emit(story_id):
     except Exception as e:
         logger.error(f"Test emit failed: {e}")
         return jsonify({"status": "Test emit failed", "error": str(e)}), 500
+
+@app.route('/approve_videos/<story_id>', methods=['POST'])
+def approve_videos(story_id):
+    """Handle video generation approval after all images are approved"""
+    try:
+        # Get story data using Redis-backed storage
+        story_data = get_story_data(story_id)
+        if not story_data:
+            logger.warning(f"[VIDEO-GEN] Story not found: {story_id}")
+            return jsonify({"error": "Story not found"}), 404
+        
+        # Verify all images are approved
+        image_approvals = story_data.get('image_approvals', {})
+        approved_count = sum(1 for status in image_approvals.values() if status == 'approved')
+        
+        if approved_count < 20:
+            logger.warning(f"[VIDEO-GEN] Not all images approved: {approved_count}/20 for story {story_id}")
+            return jsonify({"error": f"Only {approved_count}/20 images approved. All images must be approved before video generation."}), 400
+        
+        logger.info(f"[VIDEO-GEN] Starting video generation for story {story_id} with {approved_count}/20 approved images")
+        
+        # Update story status to video processing
+        update_story_data(story_id, {'status': 'generating_videos'})
+        
+        # Start video generation in background thread
+        def generate_videos_async():
+            try:
+                logger.info(f"[VIDEO-GEN] Background video generation starting for story {story_id}")
+                
+                # Get approved images from story data
+                images = story_data.get('images', {})
+                answers = story_data.get('answers', {})
+                sheet_title = answers.get('idea', 'NoSheet_DefaultIdea')
+                
+                video_urls = {}
+                successful_videos = 0
+                
+                # Emit video generation start event
+                try:
+                    with app.app_context():
+                        sse.publish({
+                            "status": "started",
+                            "total_videos": 20,
+                            "completed_videos": 0
+                        }, type='video_generation_started', channel=story_id)
+                        logger.info(f"[VIDEO-GEN] Emitted video generation start event for story {story_id}")
+                except Exception as sse_error:
+                    logger.error(f"[VIDEO-GEN] Failed to emit start event: {sse_error}")
+                
+                # Process each image for video generation
+                for scene_number in range(1, 21):
+                    try:
+                        scene_str = str(scene_number)
+                        scene_images = images.get(scene_str, [])
+                        
+                        if not scene_images:
+                            logger.warning(f"[VIDEO-GEN] No images found for scene {scene_number}")
+                            continue
+                            
+                        # Use the first approved image for video generation
+                        image_url = scene_images[0] if isinstance(scene_images, list) else scene_images
+                        
+                        if image_url and image_url != "Skipped":
+                            logger.info(f"[VIDEO-GEN] Generating video for scene {scene_number}")
+                            
+                            # Generate video using existing process_video function
+                            video_url = process_video(scene_str, image_url, sheet_title)
+                            
+                            if video_url:
+                                video_urls[scene_str] = video_url
+                                successful_videos += 1
+                                
+                                logger.info(f"[VIDEO-GEN] Video {scene_number} completed: {video_url}")
+                                
+                                # Emit progress event
+                                try:
+                                    with app.app_context():
+                                        sse.publish({
+                                            "scene_number": scene_number,
+                                            "video_url": video_url,
+                                            "completed_videos": successful_videos,
+                                            "total_videos": 20
+                                        }, type='video_ready', channel=story_id)
+                                except Exception as sse_error:
+                                    logger.error(f"[VIDEO-GEN] Failed to emit video ready event: {sse_error}")
+                            else:
+                                logger.error(f"[VIDEO-GEN] Failed to generate video for scene {scene_number}")
+                        else:
+                            logger.warning(f"[VIDEO-GEN] Skipping video generation for scene {scene_number} (no valid image URL)")
+                            
+                    except Exception as scene_error:
+                        logger.error(f"[VIDEO-GEN] Error processing scene {scene_number}: {scene_error}")
+                        logger.error(f"[VIDEO-GEN] Scene error traceback: {traceback.format_exc()}")
+                
+                # Update story data with video URLs
+                update_story_data(story_id, {
+                    'status': 'videos_completed',
+                    'videos': video_urls
+                })
+                
+                # Emit completion event
+                try:
+                    with app.app_context():
+                        sse.publish({
+                            "status": "completed",
+                            "successful_videos": successful_videos,
+                            "total_videos": 20,
+                            "video_urls": video_urls
+                        }, type='video_generation_complete', channel=story_id)
+                        logger.info(f"[VIDEO-GEN] Video generation completed for story {story_id}: {successful_videos}/20 videos")
+                except Exception as sse_error:
+                    logger.error(f"[VIDEO-GEN] Failed to emit completion event: {sse_error}")
+                    
+            except Exception as e:
+                logger.error(f"[VIDEO-GEN] Background video generation failed for story {story_id}: {e}")
+                logger.error(f"[VIDEO-GEN] Error traceback: {traceback.format_exc()}")
+                
+                # Update status to error
+                update_story_data(story_id, {'status': 'video_generation_failed'})
+                
+                try:
+                    with app.app_context():
+                        sse.publish({
+                            "status": "error",
+                            "error": str(e)
+                        }, type='video_generation_error', channel=story_id)
+                except Exception as sse_error:
+                    logger.error(f"[VIDEO-GEN] Failed to emit error event: {sse_error}")
+        
+        # Start background thread for video generation
+        video_thread = threading.Thread(target=generate_videos_async)
+        video_thread.daemon = True
+        video_thread.start()
+        
+        # Store thread reference (non-serializable, stored in memory only)
+        active_stories[story_id]['video_thread'] = video_thread
+        
+        logger.info(f"[VIDEO-GEN] Video generation started for story {story_id}")
+        return jsonify({
+            "message": "Video generation started",
+            "story_id": story_id,
+            "status": "generating_videos"
+        })
+        
+    except Exception as e:
+        logger.error(f"[VIDEO-GEN] Error in approve_videos endpoint: {e}")
+        logger.error(f"[VIDEO-GEN] Error traceback: {traceback.format_exc()}")
+        return jsonify({"error": "Failed to start video generation"}), 500
 
 @app.route('/health', methods=['GET'])
 def health():

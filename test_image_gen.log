@@ -1,0 +1,178 @@
+2025-07-21 15:37:16,500 - __main__ - INFO - Starting isolated image generation test...
+2025-07-21 15:37:17,562 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-21 15:37:17,562 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-21 15:37:17,562 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-21 15:37:17,562 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-21 15:37:17,562 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-21 15:37:17,563 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-21 15:37:17,563 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-21 15:37:17,563 - __main__ - INFO - Testing with short prompt...
+2025-07-21 15:37:17,563 - __main__ - INFO - Short prompt: red fox
+2025-07-21 15:37:17,563 - Animalchannel - INFO - Generating image for prompt: red fox...
+2025-07-21 15:37:17,563 - Animalchannel - DEBUG - Retry 1 prompt: red fox
+2025-07-21 15:37:17,563 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 7): red fox
+2025-07-21 15:37:17,563 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 15:37:17,564 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 7
+2025-07-21 15:37:17,564 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753130237.5649939
+2025-07-21 15:37:17,619 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.055s with 180s timeout
+2025-07-21 15:37:17,620 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 15:37:17,620 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753130237.6208465
+2025-07-21 15:37:17,620 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.06s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:17,624 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:17,625 - Animalchannel - WARNING - Retry 1 for generate: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:22,631 - Animalchannel - DEBUG - Retry 2 prompt: red fox
+2025-07-21 15:37:22,631 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 7): red fox
+2025-07-21 15:37:22,631 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 15:37:22,632 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 7
+2025-07-21 15:37:22,632 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753130242.6320035
+2025-07-21 15:37:22,637 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-21 15:37:22,637 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 15:37:22,637 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753130242.6370041
+2025-07-21 15:37:22,637 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:22,637 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:22,638 - Animalchannel - WARNING - Retry 2 for generate: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:32,646 - Animalchannel - DEBUG - Retry 3 prompt: red fox (simplified)
+2025-07-21 15:37:32,646 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 20): red fox (simplified)
+2025-07-21 15:37:32,646 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 15:37:32,647 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 20
+2025-07-21 15:37:32,647 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753130252.647478
+2025-07-21 15:37:32,651 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-21 15:37:32,651 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 15:37:32,651 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753130252.6519823
+2025-07-21 15:37:32,651 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:32,652 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:32,652 - Animalchannel - ERROR - Generate failed after 3 attempts: 'NoneType' object has no attribute 'images'
+2025-07-21 15:37:32,694 - __main__ - ERROR - Full traceback: Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\test_image_gen.py", line 36, in test_image_generation
+    img_data_short = generate_image(short_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 479, in generate_image
+    return asyncio.run(generate_async(current_prompt))
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 646, in run_until_complete
+    return future.result()
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 414, in generate_async
+    response = openai_client.images.generate(
+AttributeError: 'NoneType' object has no attribute 'images'
+
+2025-07-21 15:37:32,695 - __main__ - ERROR - Test failed
+2025-07-21 16:09:16,457 - __main__ - INFO - Starting isolated image generation test...
+2025-07-21 16:09:17,204 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-21 16:09:17,204 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-21 16:09:17,204 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-21 16:09:17,204 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-21 16:09:17,204 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-21 16:09:17,204 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-21 16:09:17,204 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-21 16:09:17,204 - __main__ - INFO - Testing with short prompt...
+2025-07-21 16:09:17,204 - __main__ - INFO - Short prompt: red fox
+2025-07-21 16:09:17,204 - Animalchannel - INFO - Generating image for prompt: red fox...
+2025-07-21 16:09:17,204 - Animalchannel - DEBUG - Retry 1 prompt: red fox
+2025-07-21 16:09:17,204 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 7): red fox
+2025-07-21 16:09:17,204 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 16:09:17,205 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 7
+2025-07-21 16:09:17,205 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753132157.205869
+2025-07-21 16:09:17,233 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.028s with 180s timeout
+2025-07-21 16:09:17,233 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 16:09:17,233 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753132157.2338943
+2025-07-21 16:09:17,233 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.03s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:17,237 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:17,237 - Animalchannel - WARNING - Retry 1 for generate: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:22,244 - Animalchannel - DEBUG - Retry 2 prompt: red fox
+2025-07-21 16:09:22,244 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 7): red fox
+2025-07-21 16:09:22,244 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 16:09:22,245 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 7
+2025-07-21 16:09:22,245 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753132162.2458954
+2025-07-21 16:09:22,250 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-21 16:09:22,250 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 16:09:22,250 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753132162.250895
+2025-07-21 16:09:22,250 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.00s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:22,250 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:22,250 - Animalchannel - WARNING - Retry 2 for generate: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:32,254 - Animalchannel - DEBUG - Retry 3 prompt: red fox (simplified)
+2025-07-21 16:09:32,254 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 20): red fox (simplified)
+2025-07-21 16:09:32,254 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 16:09:32,254 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 20
+2025-07-21 16:09:32,254 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753132172.2547975
+2025-07-21 16:09:32,259 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-21 16:09:32,260 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 16:09:32,260 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753132172.2607963
+2025-07-21 16:09:32,260 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:32,260 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:32,260 - Animalchannel - ERROR - Generate failed after 3 attempts: 'NoneType' object has no attribute 'images'
+2025-07-21 16:09:32,262 - __main__ - ERROR - Full traceback: Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\test_image_gen.py", line 36, in test_image_generation
+    img_data_short = generate_image(short_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 479, in generate_image
+    return asyncio.run(generate_async(current_prompt))
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 646, in run_until_complete
+    return future.result()
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 414, in generate_async
+    response = openai_client.images.generate(
+AttributeError: 'NoneType' object has no attribute 'images'
+
+2025-07-21 16:09:32,262 - __main__ - ERROR - Test failed
+2025-07-21 16:23:31,250 - __main__ - INFO - Starting isolated image generation test...
+2025-07-21 16:23:31,915 - Animalchannel - WARNING - OPENAI_API_KEY environment variable is not set or contains placeholder value
+2025-07-21 16:23:31,916 - Animalchannel - WARNING - GOOGLE_SHEET_ID environment variable is not set or contains placeholder value
+2025-07-21 16:23:31,916 - Animalchannel - WARNING - CLOUDINARY_PRESET environment variable is not set or contains placeholder value
+2025-07-21 16:23:31,916 - Animalchannel - WARNING - CLOUDINARY_URL environment variable is not set or contains placeholder value
+2025-07-21 16:23:31,916 - Animalchannel - WARNING - HAILUO_AUTH environment variable is not set or contains placeholder value
+2025-07-21 16:23:31,916 - Animalchannel - WARNING - KLING_API_KEY environment variable is not set or contains placeholder value
+2025-07-21 16:23:31,916 - Animalchannel - WARNING - OpenAI client not initialized - OPENAI_API_KEY missing or placeholder
+2025-07-21 16:23:31,916 - __main__ - INFO - Testing with short prompt...
+2025-07-21 16:23:31,916 - __main__ - INFO - Short prompt: red fox
+2025-07-21 16:23:31,916 - Animalchannel - INFO - Generating image for prompt: red fox...
+2025-07-21 16:23:31,916 - Animalchannel - DEBUG - Retry 1 prompt: red fox
+2025-07-21 16:23:31,916 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 7): red fox
+2025-07-21 16:23:31,916 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 16:23:31,917 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 7
+2025-07-21 16:23:31,917 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753133011.9172502
+2025-07-21 16:23:31,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.026s with 180s timeout
+2025-07-21 16:23:31,942 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 16:23:31,942 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753133011.9427595
+2025-07-21 16:23:31,943 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.03s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:31,946 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:31,946 - Animalchannel - WARNING - Retry 1 for generate: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:36,951 - Animalchannel - DEBUG - Retry 2 prompt: red fox
+2025-07-21 16:23:36,951 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 7): red fox
+2025-07-21 16:23:36,951 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 16:23:36,952 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 7
+2025-07-21 16:23:36,952 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753133016.952704
+2025-07-21 16:23:36,957 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.005s with 180s timeout
+2025-07-21 16:23:36,957 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 16:23:36,957 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753133016.9577048
+2025-07-21 16:23:36,957 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:36,957 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:36,958 - Animalchannel - WARNING - Retry 2 for generate: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:46,970 - Animalchannel - DEBUG - Retry 3 prompt: red fox (simplified)
+2025-07-21 16:23:46,970 - Animalchannel - DEBUG - Attempting GPT-Image-1 with prompt (length 20): red fox (simplified)
+2025-07-21 16:23:46,970 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-07-21 16:23:46,970 - Animalchannel - DEBUG - [ASYNC-DEBUG] generate_async started with prompt length: 20
+2025-07-21 16:23:46,970 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] generate_async starting at 1753133026.9703975
+2025-07-21 16:23:46,975 - Animalchannel - DEBUG - [ASYNC-DEBUG] httpx client created in 0.006s with 180s timeout
+2025-07-21 16:23:46,975 - Animalchannel - DEBUG - [ASYNC-DEBUG] Starting GPT-Image-1 API call with 180s timeout
+2025-07-21 16:23:46,975 - Animalchannel - DEBUG - [STOPPAGE-DEBUG] GPT-Image-1 API call starting at 1753133026.9759054
+2025-07-21 16:23:46,976 - Animalchannel - ERROR - [ASYNC-DEBUG] generate_async failed after 0.01s: AttributeError: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:46,977 - Animalchannel - ERROR - GPT-Image-1 error details: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:46,977 - Animalchannel - ERROR - Generate failed after 3 attempts: 'NoneType' object has no attribute 'images'
+2025-07-21 16:23:46,989 - __main__ - ERROR - Full traceback: Traceback (most recent call last):
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\test_image_gen.py", line 36, in test_image_generation
+    img_data_short = generate_image(short_prompt)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 481, in generate_image
+    return asyncio.run(generate_async(current_prompt))
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 646, in run_until_complete
+    return future.result()
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 416, in generate_async
+    response = await loop.run_in_executor(None, lambda: openai_client.images.generate(
+  File "C:\Users\hassa\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\hassa\OneDrive\Desktop\Programs\red-fox-clean\Animalchannel.py", line 416, in <lambda>
+    response = await loop.run_in_executor(None, lambda: openai_client.images.generate(
+AttributeError: 'NoneType' object has no attribute 'images'
+
+2025-07-21 16:23:46,989 - __main__ - ERROR - Test failed
