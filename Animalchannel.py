@@ -169,165 +169,55 @@ def get_story_structure_template(story_type):
     templates = {
         "Power Fantasy": """
 Story Structure (20 Scenes) - POWER FANTASY
-1. Underdog Setup (Scenes 1–3)
-The red fox is weak, dirty and poor. Each scene shows a different hardship or form of rejection in a visually expressive environment.
-Scene 1. Scene of Humiliation - The Red Fox is humiliated in some way he is either rejected by a pretty and wealthy girl fox, or he is laughed at by a group of another type of animal While he stands devastated. 
-	-Optionally this could be the Scene of Offering, where he is making an offering to a girl fox. Ie. a flower, a ring, or simply his hand for a hand holding etc. (If this option is chosen the optional choice must also be made in scene 2)
-Scene 2. Scene of Loneliness - A scene that displays his loneliness and poverty
-	-Optional (required if you did the optional choice for scene 1) – Scene of Rejection- the girl fox rejects his offering. Ie laughs at him, destroys flower, or puts her hand in his face etc.
-Scene 3. What others have - A scene of the fox girl he liked with another man or sees friends hanging out and having fun without him 
-Scene 4. Reaction - A scene of the red fox crying or being sad/devestated in some way that he is left out
-2. Spark of Ambition (Scenes 5-6)
-The fox discovers a visual trigger — a blueprint, or he meets a master who trains him, or he finds some ancient magical relic with a great power— that inspires a desire for transformation. The fox is still weak dirty and poor but his demeanor is hopeful
-Scene 5. Discover – The fox discovers a visual trigger that inspires a hope of a way out of his situation
-Scene 6. The fox reaches for the magical object or begins training with his master or begins building the powerful technology
-3. Failed Attempt (Scenes 7–8)
-The fox tries to act or fight back — and fails. He may build something that doesn't work or attempt something too early.
-Scene 7. The fox has some sort of mishap, he either electrecutes himself, uses the magic item on himself, or slips while trying to learn his new skills. While people in the background laugh at him
-Scene 8. The fox lies defeated on the ground, bruised and embarrassed, looking up at the sky with determination growing in his eyes
-4. Montage: Training / Building (Scenes 9–10)
-He commits to change. These scenes show him building, lifting, planning, improving, or imagining.
-Scene 9. More disciplined training or building - first session
-Scene 10. More disciplined training or building - second session improved with more skill 
-5. Transformation (Scenes 11–12)
-He experiences a transformation moment — inside and outside. Often visual or physical.
-Scene 11. The transformation starts to be visible - his appearance changes
-Scene 12. The transformation is complete - new appearance fully realized
-6. First Test / Show of Power (Scenes 13–14)
-He uses his newfound skills or technology to achieve something small but meaningful.
-Scene 13. The fox displays his new power or skill for the first time
-Scene 14. Others are amazed or intimidated by his new abilities
-7. Challenge / Justice / Redemption (Scenes 15–19)
-The final test. He overcomes a villain, helps those in need, or achieves his original goal.
-Scene 15. A major challenge or villain appears
-Scene 16. The fox confronts the challenge with his new abilities
-Scene 17. Intense struggle or battle
-Scene 18. The fox overcomes the challenge
-Scene 19. Victory and recognition from others
-8. New Life / Closing (Scene 20)
-A symbolic close showing the fox in his new life — powerful, respected, or achieving his original dream.
-Scene 20. The fox in his new life, transformed and triumphant""",
+1-3: Underdog Setup - Red fox is weak, dirty, poor, facing hardships and rejection.
+Scene1: Humiliation or Offering to girl fox (e.g., flower).
+Scene2: Loneliness or Rejection of offering.
+Scene3: Others having what he wants.
+Scene4: Sad reaction.
+5-6: Spark of Ambition - Discovers trigger (blueprint/master/relic), hopeful.
+Scene5: Discovers trigger.
+Scene6: Reaches for object/trains/builds.
+7-8: Failed Attempt - Tries and fails, mishap with laughter, defeated but determined.
+9-10: Montage - Disciplined training/building, improving.
+11-12: Transformation - Appearance changes, complete.
+13-14: First Test - Displays power, others amazed.
+15-19: Challenge - Confronts villain/challenge, struggles, overcomes, victory.
+Scene20: New life, triumphant.""",
 
         "Redemption Arc": """
 Story Structure (20 Scenes) - REDEMPTION ARC
-1. Past Mistakes (Scenes 1–4)
-The red fox's past mistakes and their consequences are revealed, showing regret and the need for redemption.
-Scene 1. Past wrongdoing - The fox is shown having hurt someone or made a terrible mistake
-Scene 2. Consequences - The damage caused by the fox's actions is revealed
-Scene 3. Isolation - The fox is alone, shunned by former friends or community
-Scene 4. Guilt and regret - The fox shows deep remorse for past actions
-2. Call to Redemption (Scenes 5–6)
-Something or someone shows the fox a path toward making amends.
-Scene 5. Meeting the guide - The fox encounters someone who offers wisdom or a chance at redemption
-Scene 6. Accepting the path - The fox decides to try to make things right
-3. First Attempts (Scenes 7–8)
-Early efforts to make amends fail or are rejected, showing the difficulty of earning forgiveness.
-Scene 7. Rejected attempt - The fox tries to help but is turned away
-Scene 8. Continued determination - Despite rejection, the fox persists in trying to help
-4. Learning and Growth (Scenes 9–10)
-The fox learns valuable lessons about empathy, sacrifice, and what true redemption means.
-Scene 9. Learning empathy - The fox begins to understand others' pain
-Scene 10. Personal sacrifice - The fox gives up something important to help others
-5. Proving Change (Scenes 11–12)
-The fox demonstrates genuine change through actions, not just words.
-Scene 11. Selfless act - The fox helps someone with no expectation of reward
-Scene 12. Recognition of change - Others begin to notice the fox's transformation
-6. Test of Character (Scenes 13–14)
-A situation arises that tests whether the fox's change is genuine.
-Scene 13. Temptation returns - The fox faces a choice to return to old ways
-Scene 14. Choosing redemption - The fox makes the right choice despite personal cost
-7. Major Redemption (Scenes 15–19)
-The fox faces the ultimate test of redemption, often helping those they originally wronged.
-Scene 15. Ultimate challenge - A crisis that requires the fox's help
-Scene 16. Rising to the challenge - The fox uses newfound wisdom and selflessness
-Scene 17. Making amends - The fox directly addresses past wrongs
-Scene 18. Acceptance and forgiveness - Others recognize the fox's genuine change
-Scene 19. Community restored - Relationships are healed and trust rebuilt
-8. New Beginning (Scene 20)
-The fox has earned redemption and begins a new chapter, having learned from the past.
-Scene 20. Redeemed and renewed - The fox in their new life, forgiven and at peace""",
+1-4: Past Mistakes - Wrongdoing, consequences, isolation, regret.
+5-6: Call to Redemption - Meets guide, accepts path.
+7-8: First Attempts - Rejected help, persists.
+9-10: Learning - Empathy, sacrifice.
+11-12: Proving Change - Selfless act, recognition.
+13-14: Test - Temptation, chooses right.
+15-19: Major Redemption - Crisis, helps, amends, forgiveness, restored.
+Scene20: New life, at peace.""",
 
         "Hero's Journey": """
 Story Structure (20 Scenes) - HERO'S JOURNEY
-1. Ordinary World (Scenes 1–2)
-The red fox lives a simple, ordinary life before adventure calls.
-Scene 1. Normal life - The fox in their everyday routine and environment
-Scene 2. Ordinary challenges - The fox deals with normal, mundane problems
-2. Call to Adventure (Scenes 3–4)
-Something disrupts the ordinary world and calls the fox to adventure.
-Scene 3. The call - A messenger, event, or discovery that signals adventure
-Scene 4. Hesitation - The fox is uncertain and fears leaving the familiar
-3. Meeting the Mentor (Scenes 5–6)
-The fox encounters a wise guide who provides help for the journey ahead.
-Scene 5. The mentor appears - A wise character offers guidance and tools
-Scene 6. Receiving aid - The fox gets magical items, advice, or training
-4. Crossing the Threshold (Scenes 7–8)
-The fox commits to the adventure and enters a new, unfamiliar world.
-Scene 7. Departure - The fox leaves the ordinary world behind
-Scene 8. First challenges - Initial obstacles in the new world
-5. Tests and Allies (Scenes 9–10)
-The fox faces challenges and meets companions who will aid the journey.
-Scene 9. Finding allies - The fox meets friends who will help on the quest
-Scene 10. Team building - The group learns to work together through trials
-6. Approach to the Ordeal (Scenes 11–12)
-The fox prepares for the greatest challenge of the journey.
-Scene 11. Planning the approach - Strategy and preparation for the final challenge
-Scene 12. Gathering courage - The fox overcomes fears and doubts
-7. The Ordeal (Scenes 13–15)
-The fox faces the greatest fear or most difficult challenge of the journey.
-Scene 13. Entering the ordeal - The fox confronts the ultimate challenge
-Scene 14. Darkest moment - The fox appears to fail or face defeat
-Scene 15. Death and rebirth - The fox finds inner strength and overcomes
-8. Reward and Return (Scenes 16–19)
-The fox gains wisdom and begins the journey home, facing final tests.
-Scene 16. Seizing the reward - The fox gains what was sought
-Scene 17. The road back - Beginning the return journey with new wisdom
-Scene 18. Resurrection - Final test that proves the fox's transformation
-Scene 19. Master of two worlds - The fox demonstrates new abilities
-9. Return with Elixir (Scene 20)
-The fox returns home transformed, bringing wisdom to benefit others.
-Scene 20. Sharing the gift - The fox uses their new wisdom to help their community""",
+1-2: Ordinary World - Normal life, challenges.
+3-4: Call to Adventure - Disruption, hesitation.
+5-6: Mentor - Meets guide, receives aid.
+7-8: Threshold - Departs, first obstacles.
+9-10: Tests/Allies - Meets friends, team builds.
+11-12: Approach - Plans, gathers courage.
+13-15: Ordeal - Confronts, darkest moment, overcomes.
+16-19: Reward/Return - Gains reward, road back, resurrection, master of worlds.
+Scene20: Returns with elixir to help community.""",
 
         "Coming of Age": """
 Story Structure (20 Scenes) - COMING OF AGE
-1. Childhood Innocence (Scenes 1–3)
-The young red fox lives in a simple world without understanding of complexity.
-Scene 1. Innocent play - The young fox enjoys simple pleasures and games
-Scene 2. Protected world - The fox is sheltered from harsh realities
-Scene 3. Naive perspective - The fox has simple, black-and-white views of the world
-2. First Awakening (Scenes 4–5)
-Something happens that begins to shatter the fox's innocent worldview.
-Scene 4. First loss - The fox experiences loss, disappointment, or unfairness
-Scene 5. Confusion - The fox struggles to understand this new complexity
-3. Seeking Understanding (Scenes 6–7)
-The fox begins to question and explore, seeking answers to new questions.
-Scene 6. Asking questions - The fox seeks answers from adults or mentors
-Scene 7. First independence - The fox tries to figure things out alone
-4. Making Mistakes (Scenes 8–9)
-The fox makes errors in judgment as they learn about consequences.
-Scene 8. Poor decision - The fox makes a choice based on inexperience
-Scene 9. Facing consequences - The fox learns that actions have real results
-5. Finding Identity (Scenes 10–11)
-The fox begins to discover who they are apart from family expectations.
-Scene 10. Self-discovery - The fox finds their own interests and values
-Scene 11. Standing apart - The fox begins to assert their individual identity
-6. Testing Relationships (Scenes 12–13)
-The fox learns about friendship, loyalty, and the complexity of relationships.
-Scene 12. Friendship tested - A relationship faces challenges and disagreement
-Scene 13. Learning loyalty - The fox learns the true meaning of friendship
-7. Major Challenge (Scenes 14–16)
-The fox faces a significant test that requires adult-like responsibility.
-Scene 14. The challenge appears - A situation requiring maturity and courage
-Scene 15. Rising to meet it - The fox attempts to handle the situation
-Scene 16. Growth through struggle - The fox perseveres despite difficulties
-8. Wisdom Gained (Scenes 17–18)
-The fox demonstrates newfound maturity and understanding.
-Scene 17. Wise decision - The fox makes a choice showing real growth
-Scene 18. Helping others - The fox uses their experience to help someone else
-9. New Maturity (Scenes 19–20)
-The fox has grown up and gained the wisdom of experience.
-Scene 19. Acceptance of complexity - The fox understands that life has gray areas
-Scene 20. Mature fox - The fox has grown up, ready for adult responsibilities"""
+1-3: Childhood - Innocent play, protected, naive views.
+4-5: Awakening - First loss, confusion.
+6-7: Seeking - Questions, independence.
+8-9: Mistakes - Poor decision, consequences.
+10-11: Identity - Self-discovery, asserts self.
+12-13: Relationships - Friendship tested, learns loyalty.
+14-16: Challenge - Faces test, rises, grows through struggle.
+17-18: Wisdom - Wise choice, helps others.
+19-20: Maturity - Accepts complexity, ready for adulthood.""",
     }
     
     return templates.get(story_type, templates["Power Fantasy"])
@@ -337,43 +227,26 @@ def build_system_prompt(answers):
     story_structure = get_story_structure_template(story_type)
     
     prompt = f"""
-You are a creative assistant that generates emotionally-driven {story_type} stories starring a red fox. These stories are told entirely through images only — with no dialogue, narration, or text.
+You are a creative assistant that generates emotionally-driven {story_type} stories starring a red fox. Stories told through images only — no dialogue/text.
 
-CRITICAL REQUIREMENT: Each story must be exactly 20 scenes, with each scene being a self-contained visual moment. You must provide all 20 scenes numbered Scene1, Scene2, Scene3, ... Scene20 in your JSON response. Do not skip any scene numbers.
+CRITICAL: Exactly 20 scenes, numbered Scene1 to Scene20 in JSON. Do not skip numbers.
 
 {story_structure}
 
-Scene Rules
-One single action per scene.
- Never show multiple actions in one scene. For example: if the red fox builds wings, that is one scene. If he tests them, that is a separate scene.
-
-
-No names.
- Always refer to the protagonist only as “the red fox.” No other characters should be named either.
-
-
-No dialogue or narration.
- All storytelling must be conveyed through visuals only — body language, props, expression, setting, light, color, etc.
-
-
-Each scene must be visually distinct.
- Do not chain or transition between scenes. Each is its own visual beat, like a comic panel or animated shot.
-
-
-Use exaggerated and symbolic visuals.
- Think glowing blueprints, spark-filled workshops, massive bullies, oversized tools, etc.
-
-
-Keep the arc tight and emotional.
- Every story must follow one red fox, from weakness to power to growth — no B-stories, no diversions.
-
+Rules:
+- One action per scene. No multiple actions.
+- Refer to protagonist as “the red fox.” No names.
+- Visual storytelling only: body language, props, expression, setting, etc.
+- Each scene visually distinct, like comic panels.
+- Exaggerated/symbolic visuals (glowing items, massive elements).
+- Tight emotional arc: weakness to power/growth, no subplots.
 """
     # Fill in placeholders based on answers
     if answers['humiliation_type'].lower() == 'a':
-        prompt = prompt.replace("The Red Fox is humiliated in some way he is either rejected by a pretty and wealthy girl fox, or he is laughed at by a group of another type of animal While he stands devastated.", answers['humiliation'])
+        prompt = prompt.replace("Red fox is weak, dirty, poor, facing hardships and rejection.", answers['humiliation'])
     else:
-        prompt = prompt.replace("Scene 1. Scene of Humiliation - The Red Fox is humiliated in some way he is either rejected by a pretty and wealthy girl fox, or he is laughed at by a group of another type of animal While he stands devastated.", f"Scene 1. Scene of Offering - the red fox is making an offering to {answers['offering_who']}. Ie. {answers['offering_what']}")
-        prompt = prompt.replace("Scene 2. Scene of Loneliness - A scene that displays his loneliness and poverty", f"Scene 2. Scene of Rejection - {answers['offering_who']} rejects his offering. Ie laughs at him, destroys {answers['offering_what']}, or puts her hand in his face etc.")
+        prompt = prompt.replace("Scene1: Humiliation or Offering to girl fox (e.g., flower).", f"Scene1: Humiliation or Offering to girl fox (e.g., {answers['offering_what']}).")
+        prompt = prompt.replace("Scene2: Loneliness or Rejection of offering.", f"Scene2: Loneliness or Rejection of offering.")
 
     prompt = prompt.replace("a blueprint, or he meets a master who trains him, or he finds some ancient magical relic with a great power", answers['find'])
     if answers['do_with_find'].lower() == 'a':
@@ -387,7 +260,7 @@ Keep the arc tight and emotional.
     return prompt
 
 def generate_story(system_prompt):
-    max_retries = 2
+    max_retries = 1  # Reduced from 2 to minimize token usage
     for attempt in range(max_retries):
         try:
             print(f"=== STORY GENERATION ATTEMPT {attempt + 1}/{max_retries} ===")
@@ -444,7 +317,8 @@ def generate_story(system_prompt):
         except Exception as e:
             print(f"Error on attempt {attempt + 1}: {str(e)}")
             if attempt < max_retries - 1:
-                print(f"Retrying... (attempt {attempt + 1}/{max_retries})")
+                time.sleep(30)  # Add delay before retry
+                print(f"Retrying after 30s... (attempt {attempt + 1}/{max_retries})")
                 continue
             else:
                 print("Max retries exceeded, falling back to placeholder scenes")
@@ -465,15 +339,15 @@ def edit_scenes(scenes):
 def create_prompts(scenes):
     logger.info(f"Creating visual prompts for {len(scenes)} scenes")
     system = """
-# Overview 
-You are a creative assistant that helps generate engaging content for a child series of a red panda that saves some sort of cute animal from some sort of predator or tragic situation. These are visual stories that are told in images and have no dialogue. Your job is to receive a series of 20 scenes  turn the scenes into a series of visual kling image prompts of the first frame of each scene. These prompts should be visual descriptions that describe each aspect of the image in a very detailed and precise way.Only output the prompts with no explanation or commentary. 
+You are a creative assistant generating visual prompts for red fox stories told in images (no dialogue).
 
-#Rules
-1.Be hyper-detailed in your description
-2.Make sure that all characters have serious or sad expressions before the victim gets saved.
-3.Make sure the characters have happy expressions after they are saved.
-3.Make sure the animals are not wearing any clothes
-4.Do not prompt for midair or jumping characters unless they are flying characters
+Job: Turn 20 scenes into detailed visual image prompts. Output only prompts as JSON with keys Prompt1 to Prompt20.
+
+Rules:
+1. Hyper-detailed descriptions.
+2. Serious/sad expressions before transformation; happy after.
+3. No clothes on animals.
+4. No midair/jumping unless flying.
 """.replace("red panda", "red fox").replace("victim", "fox").replace("saved", "transformed")  # Adjust for new theme
     
     logger.info(f"Calling OpenAI for prompt refinement: {str(scenes)[:50]}...")
@@ -494,22 +368,19 @@ You are a creative assistant that helps generate engaging content for a child se
 def standardize_prompts(prompts):
     logger.info(f"Standardizing {len(prompts)} visual prompts")
     system = """
-You are a creative assistant that helps generate engaging content for a child series of a red panda that saves some sort of cute animal from some sort of predator or tragic situation. These are visual stories that are told in images and have no dialogue. Your job is to receive a series of 20 prompts and add a starting description to the beginning of the prompt and a character description every time a character (person, animal) is mentioned
+You are a creative assistant standardizing visual prompts for red fox stories.
 
-#ArtStyle
-Make sure the art style for each prompt starts with this description: Stylized, cinematic 3D animation with a soft, high-resolution render similar to modern feature films. Materials are physically accurate with subtle texture — plush fur, are highly detailed yet slightly softened for a toy-like finish. Lighting is warm and naturalistic, with golden hour tones and soft shadows that enhance depth and realism. The overall composition balances realism and whimsy, avoiding harsh contrasts for a friendly, vibrant visual tone.
+Job: Add art style to start of each of 20 prompts and character descriptions every time mentioned. Output JSON with keys Prompt1 to Prompt20.
 
-And make sure all of the characters are described in this style each time:
-Wholesome and animated with childlike wonder and charm. Features are rounded and expressive, with large, bright eyes and an exaggerated facial structure that emphasizes cuteness and emotional connection. The character design evokes a sense of innocence, curiosity, and adventure — like a beloved sidekick from a heartfelt animated film.
+ArtStyle: Stylized, cinematic 3D animation with soft, high-res render like modern films. Physically accurate materials with subtle texture, plush fur detailed yet toy-like. Warm naturalistic lighting, golden hour tones, soft shadows. Balances realism and whimsy, friendly vibrant tone.
 
-#Rules
-1.Make sure the artstyle and description of the characters and setting are explained in the same way repeatedly for every prompt
-2.Make sure every prompt has a description for each character
-3.Use the art style descriptions above in every single prompt
-4.Dont say “same art style and character description. Actually describe it for every single prompt
-5. Do not remove anything from prompt given to you, output the same text with only the picture and character descriptions added
-""".replace("red panda", "red fox").replace("20", "20")  # Adjust
-    
+Character Description: Wholesome, animated with childlike wonder. Rounded expressive features, large bright eyes, exaggerated cute structure. Evokes innocence, curiosity, adventure like animated film sidekick.
+
+Rules:
+1. Repeat exact artstyle/character descriptions in EVERY prompt.
+2. Describe EVERY character mention.
+3. Do not remove original prompt text.
+"""
     logger.info(f"Standardizing prompt: {str(prompts)[:50]}...")
     try:
         response = openai_client.chat.completions.create(
