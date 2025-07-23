@@ -8,8 +8,12 @@ import threading
 import time
 import os
 import logging
+from dotenv import load_dotenv
 # import multiprocessing  # Replaced with threading for SSE memory sharing
 from Animalchannel import process_story_generation, process_story_generation_with_scenes, process_video
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging with proper formatting
 logging.basicConfig(
